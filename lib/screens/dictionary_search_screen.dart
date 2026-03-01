@@ -93,6 +93,9 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
         results = await _supabaseService.searchAll(query, limit: 50);
       }
 
+      // Sort by relevance
+      results = _sortByRelevance(results, query.toLowerCase());
+
       print('✅ Found ${results.length} results');
 
       setState(() {
@@ -113,6 +116,54 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  /// Sort results by relevance
+  List<DictionaryEntry> _sortByRelevance(
+      List<DictionaryEntry> results, String query) {
+    // Calculate relevance score for each result
+    final List<MapEntry<DictionaryEntry, int>> scoredResults = [];
+
+    for (final entry in results) {
+      final termLower = entry.term.toLowerCase();
+      int score = 0;
+
+      // Exact match: highest priority
+      if (termLower == query) {
+        score = 10000;
+      }
+      // Starts with query (and is single word)
+      else if (termLower.startsWith(query) && !termLower.contains(' ')) {
+        // Bonus for shorter words starting with query
+        score = 5000 + (1000 - termLower.length);
+      }
+      // Starts with query (multi-word)
+      else if (termLower.startsWith(query)) {
+        score = 3000;
+      }
+      // Contains query (single word)
+      else if (termLower.contains(query) && !termLower.contains(' ')) {
+        score = 500 + (100 - termLower.length);
+      }
+      // Contains query (multi-word)
+      else if (termLower.contains(query)) {
+        score = 100;
+      }
+
+      scoredResults.add(MapEntry(entry, score));
+    }
+
+    // Sort by score (descending), then by term length (ascending)
+    scoredResults.sort((a, b) {
+      final scoreCompare = b.value.compareTo(a.value);
+      if (scoreCompare != 0) return scoreCompare;
+      // If scores are equal, shorter terms come first
+      return a.key.term.length.compareTo(b.key.term.length);
+    });
+
+    print('🔍 Sort scores: ${scoredResults.map((e) => '${e.key.term}=${e.value}').join(', ')}');
+
+    return scoredResults.map((e) => e.key).toList();
   }
 
   Future<void> _toggleFavorite(DictionaryEntry entry) async {

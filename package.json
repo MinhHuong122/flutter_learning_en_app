@@ -1,5 +1,5 @@
 {
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1"
-  }
+  "name": "flutter-learning-en-app",
+  "version": "1.0.0",
+  "dependencies": {}
 }

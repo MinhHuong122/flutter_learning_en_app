@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'dart:convert';
 import '../utils/constants.dart';
 import '../services/language_service.dart';
 
@@ -121,17 +123,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       String? avatarUrl = _avatarUrl;
 
-      // Upload image if selected
+      // Upload image to Cloudinary if selected
       if (_selectedImage != null) {
-        final fileName = 'avatar_${user.id}_${DateTime.now().millisecondsSinceEpoch}.png';
-        
-        await Supabase.instance.client.storage
-            .from('profiles')
-            .upload(fileName, _selectedImage!);
-        
-        avatarUrl = Supabase.instance.client.storage
-            .from('profiles')
-            .getPublicUrl(fileName);
+        avatarUrl = await _uploadToCloudinary(_selectedImage!);
+        if (avatarUrl == null) {
+          throw Exception('Failed to upload image to Cloudinary');
+        }
       }
 
       // Update profile in Supabase
@@ -176,6 +173,70 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             );
       }
+    }
+  }
+
+  /// Upload image to Cloudinary
+  Future<String?> _uploadToCloudinary(File imageFile) async {
+    try {
+      const String cloudName = 'dssazeaz6';
+      const String uploadPreset = 'app_learn_english'; // Enable unsigned uploads in Cloudinary
+      const String apiKey = '947191796387813';
+      
+      final uri = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$cloudName/image/upload',
+      );
+
+      var request = http.MultipartRequest('POST', uri);
+      
+      // Add file
+      request.files.add(
+        await http.MultipartFile.fromPath('file', imageFile.path),
+      );
+      
+      // Add upload preset (for unsigned upload)
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['api_key'] = apiKey;
+      
+      // Add public ID for easy reference
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      request.fields['public_id'] = 'pupu_avatar_${timestamp}';
+
+      print('📤 Uploading to Cloudinary...');
+      
+      var response = await request.send();
+      final responseData = await response.stream.toBytes();
+      final responseString = String.fromCharCodes(responseData);
+      
+      print('Response status: ${response.statusCode}');
+      print('Response: $responseString');
+
+      if (response.statusCode == 200) {
+        // Parse JSON response
+        final Map<String, dynamic> jsonResponse = 
+            _parseJsonResponse(responseString);
+        
+        final String imageUrl = jsonResponse['secure_url'] ?? jsonResponse['url'];
+        print('✅ Image uploaded: $imageUrl');
+        return imageUrl;
+      } else {
+        print('❌ Upload failed: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Cloudinary upload error: $e');
+      return null;
+    }
+  }
+
+  /// Parse JSON response from Cloudinary
+  Map<String, dynamic> _parseJsonResponse(String jsonString) {
+    try {
+      final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+      return jsonMap;
+    } catch (e) {
+      print('Error parsing JSON: $e');
+      return {};
     }
   }
 

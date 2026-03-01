@@ -225,10 +225,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         headers: {
           'Content-Type': 'application/json',
         },
-body: jsonEncode({
-  'message': userMessage,
-  'systemPrompt': 'You are PUPU AI, a virtual English learning assistant for Vietnamese users. Your main tasks are:\n1. Help users improve their English skills\n2. Correct grammar and word usage mistakes when users make them\n3. Provide clear explanations and helpful feedback\n4. Suggest better ways to express ideas\n5. Explain vocabulary, grammar rules, and pronunciation when asked\n6. Be encouraging and supportive\n7. Ask follow-up questions to help users learn better\n\nAlways be friendly, patient, and focus on helping users learn English effectively. Respond naturally in English.',
-}),
+        body: jsonEncode({
+          'message': userMessage,
+          'systemPrompt': 'You are PUPU AI, a virtual English learning assistant for Vietnamese users. Your main tasks are:\n1. Help users improve their English skills\n2. Correct grammar and word usage mistakes when users make them\n3. Provide clear explanations and helpful feedback\n4. Suggest better ways to express ideas\n5. Explain vocabulary, grammar rules, and pronunciation when asked\n6. Be encouraging and supportive\n7. Ask follow-up questions to help users learn better\n\nIMPORTANT: Always respond in EXACTLY this JSON format (no other text):\n{\n  "english": "Your response in English",\n  "vietnamese": "Your response in Vietnamese translation"
+}\n\nAlways be friendly, patient, and focus on helping users learn English effectively.',
+        }),
       ).timeout(
         const Duration(seconds: 30),
         onTimeout: () {
@@ -240,22 +241,35 @@ body: jsonEncode({
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        String apiResponse = responseData['response'] ?? 'Unable to get response';
+        String apiResponse = responseData['response'] ?? '{"english": "Unable to get response", "vietnamese": "Không thể nhận được phản hồi"}';
 
-        // Clean the response
-        String aiResponseEn = _cleanMarkdown(apiResponse);
-        
-        // Translate to Vietnamese
-        String aiResponseVi = await _translateToVietnamese(aiResponseEn);
-        
-        print('✅ AI Response (EN): $aiResponseEn');
-        print('✅ AI Response (VI): $aiResponseVi');
+        try {
+          // Parse JSON response containing both English and Vietnamese
+          final jsonResponse = jsonDecode(apiResponse);
+          String aiResponseEn = jsonResponse['english'] ?? 'Unable to get response';
+          String aiResponseVi = jsonResponse['vietnamese'] ?? 'Không thể nhận được phản hồi';
 
-        if (mounted) {
-          setState(() {
-            _addMessage(aiResponseEn, aiResponseVi, isUser: false);
-            _isTyping = false;
-          });
+          aiResponseEn = _cleanMarkdown(aiResponseEn);
+          aiResponseVi = _cleanMarkdown(aiResponseVi);
+          
+          print('✅ AI Response (EN): $aiResponseEn');
+          print('✅ AI Response (VI): $aiResponseVi');
+
+          if (mounted) {
+            setState(() {
+              _addMessage(aiResponseEn, aiResponseVi, isUser: false);
+              _isTyping = false;
+            });
+          }
+        } catch (e) {
+          print('Error parsing AI response: $e');
+          // Fallback to treating entire response as English
+          if (mounted) {
+            setState(() {
+              _addMessage(apiResponse, apiResponse, isUser: false);
+              _isTyping = false;
+            });
+          }
         }
       } else if (response.statusCode == 429) {
         print('⚠️ Rate Limited: ${response.statusCode}');
@@ -1139,25 +1153,5 @@ body: jsonEncode({
         ),
       ),
     );
-  }
-
-  Future<String> _translateToVietnamese(String text) async {
-    if (text.isEmpty) return text;
-    try {
-      final encoded = Uri.encodeComponent(text);
-      final url = Uri.parse(
-        'https://api.mymemory.translated.net/get?q=' + encoded + '&langpair=en|vi'
-      );
-      final response = await http.get(url).timeout(const Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['responseStatus'] == 200) {
-          return data['responseData']['translatedText'] as String;
-        }
-      }
-    } catch (e) {
-      print('Translation error: ' + e.toString());
-    }
-    return text;
   }
 }

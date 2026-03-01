@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../utils/constants.dart';
+import '../services/language_service.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -19,7 +21,7 @@ class CustomBottomNav extends StatelessWidget {
       'progress': 'Tiến độ',
       'ai': 'Pupu AI',
       'archive': 'Lưu trữ',
-      'profile': 'Profile',
+      'profile': 'Cá nhân',
     },
     'en': {
       'home': 'Home',
@@ -31,13 +33,16 @@ class CustomBottomNav extends StatelessWidget {
   };
 
   String _getLabel(String key, BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    final labels = _labels[locale] ?? _labels['en']!;
+    final isEnglish = context.read<LanguageService>().isEnglish;
+    final labels = _labels[isEnglish ? 'en' : 'vi']!;
     return labels[key] ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch for language changes
+    context.watch<LanguageService>();
+    
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       child: BackdropFilter(

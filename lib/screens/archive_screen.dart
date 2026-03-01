@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
+import 'favorites_screen.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({Key? key}) : super(key: key);
@@ -239,7 +240,14 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                 subtitle: _isEnglish ? 'Saved items' : 'Mục đã lưu',
                                 iconBgColor: const Color(0xFFF3E8FF),
                                 iconColor: const Color(0xFFA855F7),
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const FavoritesScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                               _buildActionCard(
                                 icon: Icons.groups,

@@ -24,6 +24,7 @@ class _AccountScreenState extends State<AccountScreen> {
   int _currentIndex = 4;
   String _userName = 'User';
   String _userBio = '';
+  String? _avatarUrl;
   int _courses = 0;
   int _certificates = 0;
   int _hours = 0;
@@ -41,7 +42,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
       final response = await Supabase.instance.client
           .from('profiles')
-          .select('display_name, username, bio')
+          .select('display_name, username, bio, avatar_url')
           .eq('id', user.id)
           .single();
 
@@ -49,6 +50,7 @@ class _AccountScreenState extends State<AccountScreen> {
         setState(() {
           _userName = response['display_name'] ?? response['username'] ?? 'User';
           _userBio = response['bio'] ?? 'No bio yet';
+          _avatarUrl = response['avatar_url'];
           // Mock data - you can update these from database later
           _courses = 12;
           _certificates = 5;
@@ -165,11 +167,37 @@ class _AccountScreenState extends State<AccountScreen> {
                                   ],
                                   color: const Color(0xFFEFF6FF),
                                 ),
-                                child: const Icon(
-                                  Icons.person,
-                                  size: 56,
-                                  color: AppColors.primaryColor,
-                                ),
+                                child: _avatarUrl != null && _avatarUrl!.isNotEmpty
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(56),
+                                        child: Image.network(
+                                          _avatarUrl!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              Icons.person,
+                                              size: 56,
+                                              color: AppColors.primaryColor,
+                                            );
+                                          },
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress.expectedTotalBytes != null
+                                                    ? loadingProgress.cumulativeBytesLoaded /
+                                                        loadingProgress.expectedTotalBytes!
+                                                    : null,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.person,
+                                        size: 56,
+                                        color: AppColors.primaryColor,
+                                      ),
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -178,7 +206,10 @@ class _AccountScreenState extends State<AccountScreen> {
                                     MaterialPageRoute(
                                       builder: (_) => const EditProfileScreen(),
                                     ),
-                                  );
+                                  ).then((_) {
+                                    // Reload user data when returning from edit screen
+                                    _loadUserData();
+                                  });
                                 },
                                 child: Container(
                                   width: 40,

@@ -33,9 +33,8 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  // Update this to your Vercel deployment URL
   static const String _vercelApiUrl =
-      'https://your-vercel-project.vercel.app/api/chat'; // Replace with your Vercel URL
+      'https://flutter-learning-en-app.vercel.app/api/chat';
   
   int _currentIndex = 2;
   final TextEditingController _messageController = TextEditingController();

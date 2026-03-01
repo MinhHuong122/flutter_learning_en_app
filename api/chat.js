@@ -14,12 +14,15 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "API key not configured" });
     }
 
-    // Try v1 endpoint with gemini-2.0-flash
+    // Use endpoint that works with API keys
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-goog-api-key": apiKey,
+        },
         body: JSON.stringify({
           contents: [
             {

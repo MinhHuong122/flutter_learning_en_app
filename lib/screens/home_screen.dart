@@ -4,13 +4,17 @@ import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import 'package:provider/provider.dart';
 import '../services/language_service.dart';
+import '../services/lesson_service.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'archive_screen.dart';
 import 'account_screen.dart';
 import 'notifications_screen.dart';
 import 'dictionary_search_screen.dart';
+import 'lessons_screen.dart';
+import 'lesson_detail_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/lesson_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,6 +26,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _userName = 'User';
+  String _selectedFilter = 'all'; // 'all', 'popular', 'newest', 'advance'
 
   @override
   void initState() {
@@ -349,13 +354,36 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _getLabel('courses'),
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1F2937),
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _getLabel('courses'),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1F2937),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const LessonsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  _isEnglish ? 'View All' : 'Xem tất cả',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           // Filter buttons grid
@@ -371,25 +399,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'all',
                                 _getLabel('all_topic'),
                                 Icons.local_fire_department,
-                                true,
+                                _selectedFilter == 'all',
                               ),
                               _buildFilterButton(
                                 'popular',
                                 _getLabel('popular'),
                                 Icons.bolt,
-                                false,
+                                _selectedFilter == 'popular',
                               ),
                               _buildFilterButton(
                                 'newest',
                                 _getLabel('newest'),
                                 Icons.star,
-                                false,
+                                _selectedFilter == 'newest',
                               ),
                               _buildFilterButton(
                                 'advance',
                                 _getLabel('advance'),
                                 Icons.bookmark,
-                                false,
+                                _selectedFilter == 'advance',
                               ),
                             ],
                           ),
@@ -399,38 +427,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     const SizedBox(height: 24),
 
-                    // Course cards horizontal scroll
-                    SizedBox(
-                      height: 380,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        children: [
-                          _buildCourseCard(
-                            title: _isEnglish ? 'Digital Design' : 'Thiết kế Kỹ thuật số',
-                            category: _isEnglish ? 'Design' : 'Thiết kế',
-                            creator: 'Courson Agency',
-                            files: 17,
-                            duration: '40 min',
-                            gradient: [
-                              const Color(0xFF4FB5FF),
-                              const Color(0xFF6DD5FA),
-                            ],
+                    // Course cards horizontal scroll (Dynamic Lessons)
+                    FutureBuilder<List<Lesson>>(
+                      future: _getFilteredLessons(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const SizedBox(
+                            height: 380,
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return SizedBox(
+                            height: 380,
+                            child: Center(
+                              child: Text(
+                                _isEnglish ? 'No courses available' : 'Không có khóa học nào',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Color(0xFF9CA3AF),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        final lessons = snapshot.data!;
+
+                        return SizedBox(
+                          height: 380,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            itemCount: lessons.length,
+                            itemBuilder: (context, index) {
+                              final lesson = lessons[index];
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  right: index < lessons.length - 1 ? 16 : 0,
+                                ),
+                                child: _buildCourseCardFromLesson(lesson),
+                              );
+                            },
                           ),
-                          const SizedBox(width: 16),
-                          _buildCourseCard(
-                            title: _isEnglish ? 'Web Development' : 'Phát triển Web',
-                            category: _isEnglish ? 'Coding' : 'Lập trình',
-                            creator: 'Udemy',
-                            files: 20,
-                            duration: '50 min',
-                            gradient: [
-                              const Color(0xFFFFB75E),
-                              const Color(0xFFED8F03),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 40),
@@ -448,6 +492,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<List<Lesson>> _getFilteredLessons() async {
+    List<Lesson> lessons = await LessonService().getAllLessons();
+
+    if (_selectedFilter == 'popular') {
+      // Sort by total questions (more questions = more popular)
+      lessons.sort((a, b) => (b.totalQuestions ?? 0).compareTo(a.totalQuestions ?? 0));
+    } else if (_selectedFilter == 'newest') {
+      // Already sorted by created_at in descending order from service
+      // No additional sorting needed
+    } else if (_selectedFilter == 'advance') {
+      // Filter only advanced lessons
+      lessons = lessons.where((l) => l.level == 'advanced').toList();
+    }
+
+    return lessons;
+  }
+
   Widget _buildFilterButton(
     String id,
     String label,
@@ -456,8 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     return GestureDetector(
       onTap: () {
-        // Filter functionality to be implemented
-        // setState(() => _selectedFilter = id);
+        setState(() => _selectedFilter = id);
       },
       child: Container(
         decoration: BoxDecoration(
@@ -525,105 +585,184 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildCourseCard({
-    required String title,
-    required String category,
-    required String creator,
-    required int files,
-    required String duration,
-    required List<Color> gradient,
-  }) {
-    return Container(
-      width: 280,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: gradient,
-        ),
-        borderRadius: BorderRadius.circular(40),
-        boxShadow: [
-          BoxShadow(
-            color: gradient[0].withOpacity(0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+  Widget _buildCourseCardFromLesson(Lesson lesson) {
+    final gradient = _getLessonGradient(lesson.lessonType);
+    final categoryLabel = _getLessonTypeLabel(lesson.lessonType);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LessonDetailScreen(lesson: lesson),
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  category,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+        );
+      },
+      child: Container(
+        width: 280,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: gradient,
+          ),
+          borderRadius: BorderRadius.circular(40),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withOpacity(0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    categoryLabel,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    lesson.level.toUpperCase(),
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withOpacity(0.1),
               ),
-              const Icon(
-                Icons.more_horiz,
+              child: Center(
+                child: Icon(
+                  _getLessonIcon(lesson.lessonType),
+                  color: Colors.white.withOpacity(0.7),
+                  size: 48,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              lesson.title,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              lesson.description,
+              style: GoogleFonts.poppins(
                 color: Colors.white70,
-                size: 20,
+                fontSize: 12,
               ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Container(
-            height: 100,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: Colors.white.withOpacity(0.1),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            child: const Icon(
-              Icons.image,
-              color: Colors.white30,
-              size: 48,
+            const Spacer(),
+            Row(
+              children: [
+                _buildCourseInfo(Icons.help_outline, '${lesson.totalQuestions ?? 0}Q'),
+                const SizedBox(width: 12),
+                _buildCourseInfo(Icons.schedule, '${lesson.durationMinutes ?? 5} min'),
+              ],
             ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create by $creator',
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 12,
-            ),
-          ),
-          const Spacer(),
-          Row(
-            children: [
-              _buildCourseInfo(Icons.description, '$files Files'),
-              const SizedBox(width: 12),
-              _buildCourseInfo(Icons.schedule, duration),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  List<Color> _getLessonGradient(String lessonType) {
+    switch (lessonType) {
+      case 'multiple_choice':
+        return [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)]; // Blue sáng
+      case 'listening':
+        return [const Color(0xFFA78BFA), const Color(0xFFC4B5FD)]; // Purple sáng
+      case 'matching':
+        return [const Color(0xFF34D399), const Color(0xFF6EE7B7)]; // Green sáng
+      case 'fill_blank':
+        return [const Color(0xFFFFB75E), const Color(0xFFED8F03)]; // Orange sáng
+      case 'conversation':
+        return [const Color(0xFFF472B6), const Color(0xFFFBBF24)]; // Pink-Yellow sáng
+      case 'repeat':
+        return [const Color(0xFF22D3EE), const Color(0xFF67E8F9)]; // Cyan sáng
+      default:
+        return [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)];
+    }
+  }
+
+  String _getLessonTypeLabel(String lessonType) {
+    final labels = _isEnglish
+        ? {
+            'multiple_choice': 'Multiple Choice',
+            'listening': 'Listening',
+            'matching': 'Matching',
+            'fill_blank': 'Fill Blanks',
+            'conversation': 'Conversation',
+            'repeat': 'Repeat',
+          }
+        : {
+            'multiple_choice': 'Trắc nghiệm',
+            'listening': 'Nghe',
+            'matching': 'Nối cặp',
+            'fill_blank': 'Điền chỗ trống',
+            'conversation': 'Hội thoại',
+            'repeat': 'Lặp lại',
+          };
+    return labels[lessonType] ?? lessonType;
+  }
+
+  IconData _getLessonIcon(String lessonType) {
+    switch (lessonType) {
+      case 'multiple_choice':
+        return Icons.quiz;
+      case 'listening':
+        return Icons.headphones;
+      case 'matching':
+        return Icons.line_style;
+      case 'fill_blank':
+        return Icons.edit;
+      case 'conversation':
+        return Icons.chat_bubble;
+      case 'repeat':
+        return Icons.record_voice_over;
+      default:
+        return Icons.school;
+    }
   }
 
   Widget _buildCourseInfo(IconData icon, String label) {

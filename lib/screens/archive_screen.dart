@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pupu/screens/create_lesson_screen.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
@@ -9,6 +10,7 @@ import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
 import 'favorites_screen.dart';
+import 'my_lessons_screen.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({Key? key}) : super(key: key);
@@ -224,7 +226,15 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                 subtitle: _isEnglish ? 'Start new draft' : 'Bắt đầu nháp mới',
                                 iconBgColor: const Color(0xFFEFF6FF),
                                 iconColor: const Color(0xFF3B82F6),
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const MyLessonsScreen(),
+                                      settings: const RouteSettings(name: '/my_lessons'),
+                                    ),
+                                  );
+                                },
                               ),
                               _buildActionCard(
                                 icon: Icons.history,

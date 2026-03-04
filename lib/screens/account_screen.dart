@@ -5,6 +5,7 @@ import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_center_service.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
@@ -951,11 +952,17 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  void _showNotificationsDialog() {
-    bool pushNotifications = true;
-    bool emailNotifications = false;
-    bool courseUpdates = true;
-    bool newMessages = true;
+  void _showNotificationsDialog() async {
+    final notificationService = NotificationCenterService();
+    final settings = await notificationService.loadSettings();
+
+    if (!mounted) return;
+
+    bool studyReminder = settings.studyReminderEnabled;
+    bool newLessonUpdates = settings.newLessonEnabled;
+    bool discountOffers = settings.discountEnabled;
+    int reminderHour = settings.reminderHour;
+    int reminderMinute = settings.reminderMinute;
 
     showDialog(
       context: context,
@@ -1000,49 +1007,102 @@ class _AccountScreenState extends State<AccountScreen> {
 
                 // Push Notifications
                 _buildNotificationItem(
-                  title: _isEnglish ? 'Push Notifications' : 'Thông báo đẩy',
-                  description: _isEnglish ? 'Device alerts' : 'Cảnh báo thiết bị',
+                  title: _isEnglish ? 'Study Reminder' : 'Nhắc học hệ thống',
+                  description: _isEnglish
+                      ? 'Send daily reminder at selected time'
+                      : 'Nhắc học hằng ngày theo giờ đã chọn',
                   icon: Icons.notifications,
                   iconBgColor: const Color(0xFFEFF6FF),
                   iconColor: AppColors.primaryColor,
-                  value: pushNotifications,
-                  onChanged: (value) => setState(() => pushNotifications = value),
+                  value: studyReminder,
+                  onChanged: (value) => setState(() => studyReminder = value),
                 ),
-                const SizedBox(height: 16),
 
-                // Email Notifications
-                _buildNotificationItem(
-                  title: _isEnglish ? 'Email Notifications' : 'Thông báo qua email',
-                  description: _isEnglish ? 'Newsletters & Promos' : 'Bản tin & Khuyến mại',
-                  icon: Icons.mail_outline,
-                  iconBgColor: const Color(0xFFFFF5E6),
-                  iconColor: const Color(0xFFF97316),
-                  value: emailNotifications,
-                  onChanged: (value) => setState(() => emailNotifications = value),
-                ),
+                if (studyReminder)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Material(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(16),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () async {
+                          final picked = await showTimePicker(
+                            context: context,
+                            initialTime:
+                                TimeOfDay(hour: reminderHour, minute: reminderMinute),
+                          );
+                          if (picked != null) {
+                            setState(() {
+                              reminderHour = picked.hour;
+                              reminderMinute = picked.minute;
+                            });
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                color: Color(0xFF6B7280),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _isEnglish ? 'Reminder time' : 'Giờ nhắc học',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF374151),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                _formatReminderTime(reminderHour, reminderMinute),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 16),
 
                 // Course Updates
                 _buildNotificationItem(
-                  title: _isEnglish ? 'Course Updates' : 'Cập nhật khóa học',
-                  description: _isEnglish ? 'Learning progress' : 'Tiến độ học tập',
+                  title: _isEnglish ? 'New Lesson Updates' : 'Cập nhật bài học mới',
+                  description: _isEnglish
+                      ? 'Notify when new lessons are published'
+                      : 'Thông báo khi có bài học mới',
                   icon: Icons.menu_book_outlined,
                   iconBgColor: const Color(0xFFF3E8FF),
                   iconColor: const Color(0xFFA855F7),
-                  value: courseUpdates,
-                  onChanged: (value) => setState(() => courseUpdates = value),
+                  value: newLessonUpdates,
+                  onChanged: (value) => setState(() => newLessonUpdates = value),
                 ),
                 const SizedBox(height: 16),
 
                 // New Messages
                 _buildNotificationItem(
-                  title: _isEnglish ? 'New Messages' : 'Tin nhắn mới',
-                  description: _isEnglish ? 'Chat from community' : 'Trò chuyện từ cộng đồng',
-                  icon: Icons.chat_bubble_outline,
+                  title: _isEnglish ? 'Discount Notifications' : 'Thông báo giảm giá',
+                  description: _isEnglish
+                      ? 'Notify available promotions and discounts'
+                      : 'Thông báo ưu đãi và giảm giá học tập',
+                  icon: Icons.local_offer_outlined,
                   iconBgColor: const Color(0xFFF0FDF4),
                   iconColor: const Color(0xFF22C55E),
-                  value: newMessages,
-                  onChanged: (value) => setState(() => newMessages = value),
+                  value: discountOffers,
+                  onChanged: (value) => setState(() => discountOffers = value),
                 ),
 
                 const SizedBox(height: 32),
@@ -1094,7 +1154,19 @@ class _AccountScreenState extends State<AccountScreen> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: () {
+                            onTap: () async {
+                              final newSettings = NotificationSettings(
+                                studyReminderEnabled: studyReminder,
+                                newLessonEnabled: newLessonUpdates,
+                                discountEnabled: discountOffers,
+                                reminderHour: reminderHour,
+                                reminderMinute: reminderMinute,
+                              );
+
+                              await notificationService.saveSettings(newSettings);
+                              await notificationService.syncNotifications();
+
+                              if (!context.mounted) return;
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -1130,6 +1202,12 @@ class _AccountScreenState extends State<AccountScreen> {
         ),
       ),
     );
+  }
+
+  String _formatReminderTime(int hour, int minute) {
+    final h = hour.toString().padLeft(2, '0');
+    final m = minute.toString().padLeft(2, '0');
+    return '$h:$m';
   }
 
   Widget _buildNotificationItem({

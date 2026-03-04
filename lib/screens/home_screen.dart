@@ -493,14 +493,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<Lesson>> _getFilteredLessons() async {
-    List<Lesson> lessons = await LessonService().getAllLessons();
+    List<Lesson> lessons = await LessonService().getParentLessons();
 
     if (_selectedFilter == 'popular') {
-      // Sort by total questions (more questions = more popular)
-      lessons.sort((a, b) => (b.totalQuestions ?? 0).compareTo(a.totalQuestions ?? 0));
+      // Parent lessons: popular = more questions, then newer, then lesson order
+      lessons.sort((a, b) {
+        final questionCompare = (b.totalQuestions ?? 0).compareTo(a.totalQuestions ?? 0);
+        if (questionCompare != 0) return questionCompare;
+
+        final createdA = a.createdAt;
+        final createdB = b.createdAt;
+        if (createdA != null && createdB != null) {
+          final createdCompare = createdB.compareTo(createdA);
+          if (createdCompare != 0) return createdCompare;
+        } else if (createdA == null && createdB != null) {
+          return 1;
+        } else if (createdA != null && createdB == null) {
+          return -1;
+        }
+
+        return a.lessonOrder.compareTo(b.lessonOrder);
+      });
     } else if (_selectedFilter == 'newest') {
-      // Already sorted by created_at in descending order from service
-      // No additional sorting needed
+      // Parent lessons: newest = created_at desc, fallback to lesson order
+      lessons.sort((a, b) {
+        final createdA = a.createdAt;
+        final createdB = b.createdAt;
+        if (createdA != null && createdB != null) {
+          final createdCompare = createdB.compareTo(createdA);
+          if (createdCompare != 0) return createdCompare;
+        } else if (createdA == null && createdB != null) {
+          return 1;
+        } else if (createdA != null && createdB == null) {
+          return -1;
+        }
+
+        return a.lessonOrder.compareTo(b.lessonOrder);
+      });
     } else if (_selectedFilter == 'advance') {
       // Filter only advanced lessons
       lessons = lessons.where((l) => l.level == 'advanced').toList();

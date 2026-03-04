@@ -57,6 +57,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
+  final List<ChatMessage> _chatHistory = [];
   bool _isTyping = false;
   final Map<int, bool> _showTranslation = {}; // Track which messages show translation
 
@@ -76,14 +77,30 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         final loadedMessages = jsonList
             .map((item) => ChatMessage.fromJson(item as Map<String, dynamic>))
             .toList();
+
+        final now = DateTime.now();
+        final todayMessages = loadedMessages
+            .where((msg) => _isSameDate(msg.timestamp, now))
+            .toList();
         
         if (mounted) {
           setState(() {
+            _chatHistory.clear();
+            _chatHistory.addAll(loadedMessages);
             _messages.clear();
-            _messages.addAll(loadedMessages);
+            _messages.addAll(todayMessages);
           });
         }
-        _scrollToBottom();
+
+        if (_messages.isEmpty) {
+          _addMessage(
+            'Welcome to PUPU AI! 👋 I\'m your English learning assistant. I\'ll help you improve your English by correcting your grammar, word usage, and providing helpful explanations. Feel free to chat, ask questions, or practice with me. Let\'s learn together!',
+            'Chào mừng đến với PUPU AI! 👋 Tôi là trợ lý học tiếng Anh ảo cho bạn. Tôi sẽ giúp bạn cải thiện tiếng Anh bằng cách sửa ngữ pháp, cách dùng từ và cung cấp giải thích hữu ích. Cứ thoải mái trò chuyện, đặt câu hỏi hay thực hành cùng tôi. Chúng ta cùng học thôi!',
+            isUser: false,
+          );
+        } else {
+          _scrollToBottom();
+        }
       } else {
         // First time - show welcome message
         _addMessage(
@@ -105,7 +122,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   Future<void> _saveChatHistory() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonList = _messages.map((msg) => msg.toJson()).toList();
+      final jsonList = _chatHistory.map((msg) => msg.toJson()).toList();
       await prefs.setString('chat_history', jsonEncode(jsonList));
       print('✅ Chat history saved');
     } catch (e) {
@@ -123,16 +140,23 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _addMessage(String contentEn, String contentVi, {required bool isUser}) {
+    final newMessage = ChatMessage(
+      text: contentEn,
+      textVi: contentVi,
+      isUser: isUser,
+      timestamp: DateTime.now(),
+    );
+
     setState(() {
-      _messages.add(ChatMessage(
-        text: contentEn,
-        textVi: contentVi,
-        isUser: isUser,
-        timestamp: DateTime.now(),
-      ));
+      _messages.add(newMessage);
+      _chatHistory.add(newMessage);
     });
     _saveChatHistory(); // Save after adding
     _scrollToBottom();
+  }
+
+  bool _isSameDate(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 
   void _scrollToBottom() {
@@ -786,7 +810,7 @@ body: jsonEncode({
     final grouped = <String, List<ChatMessage>>{};
     final now = DateTime.now();
 
-    for (final message in _messages) {
+    for (final message in _chatHistory) {
       final msgDate = DateTime(message.timestamp.year, message.timestamp.month, message.timestamp.day);
       final nowDate = DateTime(now.year, now.month, now.day);
       final difference = nowDate.difference(msgDate).inDays;
@@ -887,7 +911,7 @@ body: jsonEncode({
 
             // Chat history by date list
             Expanded(
-              child: _messages.isEmpty
+              child: _chatHistory.isEmpty
                   ? Center(
                       child: Text(
                         _isEnglish ? 'No chat history' : 'Không có lịch sử',

@@ -23,22 +23,23 @@ class _LessonsScreenState extends State<LessonsScreen> {
   int _currentIndex = 0;
   final LessonService _lessonService = LessonService();
   String _selectedFilter = 'all'; // 'all', 'ongoing', 'completed'
+  Map<String, double> _progressCache = {}; // Cache for calculated progress
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
-  String _getTranslation(String key) {
-    final translations = {
-      'my_courses': _isEnglish ? 'My Courses' : 'Khóa học của tôi',
-      'all': _isEnglish ? 'All' : 'Tất cả',
-      'ongoing': _isEnglish ? 'Ongoing' : 'Đang học',
-      'completed': _isEnglish ? 'Completed' : 'Hoàn thành',
-      'find_course': _isEnglish ? 'Find a course you\nwant to learn !' : 'Tìm khóa học bạn\nmuốn học !',
-      'check_now': _isEnglish ? 'Check Now' : 'Xem ngay',
-      'completed_percent': _isEnglish ? 'Completed' : 'Hoàn thành',
-      'no_lessons': _isEnglish ? 'No courses available' : 'Không có khóa học nào',
-    };
-    return translations[key] ?? key;
-  }
+String _getTranslation(String key) {
+  final translations = {
+    'my_courses': _isEnglish ? 'My Courses' : 'Khóa học của tôi',
+    'all': _isEnglish ? 'All' : 'Tất cả',
+    'ongoing': _isEnglish ? 'Ongoing' : 'Đang học',
+    'completed': _isEnglish ? 'Completed' : 'Hoàn thành',
+    'find_course': _isEnglish ? 'Find a course you want to learn !' : 'Tìm khóa học bạn muốn học !',
+    'check_now': _isEnglish ? 'Check Now' : 'Xem ngay',
+    'completed_percent': _isEnglish ? 'Completed' : 'Hoàn thành',
+    'no_lessons': _isEnglish ? 'No courses available' : 'Không có khóa học nào',
+  };
+  return translations[key] ?? key;
+}
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -340,15 +341,19 @@ class _LessonsScreenState extends State<LessonsScreen> {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
-            children: lessons.map((lesson) => _buildCourseCard(lesson)).toList(),
+            children: lessons
+                .asMap()
+                .entries
+                .map((entry) => _buildCourseCard(entry.value, entry.key))
+                .toList(),
           ),
         );
       },
     );
   }
 
-  Widget _buildCourseCard(Lesson lesson) {
-    final gradient = _getLessonGradientByTitle(lesson.title);
+  Widget _buildCourseCard(Lesson lesson, int index) {
+    final gradient = _getLessonGradientByIndex(index, lesson.title);
     final progress = _calculateProgress(lesson);
 
     return GestureDetector(
@@ -452,31 +457,67 @@ class _LessonsScreenState extends State<LessonsScreen> {
   }
 
   Future<List<Lesson>> _getLessonsFiltered() async {
+    final userId = _lessonService.supabase.auth.currentUser?.id;
+    if (userId == null) return [];
+    
     List<Lesson> lessons = await _lessonService.getParentLessons();
+    
+    // Calculate and cache progress for all lessons
+    _progressCache.clear();
+    for (var lesson in lessons) {
+      final progress = await _calculateRealProgress(lesson, userId);
+      _progressCache[lesson.id] = progress;
+      print('✅ Loaded lesson: ${lesson.title} - Progress: ${progress.toStringAsFixed(1)}%');
+    }
 
     if (_selectedFilter == 'ongoing') {
       // Filter lessons with progress < 100%
       lessons = lessons.where((l) => _calculateProgress(l) < 100 && _calculateProgress(l) > 0).toList();
     } else if (_selectedFilter == 'completed') {
       // Filter lessons with progress == 100%
-      lessons = lessons.where((l) => _calculateProgress(l) >= 100).toList();
+      lessons = lessons.where((l) => _calculateProgress(l) == 100).toList();
     }
 
     return lessons;
   }
 
   double _calculateProgress(Lesson lesson) {
-    // Mock progress calculation - in real app, get from user progress
-    // For demo, using lesson level as indicator
-    switch (lesson.level) {
-      case 'beginner':
-        return 70.0;
-      case 'intermediate':
-        return 35.0;
-      case 'advanced':
-        return 100.0;
-      default:
-        return 0.0;
+    // Return cached progress if available
+    return _progressCache[lesson.id] ?? 0.0;
+  }
+
+  Future<double> _calculateRealProgress(Lesson lesson, String userId) async {
+    try {
+      // Get all sub-lessons for this parent lesson
+      final subLessons = await _lessonService.getSubLessons(lesson.id);
+      if (subLessons.isEmpty) return 0.0;
+
+      // Count completed sub-lessons and sum progress percentages
+      int completedCount = 0;
+      int totalProgressPercent = 0;
+      
+      for (var subLesson in subLessons) {
+        final progress = await _lessonService.getUserProgress(userId, subLesson.id);
+        if (progress != null) {
+          if (progress.completed) {
+            completedCount++;
+          }
+          totalProgressPercent += progress.progressPercentage;
+        }
+      }
+
+      // Calculate percentage - use average of sub-lesson progress percentages
+      // This way, partial progress is also reflected
+      final percentage = subLessons.isEmpty ? 0.0 : (totalProgressPercent / subLessons.length).toDouble();
+      
+      if (percentage > 0) {
+        print('📊 Progress for ${lesson.title}: $completedCount/${subLessons.length} completed, avg: ${percentage.toStringAsFixed(1)}%');
+      }
+      
+      return percentage;
+    } catch (e) {
+      print('❌ Error calculating progress: $e');
+      return 0.0;
     }
   }
 
@@ -519,8 +560,53 @@ class _LessonsScreenState extends State<LessonsScreen> {
     } else if (titleLower.contains('verb') || titleLower.contains('động từ')) {
       return [const Color(0xFFF59E0B), const Color(0xFFD97706)]; // Amber
     } else {
-      return [const Color(0xFF818CF8), const Color(0xFFA5B4FC)]; // Default Indigo
+      return _getPastelGradientBySeed(title); // Auto diversify for new lessons
     }
+  }
+
+  List<Color> _getLessonGradientByIndex(int index, String title) {
+    const pastelGradients = [
+      [Color(0xFF818CF8), Color(0xFFA5B4FC)], // Indigo
+      [Color(0xFF5EEAD4), Color(0xFF99F6E4)], // Teal
+      [Color(0xFFFDBA74), Color(0xFFFED7AA)], // Orange
+      [Color(0xFFF472B6), Color(0xFFFBBF24)], // Pink-Yellow
+      [Color(0xFF34D399), Color(0xFF6EE7B7)], // Green
+      [Color(0xFF60A5FA), Color(0xFF93C5FD)], // Blue
+      [Color(0xFFEC4899), Color(0xFFF472B6)], // Pink
+      [Color(0xFFF59E0B), Color(0xFFD97706)], // Amber
+    ];
+
+    if (index >= 0) {
+      return pastelGradients[index % pastelGradients.length];
+    }
+
+    return _getPastelGradientBySeed(title);
+  }
+
+  List<Color> _getPastelGradientBySeed(String seed) {
+    const pastelGradients = [
+      [Color(0xFF818CF8), Color(0xFFA5B4FC)], // Indigo
+      [Color(0xFF5EEAD4), Color(0xFF99F6E4)], // Teal
+      [Color(0xFFFDBA74), Color(0xFFFED7AA)], // Orange
+      [Color(0xFFF472B6), Color(0xFFFBBF24)], // Pink-Yellow
+      [Color(0xFF34D399), Color(0xFF6EE7B7)], // Green
+      [Color(0xFF60A5FA), Color(0xFF93C5FD)], // Blue
+      [Color(0xFFEC4899), Color(0xFFF472B6)], // Pink
+      [Color(0xFFF59E0B), Color(0xFFD97706)], // Amber
+    ];
+
+    final index = _stableColorIndex(seed, pastelGradients.length);
+    return pastelGradients[index];
+  }
+
+  int _stableColorIndex(String seed, int length) {
+    if (seed.isEmpty || length <= 0) return 0;
+
+    int hash = 0;
+    for (final unit in seed.toLowerCase().codeUnits) {
+      hash = ((hash * 31) + unit) & 0x7fffffff;
+    }
+    return hash % length;
   }
 
   IconData _getLessonIcon(String lessonType) {
@@ -542,3 +628,5 @@ class _LessonsScreenState extends State<LessonsScreen> {
     }
   }
 }
+
+

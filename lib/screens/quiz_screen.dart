@@ -157,9 +157,48 @@ class _QuizScreenState extends State<QuizScreen> {
       });
     } else {
       setState(() => _showResults = true);
+      // Save progress immediately when quiz is completed
+      _saveProgress();
       if (widget.onComplete != null) {
         widget.onComplete!(true);
       }
+    }
+  }
+
+  Future<void> _saveProgress() async {
+    try {
+      final user = _lessonService.supabase.auth.currentUser;
+      if (user == null) {
+        print('❌ Error: User not authenticated for progress save');
+        return;
+      }
+
+      final questions = _lessonData!['questions'] as List<LessonQuestion>? ?? [];
+      final progressPercentage = questions.isEmpty
+          ? 0
+          : ((_correctCount / questions.length) * 100).toInt();
+      final isCompleted = _correctCount == questions.length;
+
+      print('🔄 Saving quiz progress...');
+      print('📊 Quiz: ${widget.lesson.title}');
+      print('📊 Score: $_correctCount/${questions.length} (${progressPercentage}%)');
+
+      final result = await _lessonService.updateUserProgress(
+        userId: user.id,
+        lessonId: widget.lesson.id,
+        completed: isCompleted,
+        progressPercentage: progressPercentage,
+        correctAnswers: _correctCount,
+        totalAttempts: questions.length,
+      );
+
+      if (result) {
+        print('✅ Quiz progress saved successfully!');
+      } else {
+        print('❌ Failed to save quiz progress');
+      }
+    } catch (e) {
+      print('❌ Error saving quiz progress: $e');
     }
   }
 
@@ -954,7 +993,14 @@ class _QuizScreenState extends State<QuizScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        // Wait a moment to ensure data is saved before navigating back
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
+                        });
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF6B7280),

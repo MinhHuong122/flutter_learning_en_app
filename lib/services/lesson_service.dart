@@ -179,11 +179,25 @@ class LessonService {
   // Text to Speech functionality
   Future<void> speak(String text, {String language = 'en-US'}) async {
     try {
+      if (text.isEmpty) {
+        print('⚠️ TTS: Empty text provided');
+        return;
+      }
+
+      print('🔊 TTS: Speaking "$text" (Language: $language)');
+      
       await _initializeTts();
       await tts.setLanguage(language);
-      await tts.speak(text);
+      
+      final result = await tts.speak(text);
+      
+      if (result == 1) {
+        print('✅ TTS: Successfully spoke "$text"');
+      } else {
+        print('⚠️ TTS: Failed to speak "$text" (result: $result)');
+      }
     } catch (e) {
-      print('Error speaking: $e');
+      print('❌ TTS Error speaking "$text": $e');
     }
   }
 

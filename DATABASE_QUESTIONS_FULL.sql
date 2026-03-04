@@ -4,6 +4,32 @@
 -- =====================================================
 
 -- =====================================================
+-- CLEANUP EXISTING DATA (if any)
+-- Remove existing questions and options to avoid conflicts
+-- =====================================================
+BEGIN;
+
+-- Delete existing options first (foreign key constraint)
+DELETE FROM lesson_options WHERE question_id IN (
+  SELECT id FROM lesson_questions WHERE lesson_id IN (
+    SELECT id FROM lessons WHERE title IN (
+      'Basic Alphabet', 'Basic Colors', 'Numbers 1-20', 'Hot Drinks', 'Fruits',
+      'Pets', 'Immediate Family', 'Head & Face', 'Rooms in a House', 'Devices',
+      'Business Meetings', 'Natural Sciences'
+    )
+  )
+);
+
+-- Delete existing questions
+DELETE FROM lesson_questions WHERE lesson_id IN (
+  SELECT id FROM lessons WHERE title IN (
+    'Basic Alphabet', 'Basic Colors', 'Numbers 1-20', 'Hot Drinks', 'Fruits',
+    'Pets', 'Immediate Family', 'Head & Face', 'Rooms in a House', 'Devices',
+    'Business Meetings', 'Natural Sciences'
+  )
+);
+
+-- =====================================================
 -- BEGINNER LEVEL QUESTIONS
 -- =====================================================
 
@@ -46,9 +72,13 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'multiple_choice', 'What color is the sky on a clear day?', 1, 'The sky appears blue.'),
 ((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'multiple_choice', 'What color is snow?', 2, 'Snow is white.'),
 ((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'fill_blank', 'Grass is ______.', 3, 'Grass is typically green.'),
-((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'translation', 'Translate: Màu đỏ', 'Màu đỏ', 'red', 4, 'Red is a primary color.'),
-((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'matching', 'Match colors with Vietnamese translations', 5, 'Learn color vocabulary in both languages.'),
-((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'conversation', 'A: "What color do you like?" B: "_____"', 6, 'Common conversation about preferences.');
+((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'matching', 'Match colors with Vietnamese translations', 5, 'Learn color vocabulary in both languages.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'translation', 'Translate: Màu đỏ', 'Màu đỏ', 'red', 4, 'Red is a primary color.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Basic Colors'), 'conversation', 'A: "What color do you like?" B: "_____"', 6, 'Common conversation about preferences.', 'Talking about favorite colors');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Basic Colors') AND question_order = 1), 'Blue', true, 1),
@@ -61,7 +91,7 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Basic Colors') AND question_order = 6), 'I am tired', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Basic Colors') AND question_order = 6), 'See you later', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'green', conversation_context = 'Talking about favorite colors'
+UPDATE lesson_questions SET correct_answer = 'green'
 WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Basic Colors') AND question_order = 3;
 
 -- Matching for Basic Colors
@@ -79,9 +109,11 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'multiple_choice', 'What number comes after five?', 1, 'Six comes after five.'),
 ((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'multiple_choice', 'What is 10 + 5?', 2, 'Ten plus five equals fifteen.'),
 ((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'fill_blank', 'The number between 12 and 14 is ______.', 3, 'Thirteen is between twelve and fourteen.'),
-((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'translation', 'Translate: Mười', 'Mười', 'ten', 4, 'Ten is the first two-digit number.'),
 ((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'matching', 'Match numbers with words', 5, 'Connect numerical digits with written words.'),
 ((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'listening', 'Listen and choose the number you hear', 6, 'Practice number pronunciation.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Numbers 1-20'), 'translation', 'Translate: Mười', 'Mười', 'ten', 4, 'Ten is the first two-digit number.');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Numbers 1-20') AND question_order = 1), 'Six', true, 1),
@@ -104,12 +136,16 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, 
 
 -- ============== DRINKS QUESTIONS ==============
 -- Hot Drinks
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'multiple_choice', 'What is a popular hot drink made from beans?', 1, 'Coffee is made from coffee beans.'),
+((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'multiple_choice', 'What hot drink is made from leaves?', 2, 'Tea is made from tea leaves.'),
+((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'fill_blank', 'I drink ______ every morning for energy.', 5, 'Many people drink coffee in the morning.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'translation', 'Translate: Cà phê', 'Cà phê', 'coffee', 3, 'Coffee is a popular morning drink.');
+
 INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
-((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'multiple_choice', 'What is a popular hot drink made from beans?', 1, 'Coffee is made from coffee beans.', null),
-((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'multiple_choice', 'What hot drink is made from leaves?', 2, 'Tea is made from tea leaves.', null),
-((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'translation', 'Translate: Cà phê', 'Cà phê', 'coffee', 3, 'Coffee is a popular morning drink.', null),
-((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'conversation', 'Waiter: "What would you like to drink?" You: "_____"', 4, 'Ordering at a café.', 'At a coffee shop'),
-((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'fill_blank', 'I drink ______ every morning for energy.', 5, 'Many people drink coffee in the morning.', null);
+((SELECT id FROM lessons WHERE title = 'Hot Drinks'), 'conversation', 'Waiter: "What would you like to drink?" You: "_____"', 4, 'Ordering at a café.', 'At a coffee shop');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Hot Drinks') AND question_order = 1), 'Coffee', true, 1),
@@ -129,10 +165,12 @@ UPDATE lesson_questions SET correct_answer = 'coffee' WHERE lesson_id = (SELECT 
 INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation) VALUES
 ((SELECT id FROM lessons WHERE title = 'Fruits'), 'multiple_choice', 'What fruit is red and often used to make sauce?', 1, 'Tomatoes are red and used for sauce.'),
 ((SELECT id FROM lessons WHERE title = 'Fruits'), 'multiple_choice', 'What yellow fruit do monkeys love?', 2, 'Bananas are yellow curved fruits.'),
-((SELECT id FROM lessons WHERE title = 'Fruits'), 'translation', 'Translate: Táo', 'Táo', 'apple', 3, 'An apple a day keeps the doctor away.'),
 ((SELECT id FROM lessons WHERE title = 'Fruits'), 'fill_blank', 'An ______ is round and can be red, green, or yellow.', 4, 'Apples come in different colors.'),
 ((SELECT id FROM lessons WHERE title = 'Fruits'), 'matching', 'Match fruits with their colors', 5, 'Connect fruits to their typical colors.'),
 ((SELECT id FROM lessons WHERE title = 'Fruits'), 'listening', 'Listen and choose the fruit', 6, 'Identify fruits by name.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Fruits'), 'translation', 'Translate: Táo', 'Táo', 'apple', 3, 'An apple a day keeps the doctor away.');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Fruits') AND question_order = 1), 'Tomato', true, 1),
@@ -158,9 +196,13 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, 
 INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation) VALUES
 ((SELECT id FROM lessons WHERE title = 'Pets'), 'multiple_choice', 'What animal says "woof"?', 1, 'Dogs bark with a woof sound.'),
 ((SELECT id FROM lessons WHERE title = 'Pets'), 'multiple_choice', 'What pet says "meow"?', 2, 'Cats make meowing sounds.'),
-((SELECT id FROM lessons WHERE title = 'Pets'), 'translation', 'Translate: Chó', 'Chó', 'dog', 3, 'Dogs are loyal pets.'),
-((SELECT id FROM lessons WHERE title = 'Pets'), 'fill_blank', 'A ______ has whiskers and likes to catch mice.', 4, 'Cats have whiskers and hunt mice.'),
-((SELECT id FROM lessons WHERE title = 'Pets'), 'conversation', 'A: "Do you have any pets?" B: "_____"', 5, 'Common question about pet ownership.');
+((SELECT id FROM lessons WHERE title = 'Pets'), 'fill_blank', 'A ______ has whiskers and likes to catch mice.', 4, 'Cats have whiskers and hunt mice.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Pets'), 'translation', 'Translate: Chó', 'Chó', 'dog', 3, 'Dogs are loyal pets.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Pets'), 'conversation', 'A: "Do you have any pets?" B: "_____"', 5, 'Common question about pet ownership.', 'Talking about pets');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Pets') AND question_order = 1), 'Dog', true, 1),
@@ -173,8 +215,8 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Pets') AND question_order = 5), 'I like pizza', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Pets') AND question_order = 5), 'It is raining', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'cat', conversation_context = 'Talking about pets'
-WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Pets') AND question_order IN (4, 5);
+UPDATE lesson_questions SET correct_answer = 'cat'
+WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Pets') AND question_order = 4;
 
 -- ============== FAMILY QUESTIONS ==============
 -- Immediate Family
@@ -182,9 +224,13 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'multiple_choice', 'What do you call your mother''s husband?', 1, 'Your mother''s husband is your father.'),
 ((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'multiple_choice', 'Who is your father''s son?', 2, 'Your father''s son is your brother (or you).'),
 ((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'fill_blank', 'My mother''s daughter is my ______.', 3, 'Your mother''s daughter is your sister.'),
-((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'translation', 'Translate: Mẹ', 'Mẹ', 'mother', 4, 'Mother is "mẹ" in Vietnamese.'),
-((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'matching', 'Match family members with Vietnamese', 5, 'Learn family vocabulary bilingually.'),
-((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'conversation', 'A: "How many siblings do you have?" B: "_____"', 6, 'Talking about family size.');
+((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'matching', 'Match family members with Vietnamese', 5, 'Learn family vocabulary bilingually.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'translation', 'Translate: Mẹ', 'Mẹ', 'mother', 4, 'Mother is "mẹ" in Vietnamese.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Immediate Family'), 'conversation', 'A: "How many siblings do you have?" B: "_____"', 6, 'Talking about family size.', 'Family conversation');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Immediate Family') AND question_order = 1), 'Father', true, 1),
@@ -197,8 +243,8 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Immediate Family') AND question_order = 6), 'I like coffee', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Immediate Family') AND question_order = 6), 'Good morning', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'sister', conversation_context = 'Family conversation'
-WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Immediate Family') AND question_order IN (3, 6);
+UPDATE lesson_questions SET correct_answer = 'sister'
+WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Immediate Family') AND question_order = 3;
 
 -- Matching for Family
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, match_pair_id) VALUES
@@ -215,9 +261,11 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Head & Face'), 'multiple_choice', 'What do you use to see?', 1, 'We see with our eyes.'),
 ((SELECT id FROM lessons WHERE title = 'Head & Face'), 'multiple_choice', 'What body part do you use to smell?', 2, 'The nose is used for smelling.'),
 ((SELECT id FROM lessons WHERE title = 'Head & Face'), 'fill_blank', 'You use your ______ to hear sounds.', 3, 'Ears detect sound waves.'),
-((SELECT id FROM lessons WHERE title = 'Head & Face'), 'translation', 'Translate: Mắt', 'Mắt', 'eyes', 4, 'Eyes are the windows to the soul.'),
 ((SELECT id FROM lessons WHERE title = 'Head & Face'), 'matching', 'Match body parts with their functions', 5, 'Connect parts to what they do.'),
 ((SELECT id FROM lessons WHERE title = 'Head & Face'), 'listening', 'Listen and choose the body part', 6, 'Identify body parts by name.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Head & Face'), 'translation', 'Translate: Mắt', 'Mắt', 'eyes', 4, 'Eyes are the windows to the soul.');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Head & Face') AND question_order = 1), 'Eyes', true, 1),
@@ -248,9 +296,13 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'multiple_choice', 'Where do you sleep?', 1, 'We sleep in the bedroom.'),
 ((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'multiple_choice', 'Where do you cook food?', 2, 'Cooking happens in the kitchen.'),
 ((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'fill_blank', 'I take a shower in the ______.', 3, 'Bathrooms have showers and bathtubs.'),
-((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'translation', 'Translate: Phòng khách', 'Phòng khách', 'living room', 4, 'Living room is where family gathers.'),
-((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'matching', 'Match rooms with activities', 5, 'Connect rooms to common activities.'),
-((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'conversation', 'A: "Where is your bedroom?" B: "_____"', 6, 'Describing room locations.');
+((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'matching', 'Match rooms with activities', 5, 'Connect rooms to common activities.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'translation', 'Translate: Phòng khách', 'Phòng khách', 'living room', 4, 'Living room is where family gathers.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Rooms in a House'), 'conversation', 'A: "Where is your bedroom?" B: "_____"', 6, 'Describing room locations.', 'House tour');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Rooms in a House') AND question_order = 1), 'Bedroom', true, 1),
@@ -263,8 +315,8 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Rooms in a House') AND question_order = 6), 'I like pizza', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Rooms in a House') AND question_order = 6), 'Thank you', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'bathroom', conversation_context = 'House tour'
-WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Rooms in a House') AND question_order IN (3, 6);
+UPDATE lesson_questions SET correct_answer = 'bathroom'
+WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Rooms in a House') AND question_order = 3;
 
 -- Matching for Rooms
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, match_pair_id) VALUES
@@ -281,9 +333,13 @@ INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_
 ((SELECT id FROM lessons WHERE title = 'Devices'), 'multiple_choice', 'What device do you use to make calls?', 1, 'Smartphones are used for calling.'),
 ((SELECT id FROM lessons WHERE title = 'Devices'), 'multiple_choice', 'What do you use to type documents?', 2, 'Computers have keyboards for typing.'),
 ((SELECT id FROM lessons WHERE title = 'Devices'), 'fill_blank', 'I read books on my ______.', 3, 'Tablets are good for reading.'),
-((SELECT id FROM lessons WHERE title = 'Devices'), 'translation', 'Translate: Điện thoại', 'Điện thoại', 'phone', 4, 'Phones connect people worldwide.'),
-((SELECT id FROM lessons WHERE title = 'Devices'), 'matching', 'Match devices with their uses', 5, 'Connect tech to its purpose.'),
-((SELECT id FROM lessons WHERE title = 'Devices'), 'conversation', 'A: "What phone do you have?" B: "_____"', 6, 'Talking about technology.');
+((SELECT id FROM lessons WHERE title = 'Devices'), 'matching', 'Match devices with their uses', 5, 'Connect tech to its purpose.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Devices'), 'translation', 'Translate: Điện thoại', 'Điện thoại', 'phone', 4, 'Phones connect people worldwide.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Devices'), 'conversation', 'A: "What phone do you have?" B: "_____"', 6, 'Talking about technology.', 'Technology discussion');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Devices') AND question_order = 1), 'Smartphone', true, 1),
@@ -296,8 +352,8 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Devices') AND question_order = 6), 'I am happy', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Devices') AND question_order = 6), 'See you tomorrow', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'tablet', conversation_context = 'Technology discussion'
-WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Devices') AND question_order IN (3, 6);
+UPDATE lesson_questions SET correct_answer = 'tablet'
+WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Devices') AND question_order = 3;
 
 -- Matching for Devices
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, match_pair_id) VALUES
@@ -314,12 +370,16 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, 
 
 -- ============== BUSINESS ENGLISH QUESTIONS ==============
 -- Business Meetings
-INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
-((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'multiple_choice', 'What is a fixed time to complete a task?', 1, 'A deadline is a time limit.', null),
-((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'fill_blank', 'We need to schedule a ______ to discuss the project.', 2, 'Meetings are scheduled discussions.', null),
-((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'conversation', 'Manager: "Can you present tomorrow?" You: "_____"', 3, 'Professional response.', 'Business meeting'),
-((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'translation', 'Translate: Cuộc họp', 'Cuộc họp', 'meeting', 4, 'Meetings are essential in business.', null),
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'multiple_choice', 'What is a fixed time to complete a task?', 1, 'A deadline is a time limit.'),
+((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'fill_blank', 'We need to schedule a ______ to discuss the project.', 2, 'Meetings are scheduled discussions.'),
 ((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'matching', 'Match business terms with definitions', 5, 'Learn professional vocabulary.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'translation', 'Translate: Cuộc họp', 'Cuộc họp', 'meeting', 4, 'Meetings are essential in business.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'conversation', 'Manager: "Can you present tomorrow?" You: "_____"', 3, 'Professional response.', 'Business meeting');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Business Meetings') AND question_order = 1), 'Deadline', true, 1),
@@ -349,9 +409,13 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, 
 INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation) VALUES
 ((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'multiple_choice', 'What is the study of living organisms?', 1, 'Biology studies life.'),
 ((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'multiple_choice', 'What science studies matter and energy?', 2, 'Physics examines physical phenomena.'),
-((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'fill_blank', 'The basic unit of life is the ______.', 3, 'Cells are fundamental to all life.'),
-((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'translation', 'Translate: Khoa học', 'Khoa học', 'science', 4, 'Science seeks knowledge through observation.'),
-((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'conversation', 'Professor: "What interests you about science?" Student: "_____"', 5, 'Academic discussion.');
+((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'fill_blank', 'The basic unit of life is the ______.', 3, 'Cells are fundamental to all life.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, vietnamese_text, correct_answer, question_order, explanation) VALUES
+((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'translation', 'Translate: Khoa học', 'Khoa học', 'science', 4, 'Science seeks knowledge through observation.');
+
+INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
+((SELECT id FROM lessons WHERE title = 'Natural Sciences'), 'conversation', 'Professor: "What interests you about science?" Student: "_____"', 5, 'Academic discussion.', 'Academic seminar');
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Natural Sciences') AND question_order = 1), 'Biology', true, 1),
@@ -364,8 +428,8 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) 
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Natural Sciences') AND question_order = 5), 'I like ice cream', false, 2),
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Natural Sciences') AND question_order = 5), 'The weather is nice', false, 3);
 
-UPDATE lesson_questions SET correct_answer = 'cell', conversation_context = 'Academic seminar'
-WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Natural Sciences') AND question_order IN (3, 5);
+UPDATE lesson_questions SET correct_answer = 'cell'
+WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Natural Sciences') AND question_order = 3;
 
 COMMIT;
 

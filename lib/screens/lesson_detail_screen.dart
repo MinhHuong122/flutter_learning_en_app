@@ -94,7 +94,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       } else {
         // Navigate to QuizScreen for quiz lessons
         if (mounted) {
-          final result = await Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => QuizScreen(
@@ -155,14 +155,20 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   Future<void> _saveProgress() async {
     try {
       final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        print('❌ Error: User not authenticated');
+        return;
+      }
 
       final questions = _lessonData?['questions'] as List<LessonQuestion>? ?? [];
       final progressPercentage = questions.isEmpty
           ? 0
           : ((_correctCount / questions.length) * 100).toInt();
 
-      await _lessonService.updateUserProgress(
+      print('🔄 Saving progress for lesson ${widget.lesson.id}...');
+      print('📊 Progress data - Correct: $_correctCount / Total: ${questions.length} (${progressPercentage}%)');
+
+      final result = await _lessonService.updateUserProgress(
         userId: user.id,
         lessonId: widget.lesson.id,
         completed: _correctCount == questions.length,
@@ -170,8 +176,33 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         correctAnswers: _correctCount,
         totalAttempts: questions.length,
       );
+
+      if (result) {
+        print('✅ Progress saved successfully!');
+        // Show success toast
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_isEnglish ? 'Progress saved' : 'Đã lưu tiến độ'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        print('❌ Failed to save progress');
+      }
     } catch (e) {
-      print('Error saving progress: $e');
+      print('❌ Error saving progress: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEnglish ? 'Error saving progress' : 'Lỗi lưu tiến độ'),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -1256,10 +1287,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         children: [
           GestureDetector(
             onTap: () {
-              setState(() {
-                _currentSubLesson = null;
-                _showQuestions = false;
-              });
+              Navigator.pop(context);
             },
             child: const Icon(Icons.arrow_back, size: 24),
           ),
@@ -1427,6 +1455,12 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                             _showQuestions = false;
                           });
                         }
+                        // Wait a moment to ensure data is saved, then navigate back
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          if (mounted) {
+                            Navigator.pop(context);
+                          }
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),

@@ -518,7 +518,7 @@ INSERT INTO lesson_options (question_id, option_text, is_correct, option_order, 
 -- Intermediate: Business English
 INSERT INTO lesson_questions (lesson_id, question_type, question_text, question_order, explanation, conversation_context) VALUES
 ((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'conversation', 'Manager: "What''s your opinion on the proposal?" You: "_____"', 1, 'Professional response in a meeting.', 'Business meeting discussion'),
-((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'fill_blank', 'We need to meet the ______ by Friday.', 2, 'A deadline is a time limit for completing something.');
+((SELECT id FROM lessons WHERE title = 'Business Meetings'), 'fill_blank', 'We need to meet the ______ by Friday.', 2, 'A deadline is a time limit for completing something.', NULL);
 
 INSERT INTO lesson_options (question_id, option_text, is_correct, option_order) VALUES
 ((SELECT id FROM lesson_questions WHERE lesson_id = (SELECT id FROM lessons WHERE title = 'Business Meetings') AND question_order = 1), 'I think it''s a great opportunity for growth', true, 1),

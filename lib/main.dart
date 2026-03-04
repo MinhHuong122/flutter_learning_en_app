@@ -11,6 +11,7 @@ import 'screens/dictionary_search_screen.dart';
 import 'services/auth_service.dart';
 import 'services/language_service.dart';
 import 'services/database_helper.dart';
+import 'services/notification_center_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,16 @@ Future<void> main() async {
     }
   } catch (e) {
     print('⚠️ Dictionary initialization warning: $e');
+  }
+
+  // Initialize local notifications and sync in-app notifications
+  try {
+    final notificationCenter = NotificationCenterService();
+    await notificationCenter.initialize();
+    await notificationCenter.restoreSchedulesFromSavedSettings();
+    await notificationCenter.syncNotifications();
+  } catch (e) {
+    print('⚠️ Notification initialization warning: $e');
   }
 
   runApp(const MyApp());

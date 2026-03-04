@@ -305,7 +305,7 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                 hintText: _isEnglish ? 'Search word...' : 'Tìm từ...',
                 hintStyle: const TextStyle(
                   fontSize: 13,
-                  color: Color(0xFFC4B5FD),
+                  color: Color.fromARGB(255, 0, 0, 0),
                 ),
                 prefixIcon: Padding(
                   padding: const EdgeInsets.only(left: 16, right: 12),

@@ -469,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: EdgeInsets.only(
                                   right: index < lessons.length - 1 ? 16 : 0,
                                 ),
-                                child: _buildCourseCardFromLesson(lesson),
+                                child: _buildCourseCardFromLesson(lesson, index),
                               );
                             },
                           ),
@@ -614,8 +614,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildCourseCardFromLesson(Lesson lesson) {
-    final gradient = _getLessonGradient(lesson.lessonType);
+  Widget _buildCourseCardFromLesson(Lesson lesson, int index) {
+    final gradient = _getLessonGradient(index);
     final categoryLabel = _getLessonTypeLabel(lesson.lessonType);
 
     return GestureDetector(
@@ -735,23 +735,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Color> _getLessonGradient(String lessonType) {
-    switch (lessonType) {
-      case 'multiple_choice':
-        return [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)]; // Blue sáng
-      case 'listening':
-        return [const Color(0xFFA78BFA), const Color(0xFFC4B5FD)]; // Purple sáng
-      case 'matching':
-        return [const Color(0xFF34D399), const Color(0xFF6EE7B7)]; // Green sáng
-      case 'fill_blank':
-        return [const Color(0xFFFFB75E), const Color(0xFFED8F03)]; // Orange sáng
-      case 'conversation':
-        return [const Color(0xFFF472B6), const Color(0xFFFBBF24)]; // Pink-Yellow sáng
-      case 'repeat':
-        return [const Color(0xFF22D3EE), const Color(0xFF67E8F9)]; // Cyan sáng
-      default:
-        return [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)];
-    }
+  List<Color> _getLessonGradient(int index) {
+    final gradients = [
+      [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)], // Blue sáng
+      [const Color(0xFFA78BFA), const Color(0xFFC4B5FD)], // Purple sáng
+      [const Color(0xFF34D399), const Color(0xFF6EE7B7)], // Green sáng
+      [const Color(0xFFFFB75E), const Color(0xFFED8F03)], // Orange sáng
+      [const Color(0xFFF472B6), const Color(0xFFFBBF24)], // Pink-Yellow sáng
+      [const Color(0xFF22D3EE), const Color(0xFF67E8F9)], // Cyan sáng
+      [const Color(0xFFEC4899), const Color(0xFFF97316)], // Pink-Orange
+      [const Color(0xFF6366F1), const Color(0xFF8B5CF6)], // Indigo-Purple
+      [const Color(0xFF10B981), const Color(0xFF06B6D4)], // Emerald-Cyan
+      [const Color(0xFFF59E0B), const Color(0xFFEF4444)], // Amber-Red
+    ];
+    return gradients[index % gradients.length];
   }
 
   String _getLessonTypeLabel(String lessonType) {

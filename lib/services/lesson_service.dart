@@ -521,4 +521,219 @@ class LessonService {
       return 0.0;
     }
   }
+
+  /// Load all custom lessons for a user
+  Future<List<Map<String, dynamic>>> loadCustomLessons(String userId) async {
+    try {
+      final response = await supabase
+          .from('custom_lessons')
+          .select('''
+            id,
+            user_id,
+            name,
+            description,
+            created_at,
+            updated_at
+          ''')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      // Count flashcards for each lesson
+      List<Map<String, dynamic>> lessonsWithCount = [];
+      for (var lesson in response as List) {
+        final cardCount = await supabase
+            .from('custom_flashcards')
+            .select('id', const FetchOptions(count: CountOption.exact))
+            .eq('lesson_id', lesson['id'] as String);
+        
+        lesson['flashcardCount'] = cardCount.length;
+        lessonsWithCount.add(lesson as Map<String, dynamic>);
+      }
+
+      return lessonsWithCount;
+    } catch (e) {
+      print('Error loading custom lessons: $e');
+      return [];
+    }
+  }
+
+  /// Create a new custom lesson
+  Future<Map<String, dynamic>?> createCustomLesson({
+    required String userId,
+    required String title,
+    required String description,
+    required List<Map<String, dynamic>> vocabularyWords,
+  }) async {
+    try {
+      // Create lesson record
+      final lessonResponse = await supabase
+          .from('custom_lessons')
+          .insert({
+            'user_id': userId,
+            'name': title,
+            'description': description,
+            'created_at': DateTime.now().toIso8601String(),
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .select()
+          .single();
+
+      final lessonId = lessonResponse['id'] as String;
+
+      // Insert flashcards
+      for (var word in vocabularyWords) {
+        await supabase.from('custom_flashcards').insert({
+          'lesson_id': lessonId,
+          'term': word['term'] ?? '',
+          'meaning': word['meaning'] ?? '',
+          'pronunciation': word['pronunciation'] ?? '',
+          'word_class': word['wordClass'] ?? 'noun',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      return lessonResponse as Map<String, dynamic>;
+    } catch (e) {
+      print('Error creating custom lesson: $e');
+      return null;
+    }
+  }
+
+  /// Update an existing custom lesson
+  Future<Map<String, dynamic>?> updateCustomLesson({
+    required String lessonId,
+    required String title,
+    required String description,
+    required List<Map<String, dynamic>> vocabularyWords,
+  }) async {
+    try {
+      // Update lesson record
+      await supabase
+          .from('custom_lessons')
+          .update({
+            'name': title,
+            'description': description,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', lessonId);
+
+      // Delete existing flashcards
+      await supabase
+          .from('custom_flashcards')
+          .delete()
+          .eq('lesson_id', lessonId);
+
+      // Insert new flashcards
+      for (var word in vocabularyWords) {
+        await supabase.from('custom_flashcards').insert({
+          'lesson_id': lessonId,
+          'term': word['term'] ?? '',
+          'meaning': word['meaning'] ?? '',
+          'pronunciation': word['pronunciation'] ?? '',
+          'word_class': word['wordClass'] ?? 'noun',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+      }
+
+      // Return updated lesson
+      final updated = await supabase
+          .from('custom_lessons')
+          .select()
+          .eq('id', lessonId)
+          .single();
+
+      return updated as Map<String, dynamic>;
+    } catch (e) {
+      print('Error updating custom lesson: $e');
+      return null;
+    }
+  }
+
+  /// Delete a custom lesson
+  Future<bool> deleteCustomLesson(String lessonId) async {
+    try {
+      // Delete flashcards first
+      await supabase
+          .from('custom_flashcards')
+          .delete()
+          .eq('lesson_id', lessonId);
+
+      // Delete lesson
+      await supabase
+          .from('custom_lessons')
+          .delete()
+          .eq('id', lessonId);
+
+      return true;
+    } catch (e) {
+      print('Error deleting custom lesson: $e');
+      return false;
+    }
+  }
+
+  /// Save new English words to dictionary
+  Future<bool> saveNewEnglishWords(List<Map<String, dynamic>> words) async {
+    try {
+      for (var word in words) {
+        // Check if word already exists
+        final existing = await supabase
+            .from('dictionary')
+            .select('id')
+            .eq('term', word['term'] ?? '')
+            .eq('language', 'en')
+            .maybeSingle();
+
+        // Only insert if doesn't exist
+        if (existing == null) {
+          await supabase.from('dictionary').insert({
+            'term': word['term'] ?? '',
+            'meaning': word['meaning'] ?? '',
+            'pronunciation': word['pronunciation'] ?? '',
+            'word_class': word['wordClass'] ?? 'noun',
+            'language': 'en',
+            'created_at': DateTime.now().toIso8601String(),
+          });
+        }
+      }
+      return true;
+    } catch (e) {
+      print('Error saving new English words: $e');
+      return false;
+    }
+  }
+
+  /// Get all vocabulary (flashcards) for a custom lesson
+  Future<List<DictionaryEntry>> getLessonVocabulary(String lessonId) async {
+    try {
+      final response = await supabase
+          .from('custom_flashcards')
+          .select('''
+            id,
+            term,
+            meaning,
+            pronunciation,
+            word_class
+          ''')
+          .eq('lesson_id', lessonId)
+          .order('created_at', ascending: true);
+
+      return (response as List)
+          .map((card) {
+            final data = card as Map<String, dynamic>;
+            return DictionaryEntry(
+              id: data['id'] as String? ?? '',
+              term: data['term'] as String? ?? '',
+              meaning: data['meaning'] as String? ?? '',
+              pronunciation: data['pronunciation'] as String? ?? '',
+              wordClass: data['word_class'] as String? ?? 'noun',
+              language: 'en',
+              createdAt: null,
+            );
+          })
+          .toList();
+    } catch (e) {
+      print('Error getting lesson vocabulary: $e');
+      return [];
+    }
+  }
 }

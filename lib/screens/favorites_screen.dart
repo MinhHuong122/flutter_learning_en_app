@@ -7,7 +7,7 @@ import '../services/language_service.dart';
 import '../services/lesson_favorites_service.dart';
 import '../services/custom_lesson_favorites_service.dart';
 import '../services/supabase_dictionary_service.dart';
-import '../services/lesson_service.dart';
+
 import '../models/dictionary_model.dart';
 import '../models/lesson_model.dart';
 import 'home_screen.dart';

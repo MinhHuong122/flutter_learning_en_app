@@ -1099,10 +1099,6 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  Widget _buildListening(LessonQuestion question) {
-    return _buildListeningChoice(question);
-  }
-
   Widget _buildTranslation(LessonQuestion question) {
     return _buildMultipleChoice(question);
   }

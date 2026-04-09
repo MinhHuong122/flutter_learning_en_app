@@ -8,7 +8,7 @@ import '../services/language_service.dart';
 import '../models/community_model.dart';
 import 'post_detail_screen.dart';
 import 'messaging_screen.dart';
-import 'create_post_screen.dart';
+
 
 class CommunityProfileScreen extends StatefulWidget {
   final String userId;

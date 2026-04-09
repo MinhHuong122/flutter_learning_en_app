@@ -827,17 +827,13 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(
                       AppColors.primaryColor,
                     ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),  
+        ),
+      );
   } 
 }
 

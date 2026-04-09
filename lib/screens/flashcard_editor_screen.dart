@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:dotted_border/dotted_border.dart';
+
 import '../utils/constants.dart';
 import '../services/language_service.dart';
 import '../models/dictionary_model.dart';
@@ -243,7 +243,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     int maxLines = 1,
   }) {
     return Focus(
-      autofocus: (_) => setState(() {}),
+      onFocusChange: (_) => setState(() {}),
       child: TextFormField(
         controller: controller,
         maxLines: maxLines,
@@ -916,6 +916,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                           },
                         ),
                 ],
+              ),
               ),
             ),
 

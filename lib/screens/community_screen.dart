@@ -9,7 +9,7 @@ import '../services/auth_service.dart';
 import '../models/community_model.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
-import 'chat_ai_screen.dart';
+
 import 'account_screen.dart';
 import 'create_post_screen.dart';
 import 'post_detail_screen.dart';
@@ -573,8 +573,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
             ),
           ),
         ],
-      );
-  
+      ),
+    );
   }
 
   Widget _buildActionButton({

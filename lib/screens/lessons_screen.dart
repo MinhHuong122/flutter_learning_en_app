@@ -375,7 +375,6 @@ String _getTranslation(String key) {
           );
         }
 
-        final lessons = snapshot.data!;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(

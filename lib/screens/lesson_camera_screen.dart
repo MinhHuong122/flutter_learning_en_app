@@ -623,21 +623,20 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
                               ? SizedBox(
                                   width: 20,
                                   height: 20,
-                            child: CircularProgressIndicator(
+                                  child: CircularProgressIndicator(
                                     valueColor:
                                         AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : const Icon(Icons.auto_awesome, size: 20),
                           label: Text(
                             _isEnglish ? 'Scan' : 'Quét',
                             style: GoogleFonts.manrope(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
+                              color: Colors.white,
+                            ),
                               ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
@@ -664,7 +663,6 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
-    String label = '',
   }) {
     return GestureDetector(
       onTap: _isProcessing ? null : onTap,

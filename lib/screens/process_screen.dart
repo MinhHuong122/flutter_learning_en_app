@@ -87,7 +87,6 @@ class _ProcessScreenState extends State<ProcessScreen> with WidgetsBindingObserv
       'completedLessonsList': completedLessons,
     };
   }
-  }
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;

@@ -868,8 +868,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           );
                         }
 
-                        final lessons = snapshot.data!;
-
                         return SizedBox(
                           height: 200,
                           child: ListView.builder(

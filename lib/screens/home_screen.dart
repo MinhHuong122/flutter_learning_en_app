@@ -16,6 +16,8 @@ import 'dictionary_search_screen.dart';
 import 'lessons_screen.dart';
 import 'lesson_detail_screen.dart';
 import 'community_screen.dart';
+import 'create_post_screen.dart';
+import 'create_lesson_screen.dart';
 import 'favorites_screen.dart';
 import 'my_lessons_screen.dart';
 import 'exercise_screen.dart';
@@ -503,9 +505,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => context.read<LessonProvider>().refresh(),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
                     // Search and filter
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),

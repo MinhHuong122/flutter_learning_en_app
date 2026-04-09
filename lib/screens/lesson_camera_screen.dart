@@ -666,9 +666,9 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
   }) {
     return GestureDetector(
       onTap: _isProcessing ? null : onTap,
-        child: Column(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-          children: [
+        children: [
           Container(
             width: 56,
             height: 56,
@@ -686,7 +686,7 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-              label,
+                label,
                 style: GoogleFonts.inter(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
@@ -694,8 +694,7 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

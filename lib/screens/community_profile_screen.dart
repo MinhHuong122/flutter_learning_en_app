@@ -197,12 +197,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
         ],
         centerTitle: true,
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadUserData,
-        color: AppColors.primaryColor,
-        backgroundColor: Colors.white,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+      body: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -223,33 +218,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.primaryColor,
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-            ),
-            backgroundColor: Colors.white,
-            builder: (BuildContext context) {
-              return FractionallySizedBox(
-                heightFactor: 0.85,
-                child: CreatePostScreen(
-                  onPostCreated: () {
-                    Navigator.pop(context);
-                    _loadUserData();
-                  },
-                ),
-              );
-            },
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
-      ),
-    );
+      );
   }
 
   Widget _buildProfileHeader() {

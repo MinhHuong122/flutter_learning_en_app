@@ -90,11 +90,24 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      if (authService.pendingEmailConfirmation) {
+        _showSnackBar(
+          isEnglish
+              ? 'Registration successful. Please check your email to confirm your account.'
+              : 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.',
+        );
+      } else {
       _showSnackBar(isEnglish ? 'Signup successful!' : 'Đăng ký thành công!');
-      // Quay lại trang login để người dùng đăng nhập
+      }
+      // Quay lại trang login để người dùng đăng nhập sau khi xác nhận email
       Navigator.of(context).pushReplacementNamed(AppRoutes.login);
     } else if (mounted) {
-      _showSnackBar(isEnglish ? 'Signup failed. Please try again.' : 'Đăng ký thất bại. Vui lòng thử lại.');
+      _showSnackBar(
+        authService.errorMessage ??
+            (isEnglish
+                ? 'Signup failed. Please try again.'
+                : 'Đăng ký thất bại. Vui lòng thử lại.'),
+      );
     }
   }
 
@@ -127,7 +140,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   String get _createAccountTitle => _isEnglish ? 'Create Account' : 'Tạo Tài Khoản';
   String get _createAccountSubtitle => _isEnglish ? 'Join our community to start learning' : 'Tham gia cộng đồng để bắt đầu học tập';

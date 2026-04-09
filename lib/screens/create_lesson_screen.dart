@@ -17,7 +17,7 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   @override
   void dispose() {
@@ -93,64 +93,75 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
                     children: [
                       const SizedBox(height: 24),
 
-                      // Icon
+                      // Icon Section - Significantly Smaller
                       Center(
-                        child: Container(
-                          width: 120,
-                          height: 120,
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.primaryColor.withOpacity(0.2),
-                                AppColors.primaryLight.withOpacity(0.2),
-                              ],
-                            ),
+                                color: const Color(0xFFDFE8FF),
                           ),
                           child: Icon(
                             Icons.school_outlined,
-                            size: 60,
+                                size: 48,
                             color: AppColors.primaryColor,
                           ),
+                        ),
+                            const SizedBox(height: 24),
+                          ],
                         ),
                       ),
 
                       const SizedBox(height: 32),
 
                       // Title
-                      Text(
-                        _isEnglish
-                            ? 'Create Your Own Lesson'
-                            : 'Tạo bài học của riêng bạn',
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
+                      Center(
+                        child: Text(
+                          _isEnglish ? 'Ready to capture?' : 'Sẵn sàng chụp?',
+                          style: GoogleFonts.manrope(
+                            fontSize: 20,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1F2937),
+                            color: const Color(0xFF1C3355),
+                          ),
                         ),
                       ),
 
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
 
-                      Text(
+                      Center(
+                        child: Text(
                         _isEnglish
-                            ? 'Capture vocabulary from images using OCR technology'
-                            : 'Chụp từ vựng từ hình ảnh bằng công nghệ OCR',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: const Color(0xFF6B7280),
+                              ? 'Capture vocabulary directly from images\nto build your lesson.'
+                              : 'Chụp từ vựng trực tiếp từ hình ảnh\nđể xây dựng bài học của bạn.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF4A6085),
                           height: 1.5,
+                          ),
                         ),
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
 
+                      // Form Section with Gap
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                       // Lesson Name Input
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                       Text(
-                        _isEnglish ? 'Lesson Name' : 'Tên bài học',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
+                                _isEnglish ? 'LESSON NAME' : 'TÊN BÀI HỌC',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF374151),
+                                  color: const Color(0xFF4A6085),
+                                  letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -158,37 +169,35 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
                         controller: _lessonNameController,
                         decoration: InputDecoration(
                           hintText: _isEnglish
-                              ? 'E.g., My Vocabulary List'
-                              : 'Ví dụ: Danh sách từ vựng của tôi',
-                          hintStyle: GoogleFonts.poppins(
+                                      ? 'e.g. Italian Coffee Culture'
+                                      : 'Ví dụ: Văn hóa cà phê Ý',
+                                  hintStyle: GoogleFonts.inter(
                             fontSize: 14,
-                            color: const Color(0xFF9CA3AF),
+                                    color: const Color(0xFF9DB3DD),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF9FAFB),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE5E7EB),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE5E7EB),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primaryColor,
-                              width: 2,
-                            ),
-                          ),
+                                  fillColor: Colors.white,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                                    vertical: 12,
+                                  ),
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(right: 12),
+                                    child: Icon(
+                                      Icons.edit,
+                                      color: AppColors.primaryColor.withOpacity(0.4),
+                                      size: 20,
+                                    ),
+                                  ),
+                                  suffixIconConstraints:
+                                      const BoxConstraints(minWidth: 40, minHeight: 40),
                           ),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: const Color(0xFF1C3355),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -198,88 +207,107 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
                           }
                           return null;
                         },
+                              ),
+                            ],
                       ),
 
-                      const SizedBox(height: 24),
+                          const SizedBox(height: 16),
 
                       // Description Input (Optional)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                       Text(
-                        _isEnglish
-                            ? 'Description (Optional)'
-                            : 'Mô tả (Tùy chọn)',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
+                                _isEnglish ? 'DESCRIPTION (OPTIONAL)' : 'MÔ TẢ (TÙY CHỌN)',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF374151),
+                                  color: const Color(0xFF4A6085),
+                                  letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         controller: _descriptionController,
-                        maxLines: 3,
+                                maxLines: 2,
+                                minLines: 2,
                         decoration: InputDecoration(
                           hintText: _isEnglish
-                              ? 'Add a brief description...'
-                              : 'Thêm mô tả ngắn...',
-                          hintStyle: GoogleFonts.poppins(
+                                      ? 'What is this lesson about?'
+                                      : 'Bài học này về cái gì?',
+                                  hintStyle: GoogleFonts.inter(
                             fontSize: 14,
-                            color: const Color(0xFF9CA3AF),
+                                    color: const Color(0xFF9DB3DD),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFFF9FAFB),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE5E7EB),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE5E7EB),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: AppColors.primaryColor,
-                              width: 2,
-                            ),
-                          ),
+                                  fillColor: Colors.white,
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 14,
+                                    vertical: 12,
                           ),
                         ),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: const Color(0xFF1C3355),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
-                      // Info box
+                      // Info Card
                       Container(
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
+                          color: const Color(0xFFF0F3FF),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         padding: const EdgeInsets.all(16),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.info_outline,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFDFE8FF),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.photo_camera,
                               color: AppColors.primaryColor,
-                              size: 24,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Text(
-                                _isEnglish
-                                    ? 'Next, you\'ll capture images of vocabulary to create flashcards automatically'
-                                    : 'Tiếp theo, bạn sẽ chụp ảnh từ vựng để tạo flashcard tự động',
-                                style: GoogleFonts.poppins(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _isEnglish ? 'Image-to-Word' : 'Hình ảnh-thành-Từ',
+                                    style: GoogleFonts.manrope(
                                   fontSize: 13,
-                                  color: const Color(0xFF374151),
-                                  height: 1.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF1C3355),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _isEnglish
+                                        ? 'AI detects and translates objects\nin your photos for this lesson.'
+                                        : 'AI phát hiện và dịch các đối tượng\ntrong ảnh của bạn cho bài học này.',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: const Color(0xFF4A6085),
+                                      height: 1.4,
+                                    ),
                                 ),
+                                ],
                               ),
                             ),
                           ],
@@ -291,39 +319,54 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
               ),
             ),
 
-            // Bottom button
+            // Bottom button with gradient
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, -4),
                   ),
                 ],
               ),
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton(
-                  onPressed: _onNext,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor,
+                        AppColors.primaryLight.withOpacity(0.8),
+                      ],
                     ),
-                    elevation: 0,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primaryColor.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _onNext,
+                      borderRadius: BorderRadius.circular(12),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         _isEnglish ? 'Next' : 'Tiếp theo',
-                        style: GoogleFonts.poppins(
+                            style: GoogleFonts.manrope(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                       ),
@@ -334,6 +377,8 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
                         size: 20,
                       ),
                     ],
+                      ),
+                    ),
                   ),
                 ),
               ),

@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:record/record.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:permission_handler/permission_handler.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
+import '../widgets/voice_interaction_overlay.dart';
 import '../services/language_service.dart';
+import '../services/gemini_voice_coach.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'archive_screen.dart';
@@ -42,14 +50,14 @@ class ChatMessage {
   );
 }
 
-class LeaderboardScreen extends StatefulWidget {
-  const LeaderboardScreen({Key? key}) : super(key: key);
+class ChatAiScreen extends StatefulWidget {
+  const ChatAiScreen({Key? key}) : super(key: key);
 
   @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+  State<ChatAiScreen> createState() => _ChatAiScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen> {
+class _ChatAiScreenState extends State<ChatAiScreen> {
   static const String _vercelApiUrl =
       'https://flutter-learning-en-app.vercel.app/api/chat';
   
@@ -59,12 +67,80 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   final List<ChatMessage> _messages = [];
   final List<ChatMessage> _chatHistory = [];
   bool _isTyping = false;
+  bool _isRecording = false;
+  int? _currentSpeakingMessageIndex; // Track which message is currently being spoken
   final Map<int, bool> _showTranslation = {}; // Track which messages show translation
+  final Map<int, bool> _messageMuted = {}; // Track which AI messages are muted
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  final GeminiVoiceCoach _voiceCoach = GeminiVoiceCoach();
+  final FlutterTts _flutterTts = FlutterTts();
+  final stt.SpeechToText _speechToText = stt.SpeechToText();
+  bool _speechEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    _initTts();
+    _initSpeechToText();
     _loadChatHistory();
+  }
+
+  void _initTts() {
+    _flutterTts.setLanguage("en-US");
+    _flutterTts.setPitch(1.0);
+    _flutterTts.setSpeechRate(0.5);
+  }
+
+  Future<void> _initSpeechToText() async {
+    try {
+      _speechEnabled = await _speechToText.initialize(
+        onError: (error) {
+          print('Speech recognition error: $error');
+          if (mounted) {
+            setState(() => _isRecording = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEnglish ? 'Microphone error: $error' : 'Lỗi micro: $error',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        onStatus: (status) {
+          print('Speech recognition status: $status');
+        },
+      );
+    } catch (e) {
+      print('Error initializing speech to text: $e');
+    }
+  }
+
+  Future<void> _speak(String text, {int? messageIndex}) async {
+    // Check if the message is muted
+    if (messageIndex != null && _messageMuted[messageIndex] == true) {
+      return;
+    }
+    
+    // Track which message is being spoken
+    if (messageIndex != null) {
+      _currentSpeakingMessageIndex = messageIndex;
+    }
+    
+    try {
+      await _flutterTts.speak(text);
+    } finally {
+      // Clear the current speaking message when done
+      if (_currentSpeakingMessageIndex == messageIndex) {
+        _currentSpeakingMessageIndex = null;
+      }
+    }
+  }
+
+  Future<void> _stopSpeaking() async {
+    await _flutterTts.stop();
+    _currentSpeakingMessageIndex = null;
   }
 
   Future<void> _loadChatHistory() async {
@@ -132,6 +208,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   void dispose() {
+    _flutterTts.stop();
+    _audioRecorder.dispose();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -173,14 +251,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   String _cleanMarkdown(String text) {
     return text
-        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1')
-        .replaceAll(RegExp(r'__(.*?)__'), r'$1')
-        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1')
-        .replaceAll(RegExp(r'_(.*?)_'), r'$1')
-        .replaceAll(RegExp(r'`(.*?)`'), r'$1')
-        .replaceAll(RegExp(r'#{1,6}\s'), '')
-        .replaceAll(RegExp(r'!\[.*?\]\((.*?)\)'), '[image]')
-        .replaceAll(RegExp(r'\[.*?\]\((.*?)\)'), r'$1')
+        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1')  // Remove **bold**
+        .replaceAll(RegExp(r'__(.*?)__'), r'$1')      // Remove __bold__
+        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1')      // Remove *italic*
+        .replaceAll(RegExp(r'_(.*?)_'), r'$1')        // Remove _italic_
+        .replaceAll(RegExp(r'`(.*?)`'), r'$1')        // Remove `code`
+        .replaceAll(RegExp(r'#{1,6}\s'), '')          // Remove # headers
+        .replaceAll(RegExp(r'!\[.*?\]\((.*?)\)'), '[image]')  // Remove ![alt](url)
+        .replaceAll(RegExp(r'\[.*?\]\((.*?)\)'), r'$1')       // Remove [text](url)
+        .replaceAll('*', '')                          // Remove all remaining asterisks
         .trim();
   }
 
@@ -240,9 +319,59 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final isEnglish = _isEnglish;
     
     try {
-      final url = Uri.parse(_vercelApiUrl);
-      print('🔄 Calling Vercel AI API...');
+      print('🔄 Calling Gemini API...');
       print('Message: $userMessage');
+
+      // Use the Gemini API via voice coach service
+      String apiResponse = await _voiceCoach.generateReply(userMessage, isEnglish: isEnglish);
+      
+      print('📡 Response received');
+
+      if (apiResponse.isEmpty || apiResponse.contains('not configured') || apiResponse.contains('failed')) {
+        // Fallback to original Vercel API if Gemini fails
+        print('⚠️ Gemini API failed, trying Vercel API...');
+        await _callVercelAPI(userMessage);
+        return;
+      }
+
+      // Clean the response
+      String aiResponseEn = _cleanMarkdown(apiResponse);
+      
+      // Translate to Vietnamese
+      String aiResponseVi = await _translateToVietnamese(aiResponseEn);
+      
+      print('✅ AI Response (EN): $aiResponseEn');
+      print('✅ AI Response (VI): $aiResponseVi');
+
+      if (mounted) {
+        setState(() {
+          _addMessage(aiResponseEn, aiResponseVi, isUser: false);
+          _isTyping = false;
+        });
+        final messageIndex = _messages.length - 1;
+        _speak(aiResponseEn, messageIndex: messageIndex);
+      }
+    } catch (e) {
+      print('❌ Exception: $e');
+      if (mounted) {
+        setState(() {
+          _addMessage(
+            'Sorry, something went wrong. Please try again.',
+            'Xin lỗi, có sự cố. Vui lòng thử lại.',
+            isUser: false,
+          );
+          _isTyping = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _callVercelAPI(String userMessage) async {
+    final isEnglish = _isEnglish;
+    
+    try {
+      final url = Uri.parse(_vercelApiUrl);
+      print('🔄 Calling Vercel AI API (Fallback)...');
 
       final response = await http.post(
         url,
@@ -280,6 +409,8 @@ body: jsonEncode({
             _addMessage(aiResponseEn, aiResponseVi, isUser: false);
             _isTyping = false;
           });
+          final messageIndex = _messages.length - 1;
+          _speak(aiResponseEn, messageIndex: messageIndex);
         }
       } else if (response.statusCode == 429) {
         print('⚠️ Rate Limited: ${response.statusCode}');
@@ -345,6 +476,84 @@ body: jsonEncode({
     }
   }
 
+  Future<void> _toggleVoiceInput() async {
+    if (_isTyping) return;
+
+    if (_isRecording) {
+      await _speechToText.stop();
+      setState(() => _isRecording = false);
+      return;
+    }
+
+    // Request microphone permission
+    final status = await Permission.microphone.request();
+    if (status != PermissionStatus.granted) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish
+                ? 'Microphone permission is required for voice input'
+                : 'Cần quyền microphone để nhập bằng giọng nói',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    if (!_speechEnabled) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish 
+                ? 'Speech recognition not available on this device' 
+                : 'Nhận dạng giọng nói không khả dụng trên thiết bị này',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isRecording = true);
+
+    try {
+      // Listen using device's native speech recognition (works offline)
+      await _speechToText.listen(
+        onResult: (result) {
+          if (result.finalResult && result.recognizedWords.isNotEmpty) {
+            final transcription = result.recognizedWords;
+            print('✅ Transcribed (device): $transcription');
+
+            if (mounted) {
+              setState(() => _isRecording = false);
+              _addMessage(transcription, transcription, isUser: true);
+              _callGeminiAPI(transcription);
+            }
+          }
+        },
+        localeId: _isEnglish ? 'en_US' : 'vi_VN',
+      );
+    } catch (e) {
+      print('❌ Speech recognition error: $e');
+      if (mounted) {
+        setState(() => _isRecording = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish 
+                  ? 'Error: $e' 
+                  : 'Lỗi: $e',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -393,31 +602,19 @@ body: jsonEncode({
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.transparent,
-              ),
-              child: const Icon(
-                Icons.arrow_back,
-                color: Color(0xFF4B5563),
-                size: 20,
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
           ),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'PUPU AI',
-                style: TextStyle(
-                  fontSize: 16,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF1F2937),
+                  color: const Color(0xFF1F2937),
                 ),
               ),
               Row(
@@ -434,10 +631,10 @@ body: jsonEncode({
                   const SizedBox(width: 4),
                   Text(
                     _isEnglish ? 'Online' : 'Trực tuyến',
-                    style: const TextStyle(
+                    style: GoogleFonts.poppins(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF9CA3AF),
+                      color: const Color(0xFF9CA3AF),
                     ),
                   ),
                 ],
@@ -520,18 +717,24 @@ body: jsonEncode({
             ),
           ),
           const SizedBox(width: 8),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFF3F4F6),
-            ),
-            child: const Icon(
-              Icons.mic_none,
-              color: Color(0xFF9CA3AF),
-              size: 18,
-            ),
+          // Voice Interaction Overlay Button
+          VoiceInteractionButton(
+            isEnglish: _isEnglish,
+            onMessageProcessed: (transcription, aiResponse) async {
+              // Add transcribed message from user
+              _addMessage(transcription, transcription, isUser: true);
+              
+              // Add AI response
+              String aiResponseVi = await _translateToVietnamese(aiResponse);
+              _addMessage(aiResponse, aiResponseVi, isUser: false);
+              
+              // Delay to ensure message is rendered with mute button available
+              await Future.delayed(const Duration(milliseconds: 200));
+              
+              // Speak the response (now mute button is visible)
+              final messageIndex = _messages.length - 1;
+              await _speak(aiResponse, messageIndex: messageIndex);
+            },
           ),
           const SizedBox(width: 8),
           GestureDetector(
@@ -577,6 +780,8 @@ body: jsonEncode({
   Widget _buildAIBubble(ChatMessage message, int messageIndex) {
     final content = _isEnglish ? message.text : message.textVi;
     final showTranslation = _showTranslation[messageIndex] ?? false;
+    final isMuted = _messageMuted[messageIndex] ?? false;
+    final isCurrentlySpeaking = _currentSpeakingMessageIndex == messageIndex;
     final timestamp = message.timestamp;
 
     return Row(
@@ -593,10 +798,11 @@ body: jsonEncode({
               width: 1,
             ),
           ),
-          child: Icon(
-            Icons.smart_toy,
-            color: AppColors.primaryColor,
-            size: 16,
+          child: ClipOval(
+            child: Image.asset(
+              'assets/image/info.png',
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -642,7 +848,7 @@ body: jsonEncode({
                     ),
                   ),
                 ),
-              // Time and translate button row
+              // Time and action buttons row
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
@@ -656,6 +862,38 @@ body: jsonEncode({
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // Mute/Unmute button
+                    GestureDetector(
+                      onTap: () async {
+                        final wasUnmuted = !isMuted;
+                        
+                        if (wasUnmuted) {
+                          // was unmuted, now muting - stop speaking immediately
+                          await _stopSpeaking();
+                        }
+                        
+                        setState(() {
+                          _messageMuted[messageIndex] = !isMuted;
+                        });
+                        
+                        if (!wasUnmuted) {
+                          // was muted, now unmuting - start speaking again
+                          await _speak(content, messageIndex: messageIndex);
+                        }
+                      },
+                      child: Text(
+                        isMuted
+                            ? (_isEnglish ? 'Unmute' : 'Bật âm')
+                            : (_isEnglish ? 'Mute' : 'Tắt âm'),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: isMuted ? Colors.red : AppColors.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Translate button
                     GestureDetector(
                       onTap: () {
                         setState(() {
@@ -757,10 +995,11 @@ body: jsonEncode({
               width: 1,
             ),
           ),
-          child: Icon(
-            Icons.smart_toy,
-            color: AppColors.primaryColor,
-            size: 16,
+          child: ClipOval(
+            child: Image.asset(
+              'assets/image/info.png',
+              fit: BoxFit.cover,
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -940,6 +1179,10 @@ body: jsonEncode({
                               Navigator.pop(context);
                               _showDetailedChatHistory(dateKey, messagesForDate);
                             },
+                            onLongPress: () {
+                              Navigator.pop(context);
+                              _showDeleteHistoryOption(dateKey, messagesForDate);
+                            },
                             child: Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
@@ -1091,10 +1334,11 @@ body: jsonEncode({
                               color:
                                   AppColors.primaryColor.withOpacity(0.1),
                             ),
-                            child: Icon(
-                              Icons.smart_toy,
-                              size: 14,
-                              color: AppColors.primaryColor,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/image/info.png',
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         const SizedBox(width: 8),
@@ -1163,6 +1407,65 @@ body: jsonEncode({
         ),
       ),
     );
+  }
+
+  void _showDeleteHistoryOption(String dateLabel, List<ChatMessage> messages) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: Text(
+                  _isEnglish
+                      ? 'Delete "$dateLabel" history'
+                      : 'Xoá lịch sử "$dateLabel"',
+                  style: const TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _deleteHistoryChunk(messages);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: Text(_isEnglish ? 'Cancel' : 'Huỷ'),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteHistoryChunk(List<ChatMessage> messagesToDelete) async {
+    if (messagesToDelete.isEmpty) return;
+
+    setState(() {
+      _chatHistory.removeWhere((msg) => messagesToDelete.contains(msg));
+      _messages.removeWhere((msg) => messagesToDelete.contains(msg));
+    });
+    await _saveChatHistory();
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish ? 'History deleted' : 'Đã xoá lịch sử',
+          ),
+          backgroundColor: AppColors.primaryColor,
+        ),
+      );
+    }
   }
 
   Future<String> _translateToVietnamese(String text) async {

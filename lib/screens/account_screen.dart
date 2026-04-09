@@ -63,7 +63,7 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -84,7 +84,7 @@ class _AccountScreenState extends State<AccountScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:
@@ -820,8 +820,22 @@ class _AccountScreenState extends State<AccountScreen> {
                   onTap: () {
                     if (selectedLanguage == 'en' && isEnglishNow == false) {
                       languageService.setEnglish();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Language changed to English'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
                     } else if (selectedLanguage == 'vi' && isEnglishNow == true) {
                       languageService.setVietnamese();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Ngôn ngữ được thay đổi thành Tiếng Việt'),
+                          duration: const Duration(seconds: 2),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
                     }
                     Navigator.pop(context);
                   },

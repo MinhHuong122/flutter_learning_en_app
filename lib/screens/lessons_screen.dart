@@ -6,6 +6,7 @@ import '../services/lesson_service.dart';
 import '../services/language_service.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
+import '../providers/lesson_provider.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'account_screen.dart';
@@ -13,19 +14,61 @@ import 'chat_ai_screen.dart';
 import 'lesson_detail_screen.dart';
 
 class LessonsScreen extends StatefulWidget {
-  const LessonsScreen({Key? key}) : super(key: key);
+  final String? searchQuery;
+  
+  const LessonsScreen({Key? key, this.searchQuery}) : super(key: key);
 
   @override
   State<LessonsScreen> createState() => _LessonsScreenState();
 }
 
-class _LessonsScreenState extends State<LessonsScreen> {
+class _LessonsScreenState extends State<LessonsScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   final LessonService _lessonService = LessonService();
   String _selectedFilter = 'all'; // 'all', 'ongoing', 'completed'
-  Map<String, double> _progressCache = {}; // Cache for calculated progress
+  late TextEditingController _searchController;
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _searchController = TextEditingController(text: widget.searchQuery ?? '');
+    // Load lessons once (cached globally)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LessonProvider>().loadLessonsOnce();
+    });
+  }
+
+  @override
+  void didUpdateWidget(LessonsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchQuery != oldWidget.searchQuery) {
+      _searchController.text = widget.searchQuery ?? '';
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload lessons and progress when user returns
+    if (state == AppLifecycleState.resumed) {
+      print('🔄 LessonsScreen: App resumed, reloading lessons & progress...');
+      if (mounted) {
+        // Force refresh from DB to update progress cache
+        context.read<LessonProvider>().refresh().then((_) {
+          if (mounted) setState(() {});
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _searchController.dispose();
+    super.dispose();
+  }
 
 String _getTranslation(String key) {
   final translations = {
@@ -63,7 +106,7 @@ String _getTranslation(String key) {
       case 3:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 4:
@@ -87,6 +130,8 @@ String _getTranslation(String key) {
 
             // Content
             Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => context.read<LessonProvider>().refresh(),
               child: SingleChildScrollView(
                 child: Column(
                   children: [
@@ -107,6 +152,7 @@ String _getTranslation(String key) {
                   ],
                 ),
               ),
+            ),
             ),
           ],
         ),
@@ -310,19 +356,11 @@ String _getTranslation(String key) {
   }
 
   Widget _buildCourseList() {
-    return FutureBuilder<List<Lesson>>(
-      future: _getLessonsFiltered(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(40),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+    return Consumer<LessonProvider>(
+      builder: (context, provider, child) {
+        final lessons = _getLessonsFiltered();
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        if (lessons.isEmpty) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(40),
@@ -456,69 +494,25 @@ String _getTranslation(String key) {
     );
   }
 
-  Future<List<Lesson>> _getLessonsFiltered() async {
-    final userId = _lessonService.supabase.auth.currentUser?.id;
-    if (userId == null) return [];
+  List<Lesson> _getLessonsFiltered() {
+    final provider = context.read<LessonProvider>();
+    var lessons = provider.getLessonsByStatus(_selectedFilter);
     
-    List<Lesson> lessons = await _lessonService.getParentLessons();
-    
-    // Calculate and cache progress for all lessons
-    _progressCache.clear();
-    for (var lesson in lessons) {
-      final progress = await _calculateRealProgress(lesson, userId);
-      _progressCache[lesson.id] = progress;
-      print('✅ Loaded lesson: ${lesson.title} - Progress: ${progress.toStringAsFixed(1)}%');
-    }
-
-    if (_selectedFilter == 'ongoing') {
-      // Filter lessons with progress < 100%
-      lessons = lessons.where((l) => _calculateProgress(l) < 100 && _calculateProgress(l) > 0).toList();
-    } else if (_selectedFilter == 'completed') {
-      // Filter lessons with progress == 100%
-      lessons = lessons.where((l) => _calculateProgress(l) == 100).toList();
+    // Filter by search query if provided
+    if (_searchController.text.isNotEmpty) {
+      final query = _searchController.text.toLowerCase();
+      lessons = lessons.where((lesson) {
+        return lesson.title.toLowerCase().contains(query) ||
+               lesson.description.toLowerCase().contains(query);
+      }).toList();
     }
 
     return lessons;
   }
 
   double _calculateProgress(Lesson lesson) {
-    // Return cached progress if available
-    return _progressCache[lesson.id] ?? 0.0;
-  }
-
-  Future<double> _calculateRealProgress(Lesson lesson, String userId) async {
-    try {
-      // Get all sub-lessons for this parent lesson
-      final subLessons = await _lessonService.getSubLessons(lesson.id);
-      if (subLessons.isEmpty) return 0.0;
-
-      // Count completed sub-lessons and sum progress percentages
-      int completedCount = 0;
-      int totalProgressPercent = 0;
-      
-      for (var subLesson in subLessons) {
-        final progress = await _lessonService.getUserProgress(userId, subLesson.id);
-        if (progress != null) {
-          if (progress.completed) {
-            completedCount++;
-          }
-          totalProgressPercent += progress.progressPercentage;
-        }
-      }
-
-      // Calculate percentage - use average of sub-lesson progress percentages
-      // This way, partial progress is also reflected
-      final percentage = subLessons.isEmpty ? 0.0 : (totalProgressPercent / subLessons.length).toDouble();
-      
-      if (percentage > 0) {
-        print('📊 Progress for ${lesson.title}: $completedCount/${subLessons.length} completed, avg: ${percentage.toStringAsFixed(1)}%');
-      }
-      
-      return percentage;
-    } catch (e) {
-      print('❌ Error calculating progress: $e');
-      return 0.0;
-    }
+    final provider = context.read<LessonProvider>();
+    return provider.getProgress(lesson.id);
   }
 
   List<Color> _getLessonGradient(String lessonType) {

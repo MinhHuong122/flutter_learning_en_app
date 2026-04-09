@@ -4,10 +4,16 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
+import '../services/community_service.dart';
+import '../services/auth_service.dart';
+import '../models/community_model.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
+import 'create_post_screen.dart';
+import 'post_detail_screen.dart';
+import 'community_profile_screen.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({Key? key}) : super(key: key);
@@ -19,7 +25,17 @@ class CommunityScreen extends StatefulWidget {
 class _CommunityScreenState extends State<CommunityScreen> {
   int _currentIndex = 3;
   int _selectedCategory = 0;
-  final List<String> categories = ['All', 'Discussion', 'Resources', 'Study Groups'];
+  
+  final List<String> _backendCategories = ['All', 'Discussion', 'Resources', 'Study Groups'];
+  
+  List<String> get categories {
+    if (_isEnglish) {
+      return ['All', 'Discussion', 'Resources', 'Study Groups'];
+    } else {
+      return ['Tất cả', 'Thảo luận', 'Tài nguyên', 'Nhóm học tập'];
+    }
+  }
+  
   final List<Color> categoryColors = [
     AppColors.primaryColor,
     const Color(0xFFFF9800),
@@ -33,7 +49,75 @@ class _CommunityScreenState extends State<CommunityScreen> {
     const Color(0xFFE8F5E9),
   ];
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  late TextEditingController _searchController;
+  List<CommunityPost> _posts = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _loadPosts();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPosts() async {
+    if (!mounted) return;
+    final isEnglish = context.read<LanguageService>().isEnglish;
+    setState(() => _isLoading = true);
+    try {
+      final communityService = context.read<CommunityService>();
+      final category = _selectedCategory == 0 ? null : _backendCategories[_selectedCategory];
+      final posts = await communityService.getPosts(category: category);
+      if (!mounted) return;
+      setState(() => _posts = posts);
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorSnackbar(isEnglish ? 'Error: $e' : 'Lỗi: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _navigateToChatAi() async {
+    // TODO: Implement ChatAiScreen navigation
+  }
+
+  Future<void> _searchPosts(String query) async {
+    if (!mounted) return;
+    final isEnglish = context.read<LanguageService>().isEnglish;
+    if (query.isEmpty) {
+      _loadPosts();
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final communityService = context.read<CommunityService>();
+      final posts = await communityService.searchPosts(query);
+      if (!mounted) return;
+      setState(() => _posts = posts);
+    } catch (e) {
+      if (!mounted) return;
+      _showErrorSnackbar(isEnglish ? 'Error: $e' : 'Lỗi: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showErrorSnackbar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -52,10 +136,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         );
         break;
       case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
-        );
+        _navigateToChatAi();
         break;
       case 3:
         setState(() => _currentIndex = index);
@@ -103,7 +184,23 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           ),
                         ],
                       ),
-                      Container(
+                      GestureDetector(
+                        onTap: () {
+                          final authService = context.read<AuthService>();
+                          final userId = authService.userId;
+                          if (userId != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CommunityProfileScreen(
+                                  userId: userId,
+                                  isCurrentUser: true,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
@@ -120,6 +217,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           Icons.person,
                           color: AppColors.primaryColor,
                           size: 20,
+                          ),
                         ),
                       ),
                     ],
@@ -132,6 +230,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       color: const Color(0xFFF3F4F6),
                     ),
                     child: TextField(
+                      controller: _searchController,
+                      onChanged: _searchPosts,
                       decoration: InputDecoration(
                         hintText: _isEnglish ? 'Search discussions...' : 'Tìm kiếm bài viết...',
                         hintStyle: GoogleFonts.poppins(
@@ -160,15 +260,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         return Padding(
                           padding: EdgeInsets.only(right: index == categories.length - 1 ? 0 : 8),
                           child: GestureDetector(
-                            onTap: () => setState(() => _selectedCategory = index),
+                            onTap: () {
+                              setState(() => _selectedCategory = index);
+                              _loadPosts();
+                            },
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 color: isSelected ? categoryColors[index] : categoryBgColors[index],
                               ),
+                              child: Center(
                               child: Text(
                                 categories[index],
+                                  textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -181,6 +286,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                               : (index == 2
                                                   ? const Color(0xFF9C27B0)
                                                   : const Color(0xFF4CAF50)))),
+                                  ),
                                 ),
                               ),
                             ),
@@ -195,47 +301,31 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
             // Feed
             Expanded(
-              child: ListView(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _posts.isEmpty
+                      ? Center(
+                          child: Text(
+                            _isEnglish ? 'No posts yet' : 'Chưa có bài đăng nào',
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        )
+                      : ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 children: [
-                  _buildPostCard(
-                    name: 'Alonzo Lee',
-                    time: _isEnglish ? '2 hours ago' : '2 giờ trước',
-                    content: _isEnglish
-                        ? 'Just finished the Digital Design Thinking course! The module on empathy maps was a game changer. Does anyone have extra resources on user personas? 🎨'
-                        : 'Vừa hoàn thành khóa Thiết kế Tư duy Kỹ thuật số! Module về empathy maps thay đổi cuộc chơi. Có ai có tài nguyên bổ sung về personas không? 🎨',
-                    hasImage: true,
-                    hasDownload: true,
-                    downloadText: _isEnglish ? 'Download Resource' : 'Tải tài nguyên',
-                    likes: 24,
-                    comments: 8,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPostCard(
-                    name: 'Sarah Miller',
-                    time: _isEnglish ? '5 hours ago' : '5 giờ trước',
-                    content: _isEnglish
-                        ? 'Looking for a study buddy for the \'Web Development\' track. Anyone interested in working through the React modules together next week? 💻🔥'
-                        : 'Tìm bạn học cho track \'Phát triển Web\'. Có ai quan tâm làm việc trên các module React cùng nhau tuần tới không? 💻🔥',
-                    hasImage: false,
-                    hasDownload: true,
-                    downloadText: _isEnglish ? 'Download Syllabus' : 'Tải Chương trình',
-                    likes: 12,
-                    comments: 15,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildPostCard(
-                    name: 'John Developer',
-                    time: _isEnglish ? '8 hours ago' : '8 giờ trước',
-                    content: _isEnglish
-                        ? 'Sharing my notes on advanced Flutter concepts. Check out the CustomPaint and animation techniques I covered in this document! 🚀'
-                        : 'Chia sẻ ghi chú của tôi về các khái niệm Flutter nâng cao. Xem các kỹ thuật CustomPaint và animation tôi đã đề cập! 🚀',
-                    hasImage: false,
-                    hasDownload: true,
-                    downloadText: _isEnglish ? 'Download Notes' : 'Tải ghi chú',
-                    likes: 35,
-                    comments: 12,
-                  ),
+                            ..._posts.map((post) => GestureDetector(
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PostDetailScreen(post: post),
+                                    ),
+                                  ),
+                                  child: _buildPostCard(post),
+                                )),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -244,10 +334,30 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: AppColors.primaryColor,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            backgroundColor: Colors.white,
+            builder: (BuildContext context) {
+              return FractionallySizedBox(
+                heightFactor: 0.85, // 85% of screen = ~2.5-3 screen height
+                child: CreatePostScreen(
+                  onPostCreated: () {
+                    Navigator.pop(context);
+                    _loadPosts();
+                  },
+                ),
+              );
+            },
+          );
+        },
+        backgroundColor: Colors.white,
         elevation: 8,
-        child: const Icon(Icons.add, size: 28),
+        child: const Icon(Icons.add, size: 28, color: AppColors.primaryColor),
       ),
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
@@ -256,17 +366,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
     );
   }
 
-  Widget _buildPostCard({
-    required String name,
-    required String time,
-    required String content,
-    required bool hasImage,
-    required bool hasDownload,
-    required String downloadText,
-    required int likes,
-    required int comments,
-  }) {
+  Widget _buildPostCard(CommunityPost post) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: Colors.white,
@@ -284,7 +386,17 @@ class _CommunityScreenState extends State<CommunityScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // User header
-          Row(
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CommunityProfileScreen(
+                  userId: post.userId,
+                  isCurrentUser: false,
+                ),
+              ),
+            ),
+            child: Row(
             children: [
               Container(
                 width: 40,
@@ -301,9 +413,30 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ),
                   ],
                 ),
-                child: Center(
+                  child: (post.userAvatar != null && post.userAvatar!.isNotEmpty)
+                      ? ClipOval(
+                          child: Image.network(
+                            post.userAvatar!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Center(
                   child: Text(
-                    name[0],
+                                post.userName.isNotEmpty
+                                    ? post.userName[0].toUpperCase()
+                                    : 'U',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      : Center(
+                          child: Text(
+                            post.userName.isNotEmpty
+                                ? post.userName[0].toUpperCase()
+                                : 'U',
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -318,7 +451,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                        post.userName,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -326,7 +459,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                       ),
                     ),
                     Text(
-                      time,
+                        _formatTime(post.createdAt),
                       style: GoogleFonts.poppins(
                         fontSize: 11,
                         color: const Color(0xFF9CA3AF),
@@ -336,72 +469,73 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 ),
               ),
             ],
+            ),
           ),
           const SizedBox(height: 12),
 
           // Content
           Text(
-            content,
+            post.content,
             style: GoogleFonts.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: const Color(0xFF4B5563),
               height: 1.5,
             ),
+            maxLines: 4,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 12),
 
-          // Image (optional)
-          if (hasImage)
+          // Image
+          if (post.imageUrl != null)
+            GestureDetector(
+              onTap: () => _showImageFullScreen(post.imageUrl!),
+              child: Container(
+                width: double.infinity,
+                height: 180,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  image: DecorationImage(
+                    image: NetworkImage(post.imageUrl!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+
+          // File Download
+          if (post.fileUrl != null)
             Container(
-              width: double.infinity,
-              height: 180,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 color: const Color(0xFFE0F4FF),
               ),
-              child: Icon(
-                Icons.image,
-                size: 60,
-                color: AppColors.primaryColor.withValues(alpha: 0.3),
-              ),
-            ),
-
-          if (hasImage) const SizedBox(height: 12),
-
-          // Download button
-          if (hasDownload)
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: const Color(0xFFE0F4FF),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.download,
-                      size: 16,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.download,
+                    size: 16,
+                    color: AppColors.primaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    post.fileName ?? (_isEnglish ? 'Download resource' : 'Tải tài nguyên'),
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.primaryColor,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      downloadText,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
-          if (hasDownload) const SizedBox(height: 12),
+          if (post.fileUrl != null) const SizedBox(height: 12),
 
           // Actions
           Container(
@@ -415,43 +549,49 @@ class _CommunityScreenState extends State<CommunityScreen> {
               children: [
                 Expanded(
                   child: _buildActionButton(
-                    icon: Icons.favorite_border,
-                    label: '$likes',
+                    icon: post.isLikedByMe ? Icons.favorite : Icons.favorite_border,
+                    label: '${post.likes}',
+                    onTap: () => _toggleLike(post),
+                    isLiked: post.isLikedByMe,
                   ),
                 ),
                 Expanded(
                   child: _buildActionButton(
                     icon: Icons.chat_bubble_outline,
-                    label: '$comments',
+                    label: '${post.comments}',
+                    onTap: () => _navigateToPostDetail(post),
                   ),
                 ),
                 Expanded(
                   child: _buildActionButton(
                     icon: Icons.share_outlined,
                     label: '',
+                    onTap: () => _sharePost(post),
                   ),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
+      );
+  
   }
 
   Widget _buildActionButton({
     required IconData icon,
     required String label,
+    required VoidCallback onTap,
+    bool isLiked = false,
   }) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             icon,
             size: 18,
-            color: const Color(0xFF9CA3AF),
+            color: isLiked ? Colors.red : const Color(0xFF9CA3AF),
           ),
           if (label.isNotEmpty) ...[
             const SizedBox(width: 4),
@@ -466,5 +606,109 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _toggleLike(CommunityPost post) async {
+    try {
+      final authService = context.read<AuthService>();
+      final userId = authService.userId;
+      if (userId == null) {
+        _showErrorSnackbar(_isEnglish ? 'Please login first' : 'Vui lòng đăng nhập trước');
+        return;
+      }
+      
+      final communityService = context.read<CommunityService>();
+      await communityService.likePost(post.id, userId);
+      _loadPosts();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isEnglish ? 'Liked!' : 'Đã thích!'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: AppColors.primaryColor,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackbar(_isEnglish ? 'Error: $e' : 'Lỗi: $e');
+    }
+  }
+
+  void _navigateToPostDetail(CommunityPost post) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PostDetailScreen(post: post),
+      ),
+    ).then((_) {
+      // Reload posts when back from post detail
+      _loadPosts();
+    });
+  }
+
+  Future<void> _sharePost(CommunityPost post) async {
+    try {
+      final authService = context.read<AuthService>();
+      final userId = authService.userId;
+      final userName = authService.userName ?? 'User';
+      
+      if (userId == null) {
+        _showErrorSnackbar(_isEnglish ? 'Please login first' : 'Vui lòng đăng nhập trước');
+        return;
+      }
+
+      final communityService = context.read<CommunityService>();
+      await communityService.sharePost(
+        originalPostId: post.id,
+        userId: userId,
+        userName: userName,
+      );
+      _loadPosts();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isEnglish ? 'Shared!' : 'Đã chia sẻ!'),
+          duration: const Duration(seconds: 1),
+          backgroundColor: AppColors.primaryColor,
+        ),
+      );
+    } catch (e) {
+      _showErrorSnackbar(_isEnglish ? 'Error: $e' : 'Lỗi: $e');
+    }
+  }
+
+  void _showImageFullScreen(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: InteractiveViewer(
+            child: Image.network(imageUrl),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 1) {
+      return _isEnglish ? 'Just now' : 'Vừa xong';
+    } else if (difference.inMinutes < 60) {
+      return _isEnglish 
+          ? '${difference.inMinutes} minutes ago'
+          : '${difference.inMinutes} phút trước';
+    } else if (difference.inHours < 24) {
+      return _isEnglish 
+          ? '${difference.inHours} hours ago'
+          : '${difference.inHours} giờ trước';
+    } else if (difference.inDays < 7) {
+      return _isEnglish 
+          ? '${difference.inDays} days ago'
+          : '${difference.inDays} ngày trước';
+    } else {
+      return '${dateTime.day}/${dateTime.month}';
+    }
   }
 }

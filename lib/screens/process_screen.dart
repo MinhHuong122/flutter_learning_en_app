@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
 import '../services/lesson_service.dart';
 import '../models/lesson_model.dart';
+import '../providers/lesson_provider.dart';
 import 'home_screen.dart';
 import 'chat_ai_screen.dart';
 import 'archive_screen.dart';
@@ -18,80 +20,73 @@ class ProcessScreen extends StatefulWidget {
   State<ProcessScreen> createState() => _ProcessScreenState();
 }
 
-class _ProcessScreenState extends State<ProcessScreen> {
+class _ProcessScreenState extends State<ProcessScreen> with WidgetsBindingObserver {
   int _currentIndex = 1;
   final LessonService _lessonService = LessonService();
   
-  late Future<Map<String, dynamic>> _progressDataFuture;
-
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   @override
   void initState() {
     super.initState();
-    _progressDataFuture = _loadProgressData();
+    WidgetsBinding.instance.addObserver(this);
+    // Load lessons once (cached globally)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LessonProvider>().loadLessonsOnce();
+    });
   }
 
-  Future<Map<String, dynamic>> _loadProgressData() async {
-    try {
-      final userId = _lessonService.supabase.auth.currentUser?.id;
-      if (userId == null) {
-        return {
-          'overallProgress': 0.0,
-          'totalLessons': 0,
-          'completedLessons': 0,
-          'ongoingLessons': [],
-        };
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Reload progress when user returns to this screen
+    if (state == AppLifecycleState.resumed) {
+      print('🔄 ProcessScreen: App resumed, reloading progress...');
+      if (mounted) {
+        // Force refresh from DB to update progress cache
+        context.read<LessonProvider>().refresh().then((_) {
+          if (mounted) setState(() {});
+        });
       }
-
-      final parentLessons = await _lessonService.getParentLessons();
-      
-      double totalProgress = 0.0;
-      int completedCount = 0;
-      List<Map<String, dynamic>> ongoingLessons = [];
-
-      for (var lesson in parentLessons) {
-        final subLessons = await _lessonService.getSubLessons(lesson.id);
-        if (subLessons.isEmpty) continue;
-
-        int totalProgressPercent = 0;
-        for (var subLesson in subLessons) {
-          final progress = await _lessonService.getUserProgress(userId, subLesson.id);
-          if (progress != null) {
-            totalProgressPercent += progress.progressPercentage;
-          }
-        }
-
-        final lessonProgress = (totalProgressPercent / subLessons.length).toDouble();
-        totalProgress += lessonProgress;
-
-        if (lessonProgress == 100) {
-          completedCount++;
-        } else if (lessonProgress > 0) {
-          ongoingLessons.add({
-            'lesson': lesson,
-            'progress': lessonProgress,
-          });
-        }
-      }
-
-      final overallProgress = parentLessons.isEmpty ? 0.0 : (totalProgress / parentLessons.length);
-
-      return {
-        'overallProgress': overallProgress,
-        'totalLessons': parentLessons.length,
-        'completedLessons': completedCount,
-        'ongoingLessons': ongoingLessons,
-      };
-    } catch (e) {
-      print('❌ Error loading progress data: $e');
-      return {
-        'overallProgress': 0.0,
-        'totalLessons': 0,
-        'completedLessons': 0,
-        'ongoingLessons': [],
-      };
     }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  Map<String, dynamic> _getProgressData() {
+    final provider = context.read<LessonProvider>();
+    final stats = provider.getProgressStats();
+    final allLessons = provider.allLessons;
+    
+    List<Map<String, dynamic>> ongoingLessons = [];
+    List<Map<String, dynamic>> completedLessons = [];
+    
+    for (var lesson in allLessons) {
+      final progress = provider.getProgress(lesson.id);
+      if (progress > 0 && progress < 100) {
+        ongoingLessons.add({
+          'lesson': lesson,
+          'progress': progress,
+        });
+      } else if (progress == 100) {
+        completedLessons.add({
+          'lesson': lesson,
+          'progress': progress,
+        });
+      }
+    }
+
+    return {
+      'overallProgress': stats['overallProgress'],
+      'totalLessons': stats['totalLessons'],
+      'completedLessons': stats['completedLessons'],
+      'ongoingLessons': ongoingLessons,
+      'completedLessonsList': completedLessons,
+    };
+  }
   }
 
   void _onBottomNavTap(int index) {
@@ -110,7 +105,7 @@ class _ProcessScreenState extends State<ProcessScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:
@@ -136,69 +131,42 @@ class _ProcessScreenState extends State<ProcessScreen> {
           children: [
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFF3F4F6),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: Color(0xFF6B7280),
-                        size: 20,
-                      ),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.pop(context),
                   ),
                   Text(
                     _isEnglish ? 'Learning Progress' : 'Tiến độ học tập',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1F2937),
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1F2937),
                     ),
                   ),
-                  const SizedBox(width: 40),
+                  const SizedBox(width: 48),
                 ],
               ),
             ),
 
             // Main content
             Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => context.read<LessonProvider>().refresh(),
               child: SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: _progressDataFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(40),
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-
-                      if (!snapshot.hasData) {
-                        return Center(
-                          child: Text(
-                            _isEnglish ? 'Error loading progress' : 'Lỗi tải tiến độ',
-                          ),
-                        );
-                      }
-
-                      final data = snapshot.data!;
+                    child: Consumer<LessonProvider>(
+                    builder: (context, provider, child) {
+                      final data = _getProgressData();
                       final overallProgress = (data['overallProgress'] as double).toStringAsFixed(0);
                       final totalLessons = data['totalLessons'] as int;
                       final completedLessons = data['completedLessons'] as int;
                       final ongoingLessons = data['ongoingLessons'] as List;
+                      final completedLessonsList = data['completedLessonsList'] as List;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,6 +289,7 @@ class _ProcessScreenState extends State<ProcessScreen> {
                           const SizedBox(height: 32),
 
                           // Ongoing Courses
+                          if (ongoingLessons.isNotEmpty) ...[
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -336,35 +305,10 @@ class _ProcessScreenState extends State<ProcessScreen> {
                           ),
 
                           const SizedBox(height: 16),
-
-                          // Ongoing Course Cards
-                          if (ongoingLessons.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Center(
-                                child: Text(
-                                  _isEnglish ? 'No courses in progress' : 'Chưa có khóa học nào đang học',
-                                  style: const TextStyle(
-                                    color: Color(0xFF6B7280),
-                                  ),
-                                ),
-                              ),
-                            )
-                          else
                             ...ongoingLessons.map((item) {
                               final lesson = item['lesson'] as Lesson;
                               final progress = (item['progress'] as double).toInt();
-                              
-                              // Color mapping for lessons
-                              final colors = [
-                                const Color(0xFF6366F1),
-                                const Color(0xFFEC4899),
-                                const Color(0xFF8B5CF6),
-                                const Color(0xFF14B8A6),
-                                const Color(0xFFF59E0B),
-                              ];
-                              final colorIndex = lesson.id.hashCode % colors.length;
-                              final bgColor = colors[colorIndex];
+                              final gradientColors = _getLessonGradient((lesson.id.hashCode).abs());
                               
                               return GestureDetector(
                                 onTap: () {
@@ -382,17 +326,65 @@ class _ProcessScreenState extends State<ProcessScreen> {
                                     category: 'Lesson',
                                     description: lesson.description,
                                     progress: progress,
-                                    bgColor: bgColor,
+                                    gradientColors: gradientColors,
                                     icon: Icons.school_outlined,
                                   ),
                                 ),
                               );
                             }).toList(),
+                            const SizedBox(height: 24),
+                          ],
+
+                          // Completed Courses
+                          if (completedLessonsList.isNotEmpty) ...[
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _isEnglish ? 'Completed Courses' : 'Khóa học đã hoàn thành',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF1F2937),
+                                  ),
+                                ),
+                              ],
+                              ),
+                            const SizedBox(height: 16),
+                            ...completedLessonsList.map((item) {
+                              final lesson = item['lesson'] as Lesson;
+                              final progress = (item['progress'] as double).toInt();
+                              final gradientColors = _getLessonGradient((lesson.id.hashCode).abs() + 5);
+                              
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LessonDetailScreen(lesson: lesson),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: _buildCourseCard(
+                                    title: lesson.title,
+                                    category: 'Lesson',
+                                    description: lesson.description,
+                                    progress: progress,
+                                    gradientColors: gradientColors,
+                                    icon: Icons.school_outlined,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ],
 
                           const SizedBox(height: 40),
                         ],
                       );
                     },
+                  ),
                   ),
                 ),
               ),
@@ -464,27 +456,80 @@ class _ProcessScreenState extends State<ProcessScreen> {
     );
   }
 
+  Map<String, Color> _getPastelCardColors(int index) {
+    final colors = [
+      {
+        'background': const Color(0xFFE3F2FD),
+        'primary': const Color(0xFF0062A3),
+        'textPrimary': const Color(0xFF003F6A),
+        'textSecondary': const Color(0xFF4A6085),
+      },
+      {
+        'background': const Color(0xFFF3E5F5),
+        'primary': const Color(0xFF9B26AF),
+        'textPrimary': const Color(0xFF610071),
+        'textSecondary': const Color(0xFF4A6085),
+      },
+      {
+        'background': const Color(0xFFFFF8E1),
+        'primary': const Color(0xFFB8860B),
+        'textPrimary': const Color(0xFF754800),
+        'textSecondary': const Color(0xFF825000),
+      },
+      {
+        'background': const Color(0xFFFFE0B2),
+        'primary': const Color(0xFF875400),
+        'textPrimary': const Color(0xFF5B3700),
+        'textSecondary': const Color(0xFF754800),
+      },
+      {
+        'background': const Color(0xFFEDE7F6),
+        'primary': const Color(0xFF6366F1),
+        'textPrimary': const Color(0xFF4C1991),
+        'textSecondary': const Color(0xFF4A6085),
+      },
+      {
+        'background': const Color(0xFFF8BBD0),
+        'primary': const Color(0xFFF595FF),
+        'textPrimary': const Color(0xFF610071),
+        'textSecondary': const Color(0xFF700082),
+      },
+    ];
+
+    final colorMap = colors[index % colors.length];
+    return {
+      'background': colorMap['background']!,
+      'primary': colorMap['primary']!,
+      'textPrimary': colorMap['textPrimary']!,
+      'textSecondary': colorMap['textSecondary']!,
+    };
+  }
+
   Widget _buildCourseCard({
     required String title,
     required String category,
     required String description,
     required int progress,
-    required Color bgColor,
+    required List<Color> gradientColors,
     required IconData icon,
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: bgColor.withOpacity(0.3),
-            blurRadius: 20,
+            color: gradientColors[0].withOpacity(0.3),
+            blurRadius: 16,
             offset: const Offset(0, 8),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -496,15 +541,19 @@ class _ProcessScreenState extends State<ProcessScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category
+                    // Category Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
+                        horizontal: 10,
+                        vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withOpacity(0.25),
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -514,14 +563,14 @@ class _ProcessScreenState extends State<ProcessScreen> {
                             color: Colors.white,
                             size: 14,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 5),
                           Text(
                             category,
                             style: const TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
-                              letterSpacing: 0.5,
+                              letterSpacing: 0.6,
                             ),
                           ),
                         ],
@@ -536,7 +585,10 @@ class _ProcessScreenState extends State<ProcessScreen> {
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
+                        height: 1.2,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
 
@@ -549,32 +601,36 @@ class _ProcessScreenState extends State<ProcessScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: Colors.white70,
-                        height: 1.4,
+                        height: 1.3,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
-              // Icon circle
+              const SizedBox(width: 12),
+              // Icon circle with opacity
               Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1.5,
+                  ),
                 ),
                 child: Icon(
                   icon,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withOpacity(0.5),
                   size: 32,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // Progress Bar
+          // Progress Bar Section
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -582,19 +638,27 @@ class _ProcessScreenState extends State<ProcessScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    _isEnglish ? 'Completed' : 'Đã hoàn thành',
+                    _isEnglish ? 'Progress' : 'Tiến độ',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
+                      letterSpacing: 0.4,
                     ),
                   ),
-                  Text(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(6),
+                  ),
+                    child: Text(
                     '$progress%',
                     style: const TextStyle(
                       fontSize: 11,
-                      fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -605,9 +669,10 @@ class _ProcessScreenState extends State<ProcessScreen> {
                 child: LinearProgressIndicator(
                   value: progress / 100,
                   minHeight: 6,
-                  backgroundColor: Colors.black.withOpacity(0.15),
-                  valueColor:
-                      const AlwaysStoppedAnimation<Color>(Colors.white),
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white.withOpacity(0.9),
+                  ),
                 ),
               ),
             ],
@@ -615,6 +680,22 @@ class _ProcessScreenState extends State<ProcessScreen> {
         ],
       ),
     );
+  }
+
+  List<Color> _getLessonGradient(int index) {
+    final gradients = [
+      [const Color(0xFF4FB5FF), const Color(0xFF6DD5FA)], // Blue sáng
+      [const Color(0xFFA78BFA), const Color(0xFFC4B5FD)], // Purple sáng
+      [const Color(0xFF34D399), const Color(0xFF6EE7B7)], // Green sáng
+      [const Color(0xFFFFB75E), const Color(0xFFED8F03)], // Orange sáng
+      [const Color(0xFFF472B6), const Color(0xFFFBBF24)], // Pink-Yellow sáng
+      [const Color(0xFF22D3EE), const Color(0xFF67E8F9)], // Cyan sáng
+      [const Color(0xFFEC4899), const Color(0xFFF97316)], // Pink-Orange
+      [const Color(0xFF6366F1), const Color(0xFF8B5CF6)], // Indigo-Purple
+      [const Color(0xFF10B981), const Color(0xFF06B6D4)], // Emerald-Cyan
+      [const Color(0xFFF59E0B), const Color(0xFFEF4444)], // Amber-Red
+    ];
+    return gradients[index % gradients.length];
   }
 
   Widget _buildOngoingCourseCard({

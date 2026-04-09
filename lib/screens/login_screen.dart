@@ -49,16 +49,24 @@ class _LoginScreenState extends State<LoginScreen> {
     final authService = context.read<AuthService>();
     setState(() => _isLoading = true);
 
-    final username = _usernameController.text.trim();
+    final email = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       _showSnackBar(isEnglish ? 'Please fill in all fields' : 'Vui lòng điền tất cả các trường');
       setState(() => _isLoading = false);
       return;
     }
 
-    final success = await authService.loginWithUsernamePassword(username, password);
+    if (!email.contains('@')) {
+      _showSnackBar(isEnglish
+          ? 'Please enter your email to login'
+          : 'Vui lòng nhập email để đăng nhập');
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    final success = await authService.loginWithEmailPassword(email, password);
 
     setState(() => _isLoading = false);
 
@@ -78,7 +86,21 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } else if (mounted) {
-      _showSnackBar(isEnglish ? 'Login failed. Please try again.' : 'Đăng nhập thất bại. Vui lòng thử lại.');
+      final error = authService.errorMessage ?? '';
+      if (error.toLowerCase().contains('email not confirmed')) {
+        _showSnackBar(
+          isEnglish
+              ? 'Please verify your email first. Check your inbox from Supabase.'
+              : 'Vui lòng xác nhận email trước. Hãy kiểm tra hộp thư của bạn.',
+        );
+      } else {
+        _showSnackBar(
+          authService.errorMessage ??
+              (isEnglish
+                  ? 'Login failed. Please try again.'
+                  : 'Đăng nhập thất bại. Vui lòng thử lại.'),
+        );
+      }
     }
   }
 
@@ -118,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   String get _loginTitle => _isEnglish ? 'Welcome Back!' : 'Chào mừng trở lại!';
   String get _loginSubtitle => _isEnglish ? 'Login to continue your learning journey' : 'Đăng nhập để tiếp tục hành trình học tập của bạn';
@@ -127,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String get _signupText => _isEnglish ? "Don't have an account?" : 'Không có tài khoản?';
   String get _signupLinkText => _isEnglish ? 'Sign Up' : 'Đăng ký';
   String get _forgotPasswordText => _isEnglish ? 'Forgot Password?' : 'Quên mật khẩu?';
-  String get _usernameHint => _isEnglish ? 'Username' : 'Tên đăng nhập';
+  String get _usernameHint => _isEnglish ? 'Email' : 'Email';
   String get _passwordHint => _isEnglish ? 'Password' : 'Mật khẩu';
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dotted_border/dotted_border.dart';
 import '../utils/constants.dart';
 import '../services/language_service.dart';
 import '../models/dictionary_model.dart';
@@ -11,6 +12,7 @@ class FlashcardEditorScreen extends StatefulWidget {
   final String description;
   final List<DictionaryEntry> extractedWords;
   final String imagePath;
+  final String? lessonId; // For editing existing lessons
 
   const FlashcardEditorScreen({
     Key? key,
@@ -18,6 +20,7 @@ class FlashcardEditorScreen extends StatefulWidget {
     required this.description,
     required this.extractedWords,
     required this.imagePath,
+    this.lessonId,
   }) : super(key: key);
 
   @override
@@ -27,14 +30,60 @@ class FlashcardEditorScreen extends StatefulWidget {
 class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   late List<DictionaryEntry> _vocabularyList;
   bool _isSaving = false;
+  bool _isLoadingData = false;
   final LessonService _lessonService = LessonService();
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   @override
   void initState() {
     super.initState();
+    print('🎬 FlashcardEditorScreen initiated - lessonId: ${widget.lessonId}');
     _vocabularyList = List.from(widget.extractedWords);
+    
+    // If lessonId is provided, load vocabulary from database
+    if (widget.lessonId != null) {
+      _loadLessonVocabulary();
+    }
+  }
+
+  Future<void> _loadLessonVocabulary() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingData = true;
+    });
+    
+    try {
+      print('📚 Loading vocabulary for lesson: ${widget.lessonId}');
+      final vocabulary = await _lessonService.getLessonVocabulary(widget.lessonId!);
+      print('✅ Loaded ${vocabulary.length} vocabulary items');
+      
+      if (mounted) {
+        setState(() {
+          _vocabularyList = vocabulary;
+          _isLoadingData = false;
+        });
+      }
+    } catch (e) {
+      print('❌ Error loading vocabulary: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingData = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish
+                  ? 'Error loading vocabulary: $e'
+                  : 'Lỗi tải từ vựng: $e',
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   void _editWord(int index) {
@@ -46,59 +95,97 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          _isEnglish ? 'Edit Flashcard' : 'Chỉnh sửa Flashcard',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        content: SingleChildScrollView(
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Backdrop
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                color: Colors.black.withOpacity(0.6),
+              ),
+            ),
+            // Modal
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
+                      Text(
+                        _isEnglish ? 'Edit Flashcard' : 'Chỉnh sửa Flashcard',
+                        style: GoogleFonts.quicksand(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Word Field
+                      _buildFloatingLabelField(
                 controller: wordController,
-                decoration: InputDecoration(
-                  labelText: _isEnglish ? 'Word' : 'Từ vựng',
-                  border: const OutlineInputBorder(),
-                ),
+                        label: _isEnglish ? 'Word' : 'Từ vựng',
               ),
-              const SizedBox(height: 12),
-              TextField(
+                      const SizedBox(height: 24),
+
+                      // Phonetic Field
+                      _buildFloatingLabelField(
                 controller: phoneticController,
-                decoration: InputDecoration(
-                  labelText: _isEnglish ? 'Phonetic' : 'Phiên âm',
-                  border: const OutlineInputBorder(),
-                ),
+                        label: _isEnglish ? 'Phonetic' : 'Phiên âm',
               ),
-              const SizedBox(height: 12),
-              TextField(
+                      const SizedBox(height: 24),
+
+                      // Meaning Field
+                      _buildFloatingLabelField(
                 controller: meaningController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: _isEnglish ? 'Meaning' : 'Nghĩa',
-                  border: const OutlineInputBorder(),
-                ),
+                        label: _isEnglish ? 'Meaning' : 'Nghĩa',
+                        maxLines: 3,
               ),
-              const SizedBox(height: 12),
-              TextField(
+                      const SizedBox(height: 24),
+
+                      // Example Field
+                      _buildFloatingLabelField(
                 controller: exampleController,
+                        label: _isEnglish ? 'Example' : 'Ví dụ',
                 maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: _isEnglish ? 'Example' : 'Ví dụ',
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Action Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_isEnglish ? 'Cancel' : 'Hủy'),
+                            child: Text(
+                              _isEnglish ? 'Cancel' : 'Hủy',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
           ),
+                          const SizedBox(width: 16),
           ElevatedButton(
             onPressed: () {
               setState(() {
@@ -115,9 +202,89 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               });
               Navigator.pop(context);
             },
-            child: Text(_isEnglish ? 'Save' : 'Lưu'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF31718F),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              elevation: 8,
+                              shadowColor: const Color(0xFF31718F).withOpacity(0.2),
+                            ),
+                            child: Text(
+                              _isEnglish ? 'Save' : 'Lưu',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
           ),
         ],
+      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingLabelField({
+    required TextEditingController controller,
+    required String label,
+    int maxLines = 1,
+  }) {
+    return Focus(
+      autofocus: (_) => setState(() {}),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        style: GoogleFonts.quicksand(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: const Color(0xFF1E293B),
+        ),
+        decoration: InputDecoration(
+          isDense: true,
+          labelText: label,
+          labelStyle: GoogleFonts.quicksand(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+          ),
+          floatingLabelBehavior: FloatingLabelBehavior.always,
+          floatingLabelAlignment: FloatingLabelAlignment.start,
+          contentPadding: const EdgeInsets.all(16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(
+              color: Color(0xFFE2E8F0),
+              width: 2,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(
+              color: Color(0xFFE2E8F0),
+              width: 2,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(24),
+            borderSide: const BorderSide(
+              color: Color(0xFF31718F),
+              width: 2,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -125,25 +292,79 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   void _deleteWord(int index) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          _isEnglish ? 'Delete Flashcard' : 'Xóa Flashcard',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(color: Colors.black.withOpacity(0.6)),
+            ),
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 340),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.warning_rounded,
+                      color: Colors.red.withOpacity(0.7),
+                      size: 56,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      _isEnglish ? 'Delete Flashcard?' : 'Xóa Flashcard?',
+                      style: GoogleFonts.quicksand(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1E293B),
           ),
         ),
-        content: Text(
+                    const SizedBox(height: 12),
+                    Text(
           _isEnglish
-              ? 'Are you sure you want to delete this flashcard?'
-              : 'Bạn có chắc chắn muốn xóa flashcard này?',
+                          ? 'This action cannot be undone.'
+                          : 'Hành động này không thể được hoàn tác.',
+                      style: GoogleFonts.quicksand(
+                        fontSize: 14,
+                        color: const Color(0xFF64748B),
         ),
-        actions: [
-          TextButton(
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(_isEnglish ? 'Cancel' : 'Hủy'),
+                            child: Text(
+                              _isEnglish ? 'Cancel' : 'Hủy',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
           ),
-          ElevatedButton(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
             onPressed: () {
               setState(() {
                 _vocabularyList.removeAt(index);
@@ -151,14 +372,235 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+                              backgroundColor: Colors.red.withOpacity(0.7),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
             ),
             child: Text(
               _isEnglish ? 'Delete' : 'Xóa',
-              style: const TextStyle(color: Colors.white),
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
             ),
           ),
         ],
+      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _addNewFlashcard() {
+    final wordController = TextEditingController();
+    final phoneticController = TextEditingController();
+    final meaningController = TextEditingController();
+    final wordClassController = TextEditingController(text: 'noun');
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                color: Colors.black.withOpacity(0.6),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isEnglish ? 'Add New Flashcard' : 'Thêm Flashcard mới',
+                        style: GoogleFonts.quicksand(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Word Field
+                      _buildFloatingLabelField(
+                        controller: wordController,
+                        label: _isEnglish ? 'Word *' : 'Từ vựng *',
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Phonetic Field
+                      _buildFloatingLabelField(
+                        controller: phoneticController,
+                        label: _isEnglish ? 'Phonetic' : 'Phiên âm',
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Meaning Field
+                      _buildFloatingLabelField(
+                        controller: meaningController,
+                        label: _isEnglish ? 'Meaning *' : 'Nghĩa *',
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Word Class Dropdown
+                      DropdownButtonFormField(
+                        value: wordClassController.text,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          labelText: _isEnglish ? 'Word Class' : 'Loại từ',
+                          labelStyle: GoogleFonts.quicksand(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF64748B),
+                          ),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          floatingLabelAlignment: FloatingLabelAlignment.start,
+                          contentPadding: const EdgeInsets.all(16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                              width: 2,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                              width: 2,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF31718F),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        items: ['noun', 'verb', 'adjective', 'adverb', 'preposition', 'pronoun', 'conjunction', 'other']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            wordClassController.text = value;
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Action Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              _isEnglish ? 'Cancel' : 'Hủy',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              final word = wordController.text.trim();
+                              final meaning = meaningController.text.trim();
+
+                              if (word.isEmpty || meaning.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      _isEnglish
+                                          ? 'Please fill in word and meaning'
+                                          : 'Vui lòng điền từ vựng và nghĩa',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setState(() {
+                                _vocabularyList.add(
+                                  DictionaryEntry(
+                                    id: -(DateTime.now().millisecondsSinceEpoch),
+                                    term: word,
+                                    language: 'en',
+                                    pronunciation: phoneticController.text.trim(),
+                                    wordClass: wordClassController.text,
+                                    meaning: meaning,
+                                    isCommon: false,
+                                    frequency: 0,
+                                  ),
+                                );
+                              });
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF31718F),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              elevation: 8,
+                              shadowColor: const Color(0xFF31718F).withOpacity(0.2),
+                            ),
+                            child: Text(
+                              _isEnglish ? 'Add' : 'Thêm',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -188,35 +630,81 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     try {
       final userId = _lessonService.supabase.auth.currentUser?.id;
       if (userId == null) {
-        throw Exception('User not logged in');
+        throw Exception(_isEnglish ? 'User not logged in' : 'Người dùng chưa đăng nhập');
       }
 
-      // TODO: Implement save custom lesson to Supabase
-      // This should:
-      // 1. Create a new custom lesson in database
-      // 2. Store vocabulary words as flashcards
-      // 3. Associate with user account
-      
-      // For now, show success message
-      await Future.delayed(const Duration(seconds: 2));
+      // Prepare vocabulary data for saving
+      final vocabularyData = _vocabularyList
+          .map((word) => {
+                'term': word.term,
+                'meaning': word.meaning,
+                'pronunciation': word.pronunciation,
+                'wordClass': word.wordClass,
+              })
+          .toList();
+
+      // Check if editing or creating new
+      if (widget.lessonId != null) {
+        // Update existing lesson
+        final result = await _lessonService.updateCustomLesson(
+          lessonId: widget.lessonId!,
+          title: widget.lessonName,
+          description: widget.description,
+          vocabularyWords: vocabularyData,
+        );
+
+        if (result == null) {
+          throw Exception(_isEnglish ? 'Failed to update lesson' : 'Không thể cập nhật bài học');
+        }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               isEnglish
-                  ? 'Lesson created successfully!'
-                  : 'Tạo bài học thành công!',
+                    ? 'Lesson updated successfully! ${result['vocabularyCount']} words saved'
+                    : 'Cập nhật bài học thành công! ${result['vocabularyCount']} từ đã lưu',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.of(context).pop(true);
+        }
+      } else {
+        // First, save any new English words to the dictionary database
+        await _lessonService.saveNewEnglishWords(vocabularyData);
+
+        // Then create the custom lesson
+        final result = await _lessonService.createCustomLesson(
+          userId: userId,
+          title: widget.lessonName,
+          description: widget.description,
+          vocabularyWords: vocabularyData,
+        );
+
+        if (result == null) {
+          throw Exception(_isEnglish ? 'Failed to save lesson' : 'Không thể lưu bài học');
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isEnglish
+                    ? 'Lesson created successfully! ${result['vocabularyCount']} words saved'
+                    : 'Tạo bài học thành công! ${result['vocabularyCount']} từ đã lưu',
             ),
             backgroundColor: Colors.green,
           ),
         );
 
         // Navigate back to my lessons screen with success flag
-        Navigator.of(context).popUntil((route) => route.settings.name == '/my_lessons' || route.isFirst);
+          Navigator.of(context).popUntil((route) => route.isFirst);
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop(true);
         }
+      }
       }
     } catch (e) {
       setState(() {
@@ -227,9 +715,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEnglish
-                  ? 'Error saving lesson: $e'
-                  : 'Lỗi lưu bài học: $e',
+              isEnglish ? 'Error saving lesson: $e' : 'Lỗi lưu bài học: $e',
             ),
             backgroundColor: Colors.red,
           ),
@@ -240,13 +726,26 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('🎨 Building FlashcardEditorScreen - lessonId: ${widget.lessonId}, vocab count: ${_vocabularyList.length}, loading: $_isLoadingData');
     return Scaffold(
-      body: SafeArea(
-        child: Column(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Column(
           children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          // Fixed Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: SafeArea(
+              bottom: false,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -266,28 +765,59 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                       ),
                     ),
                   ),
-                  Text(
+                  Expanded(
+                    child: Text(
                     _isEnglish ? 'Edit Flashcards' : 'Chỉnh sửa Flashcard',
+                      textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF1F2937),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 40),
                 ],
               ),
             ),
+          ),
 
+          // Main Content
+          Expanded(
+            child: _isLoadingData
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _isEnglish ? 'Loading vocabulary...' : 'Đang tải từ vựng...',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+                    child: Column(
+                children: [
             // Lesson info
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
+                  Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.primaryColor.withOpacity(0.2),
+                        width: 1,
+                      ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,17 +825,55 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                     Text(
                       widget.lessonName,
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
                         color: const Color(0xFF1F2937),
                       ),
                     ),
-                    const SizedBox(height: 4),
+                        const SizedBox(height: 6),
                     Text(
                       '${_vocabularyList.length} ${_isEnglish ? 'flashcards' : 'flashcard'}',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                         color: const Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Add new flashcard button
+                  GestureDetector(
+                    onTap: _addNewFlashcard,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.add_circle,
+                            color: AppColors.primaryColor,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isEnglish ? 'Add Flashcard' : 'Thêm Flashcard',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
                       ),
                     ),
                   ],
@@ -313,13 +881,11 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
+                  const SizedBox(height: 24),
 
             // Flashcard list
-            Expanded(
-              child: _vocabularyList.isEmpty
-                  ? Center(
-                      child: Column(
+                  _vocabularyList.isEmpty
+                      ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -338,31 +904,35 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                             ),
                           ),
                         ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      itemCount: _vocabularyList.length,
-                      itemBuilder: (context, index) {
-                        final word = _vocabularyList[index];
-                        return _buildFlashcardItem(word, index);
-                      },
-                    ),
-            ),
-
-            // Bottom button
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
+                      )
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _vocabularyList.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final word = _vocabularyList[index];
+                            return _buildFlashcardItem(word, index);
+                          },
+                        ),
                 ],
               ),
+            ),
+
+          // Fixed Bottom
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: const Color(0xFFE5E7EB),
+                  width: 1,
+                ),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
               child: SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -372,9 +942,10 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                     backgroundColor: AppColors.primaryColor,
                     disabledBackgroundColor: AppColors.primaryColor.withOpacity(0.5),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                    elevation: 0,
+                    elevation: 4,
+                    shadowColor: AppColors.primaryColor.withOpacity(0.3),
                   ),
                   child: _isSaving
                       ? const SizedBox(
@@ -398,7 +969,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                               _isEnglish ? 'Save Lesson' : 'Lưu bài học',
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
@@ -407,20 +978,30 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildFlashcardItem(DictionaryEntry word, int index) {
+    // Select color based on index
+    final colors = [
+      const Color(0xFFF43F5E), // rose-400
+      const Color(0xFF0EA5E9), // sky-400
+      const Color(0xFFFBBF24), // amber-400
+      const Color(0xFF10B981), // emerald-400
+    ];
+    final barColor = colors[index % colors.length];
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: const Color(0xFFE5E7EB),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -435,33 +1016,35 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Confidence indicator (based on isCommon and frequency)
+          // Colored left bar
             Container(
-              width: 4,
-              height: 60,
+            width: 6,
               decoration: BoxDecoration(
-                color: word.isCommon
-                    ? Colors.green
-                    : word.frequency > 50
-                        ? Colors.orange
-                        : Colors.red,
-                borderRadius: BorderRadius.circular(2),
+              color: barColor,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                bottomLeft: Radius.circular(24),
               ),
             ),
-            const SizedBox(width: 12),
+          ),
 
-            // Word content
+          // Content
             Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
                         word.term,
                         style: GoogleFonts.poppins(
                           fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: const Color(0xFF1F2937),
                         ),
                       ),
@@ -472,7 +1055,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                             word.pronunciation,
                             style: GoogleFonts.poppins(
                               fontSize: 12,
-                              color: const Color(0xFF6B7280),
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF9CA3AF),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -481,29 +1065,38 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     word.meaning,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: const Color(0xFF374151),
+                      fontWeight: FontWeight.w400,
+                      color: const Color(0xFF4B5563),
+                      height: 1.5,
                     ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
                     word.wordClass,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
+                      fontWeight: FontWeight.w500,
                       color: const Color(0xFF9CA3AF),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ],
               ),
+              ),
             ),
 
             // Action buttons
-            Column(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, size: 20),
@@ -511,16 +1104,19 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                   onPressed: () => _editWord(index),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  splashRadius: 20,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
                 IconButton(
                   icon: const Icon(Icons.delete, size: 20),
-                  color: Colors.red,
+                  color: const Color(0xFFEF4444),
                   onPressed: () => _deleteWord(index),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
+                  splashRadius: 20,
                 ),
               ],
+            ),
             ),
           ],
         ),

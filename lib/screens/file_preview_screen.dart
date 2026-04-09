@@ -107,9 +107,7 @@ class _FilePreviewScreenState extends State<FilePreviewScreen> {
         lowerUrl.contains('.ppt') ||
         lowerUrl.contains('.xls');
 
-    final isPdf = lowerName.endsWith('.pdf') || lowerUrl.contains('.pdf');
-
-    if (isOffice || (isPdf && Platform.isAndroid)) {
+    if (isOffice) {
       return 'https://docs.google.com/gview?embedded=1&url=${Uri.encodeComponent(widget.fileUrl)}';
     }
 

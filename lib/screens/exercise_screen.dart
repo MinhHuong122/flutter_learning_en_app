@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
 import 'archive_screen.dart';
+import 'word_puzzle_game.dart';
 
 class ExerciseScreen extends StatefulWidget {
   const ExerciseScreen({Key? key}) : super(key: key);
@@ -18,9 +19,35 @@ class ExerciseScreen extends StatefulWidget {
 
 class _ExerciseScreenState extends State<ExerciseScreen> {
   int _currentIndex = 1;
-  int _selectedTheme = 0; // 0: Desert, 1: Forest
+  String _selectedTheme = 'desert'; // 'desert' or 'forest'
+  
+  // Sample puzzle words data - In real app, load from Supabase based on lesson
+  final Map<String, List<Map<String, dynamic>>> levelWords = {
+    'level1': [
+      {"word": "PORK", "startRow": 0, "startCol": 5, "direction": "across", "number": 1},
+      {"word": "BEEF", "startRow": 1, "startCol": 1, "direction": "across", "number": 2},
+      {"word": "WATER", "startRow": 2, "startCol": 0, "direction": "across", "number": 3},
+      {"word": "NOODLES", "startRow": 2, "startCol": 4, "direction": "down", "number": 4},
+      {"word": "LEMONADE", "startRow": 4, "startCol": 0, "direction": "across", "number": 5},
+      {"word": "CHICKEN", "startRow": 6, "startCol": 2, "direction": "across", "number": 6},
+    ],
+    'level2': [
+      {"word": "APPLE", "startRow": 0, "startCol": 2, "direction": "across", "number": 1},
+      {"word": "ORANGE", "startRow": 1, "startCol": 0, "direction": "across", "number": 2},
+      {"word": "BANANA", "startRow": 2, "startCol": 5, "direction": "across", "number": 3},
+      {"word": "GRAPE", "startRow": 2, "startCol": 0, "direction": "down", "number": 4},
+      {"word": "MANGO", "startRow": 4, "startCol": 3, "direction": "across", "number": 5},
+    ],
+    'level3': [
+      {"word": "SHIRT", "startRow": 0, "startCol": 2, "direction": "across", "number": 1},
+      {"word": "PANTS", "startRow": 1, "startCol": 0, "direction": "across", "number": 2},
+      {"word": "SHOES", "startRow": 2, "startCol": 3, "direction": "across", "number": 3},
+      {"word": "COAT", "startRow": 2, "startCol": 0, "direction": "down", "number": 4},
+      {"word": "HAT", "startRow": 4, "startCol": 5, "direction": "across", "number": 5},
+    ],
+  };
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -38,7 +65,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:
@@ -62,7 +89,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header with theme tabs
+            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
@@ -96,7 +123,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   Expanded(
                     child: _buildThemeTab(
                       label: _isEnglish ? 'Desert Mode' : 'Chế độ sa mạc',
-                      index: 0,
+                      theme: 'desert',
                       icon: Icons.wb_sunny,
                     ),
                   ),
@@ -104,7 +131,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                   Expanded(
                     child: _buildThemeTab(
                       label: _isEnglish ? 'Forest Mode' : 'Chế độ rừng',
-                      index: 1,
+                      theme: 'forest',
                       icon: Icons.nature,
                     ),
                   ),
@@ -114,12 +141,26 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
             const SizedBox(height: 12),
 
-            // Main content
+            // Main content - Level selection grid
             Expanded(
               child: SingleChildScrollView(
-                child: _selectedTheme == 0
-                    ? _buildDesertTheme()
-                    : _buildForestTheme(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1,
+                    ),
+                    itemCount: 3, // 3 levels
+                    itemBuilder: (context, index) {
+                      return _buildLevelCard(index + 1);
+                    },
+                  ),
+                ),
               ),
             ),
           ],
@@ -134,12 +175,12 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
 
   Widget _buildThemeTab({
     required String label,
-    required int index,
+    required String theme,
     required IconData icon,
   }) {
-    final isSelected = _selectedTheme == index;
+    final isSelected = _selectedTheme == theme;
     return GestureDetector(
-      onTap: () => setState(() => _selectedTheme = index),
+      onTap: () => setState(() => _selectedTheme = theme),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         decoration: BoxDecoration(
@@ -176,445 +217,49 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     );
   }
 
-  Widget _buildDesertTheme() {
-    return Column(
-      children: [
-        // Game info card
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFDB54E),
-                  const Color(0xFFFFE5B4),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFDB54E).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _isEnglish ? 'Level 1' : 'Cấp độ 1',
-                          style: GoogleFonts.poppins(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isEnglish ? 'Desert Adventure' : 'Phiêu lưu sa mạc',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                      child: const Icon(
-                        Icons.sentiment_satisfied,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Game map container
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                color: const Color(0xFFFFF5E6),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Game path with levels
-                    SizedBox(
-                      height: 300,
-                      child: CustomPaint(
-                        painter: GamePathPainter(isDarkTheme: false),
-                        child: Stack(
-                          children: [
-                            // Level badges
-                            Positioned(
-                              top: 20,
-                              left: 40,
-                              child: _buildLevelBadge(1, true),
-                            ),
-                            Positioned(
-                              top: 80,
-                              right: 40,
-                              child: _buildLevelBadge(2, false),
-                            ),
-                            Positioned(
-                              top: 140,
-                              left: 40,
-                              child: _buildLevelBadge(3, false),
-                            ),
-                            Positioned(
-                              top: 200,
-                              right: 40,
-                              child: _buildLevelBadge(4, false),
-                            ),
-                            Positioned(
-                              bottom: 20,
-                              left: 50,
-                              child: _buildLevelBadge(5, false),
-                            ),
-                            // Character at bottom
-                            Positioned(
-                              bottom: 0,
-                              left: 20,
-                              child: SizedBox(
-                                width: 80,
-                                child: Icon(
-                                  Icons.pets,
-                                  size: 60,
-                                  color: const Color(0xFFFDB54E),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Progress stats
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          icon: Icons.star,
-                          value: '240',
-                          label: _isEnglish ? 'Points' : 'Điểm',
-                          color: const Color(0xFFFFD700),
-                        ),
-                        _buildStatItem(
-                          icon: Icons.favorite,
-                          value: '12',
-                          label: _isEnglish ? 'Streak' : 'Chuỗi',
-                          color: const Color(0xFFFF6B6B),
-                        ),
-                        _buildStatItem(
-                          icon: Icons.local_fire_department,
-                          value: '8/10',
-                          label: _isEnglish ? 'Quest' : 'Nhiệm vụ',
-                          color: const Color(0xFFFFA500),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Action buttons
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFDB54E),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 4,
-                  ),
-                  onPressed: () {},
-                  child: Text(
-                    _isEnglish ? 'Start Exercise' : 'Bắt đầu bài tập',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForestTheme() {
-    return Column(
-      children: [
-        // Game info card
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFF10B981),
-                  const Color(0xFF6EE7B7),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _isEnglish ? 'Level 2' : 'Cấp độ 2',
-                          style: GoogleFonts.poppins(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isEnglish ? 'Forest Quest' : 'Nhiệm vụ rừng',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                      child: const Icon(
-                        Icons.sentiment_very_satisfied,
-                        color: Colors.white,
-                        size: 32,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Game map container
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                color: const Color(0xFFECFDF5),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Game path with levels
-                    SizedBox(
-                      height: 300,
-                      child: CustomPaint(
-                        painter: GamePathPainter(isDarkTheme: true),
-                        child: Stack(
-                          children: [
-                            // Level badges
-                            Positioned(
-                              top: 20,
-                              left: 40,
-                              child: _buildLevelBadge(1, false, isForest: true),
-                            ),
-                            Positioned(
-                              top: 80,
-                              right: 40,
-                              child: _buildLevelBadge(2, false, isForest: true),
-                            ),
-                            Positioned(
-                              top: 140,
-                              left: 40,
-                              child: _buildLevelBadge(3, false, isForest: true),
-                            ),
-                            Positioned(
-                              top: 200,
-                              right: 40,
-                              child: _buildLevelBadge(4, false, isForest: true),
-                            ),
-                            Positioned(
-                              bottom: 20,
-                              left: 50,
-                              child: _buildLevelBadge(5, false, isForest: true),
-                            ),
-                            // Character at bottom
-                            Positioned(
-                              bottom: 0,
-                              left: 20,
-                              child: SizedBox(
-                                width: 80,
-                                child: Icon(
-                                  Icons.eco,
-                                  size: 60,
-                                  color: const Color(0xFF10B981),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Progress stats
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        _buildStatItem(
-                          icon: Icons.star,
-                          value: '180',
-                          label: _isEnglish ? 'Points' : 'Điểm',
-                          color: const Color(0xFFFFD700),
-                        ),
-                        _buildStatItem(
-                          icon: Icons.favorite,
-                          value: '8',
-                          label: _isEnglish ? 'Streak' : 'Chuỗi',
-                          color: const Color(0xFFFF6B6B),
-                        ),
-                        _buildStatItem(
-                          icon: Icons.local_fire_department,
-                          value: '5/10',
-                          label: _isEnglish ? 'Quest' : 'Nhiệm vụ',
-                          color: const Color(0xFFFFA500),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Action buttons
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF10B981),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 4,
-                  ),
-                  onPressed: () {},
-                  child: Text(
-                    _isEnglish ? 'Start Exercise' : 'Bắt đầu bài tập',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLevelBadge(int level, bool isCompleted, {bool isForest = false}) {
-    final bgColor = isForest
-        ? (isCompleted ? const Color(0xFF10B981) : const Color(0xFFD1DFE8))
-        : (isCompleted ? const Color(0xFFFDB54E) : const Color(0xFFD1DFE8));
+  Widget _buildLevelCard(int levelNumber) {
+    final isDesert = _selectedTheme == 'desert';
+    final primaryColor = isDesert ? const Color(0xFFFDB54E) : const Color(0xFF10B981);
+    final bgColor = isDesert ? const Color(0xFFFFF5E6) : const Color(0xFFECFDF5);
+    final icon = isDesert ? Icons.wb_sunny : Icons.eco;
 
     return GestureDetector(
-      onTap: () {},
+      onTap: () async {
+        final words = levelWords['level$levelNumber'] ?? [];
+        if (mounted) {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WordPuzzleGame(
+                levelNumber: levelNumber,
+                theme: _selectedTheme,
+                words: words,
+                            ),
+            ),
+          );
+          if (result == true && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEnglish ? '🎉 Level completed!' : '🎉 Hoàn thành màn chơi!',
+                ),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        }
+      },
       child: Container(
         width: 60,
         height: 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: primaryColor.withOpacity(0.3),
+            width: 2,
+          ),
           boxShadow: [
             BoxShadow(
               color: bgColor.withValues(alpha: 0.3),
@@ -623,117 +268,50 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             ),
           ],
         ),
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              '$level',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color:
-                    isCompleted ? Colors.white : const Color(0xFF9CA3AF),
-              ),
-            ),
-            if (isCompleted)
-              Positioned(
-                top: 2,
-                right: 2,
-                child: Container(
-                  width: 20,
-                  height: 20,
+            Container(
+              width: 56,
+              height: 56,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white,
+                color: primaryColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: primaryColor.withOpacity(0.4),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Icon(
-                    Icons.check,
-                    size: 12,
-                    color: bgColor,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatItem({
-    required IconData icon,
-    required String value,
-    required String label,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-          color: color.withValues(alpha: 0.1),
+                ],
           ),
           child: Icon(
             icon,
-            color: color,
-            size: 24,
+                color: Colors.white,
+                size: 28,
           ),
         ),
-        const SizedBox(height: 8),
+            const SizedBox(height: 12),
         Text(
-          value,
+              _isEnglish ? 'Level $levelNumber' : 'Cấp độ $levelNumber',
           style: GoogleFonts.poppins(
-            fontSize: 16,
+                fontSize: 18,
             fontWeight: FontWeight.w700,
             color: const Color(0xFF1F2937),
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          label,
+              _isEnglish ? 'Play Now' : 'Chơi ngay',
           style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: const Color(0xFF9CA3AF),
+                fontSize: 12,
+                color: primaryColor,
+                fontWeight: FontWeight.w600,
           ),
         ),
       ],
+        ),
+      ),
     );
   }
-}
-
-// Custom painter for game path
-class GamePathPainter extends CustomPainter {
-  final bool isDarkTheme;
-
-  GamePathPainter({required this.isDarkTheme});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = isDarkTheme ? const Color(0xFFA7F3D0) : const Color(0xFFFFE5CC)
-      ..strokeWidth = 12
-      ..strokeCap = StrokeCap.round;
-
-    // Draw winding path
-    final path = Path();
-    path.moveTo(size.width * 0.35, size.height - 40);
-    path.quadraticBezierTo(
-      size.width * 0.35,
-      size.height * 0.7,
-      size.width * 0.65,
-      size.height * 0.5,
-    );
-    path.quadraticBezierTo(
-      size.width * 0.35,
-      size.height * 0.3,
-      size.width * 0.65,
-      size.height * 0.1,
-    );
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(GamePathPainter oldDelegate) => false;
 }

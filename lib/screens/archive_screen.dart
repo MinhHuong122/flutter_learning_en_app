@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pupu/screens/create_lesson_screen.dart';
+import 'create_lesson_screen.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
@@ -24,7 +24,7 @@ class ArchiveScreen extends StatefulWidget {
 class _ArchiveScreenState extends State<ArchiveScreen> {
   int _currentIndex = 3;
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -45,7 +45,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:

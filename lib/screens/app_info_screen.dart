@@ -20,7 +20,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
   int _currentIndex = 4;
   int? _expandedItemIndex;
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   final List<Map<String, String>> _menuItems = [
     {
@@ -76,7 +76,7 @@ class _AppInfoScreenState extends State<AppInfoScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:

@@ -369,10 +369,23 @@ class NotificationCenterService {
     required String senderName,
     required String preview,
   }) async {
+    final safePreview = preview.trim().isEmpty ? '...' : preview.trim();
     await _addInAppNotification(
       type: 'message',
-      title: 'New message from $senderName',
-      description: preview,
+      title: 'Bạn có tin nhắn mới từ cộng đồng',
+      description: safePreview,
     );
+
+    await _showInstantLocalNotification(
+      id: DateTime.now().millisecondsSinceEpoch % 100000,
+      title: 'Bạn có tin nhắn mới từ cộng đồng',
+      body: '$senderName: $safePreview',
+    );
+  }
+
+  Future<void> _saveInAppNotifications(List<AppNotificationItem> items) async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(items.map((e) => e.toJson()).toList());
+    await prefs.setString(_kInAppNotifications, encoded);
   }
 }

@@ -6,7 +6,9 @@ import '../services/language_service.dart';
 import '../utils/constants.dart';
 
 class DictionarySearchScreen extends StatefulWidget {
-  const DictionarySearchScreen({Key? key}) : super(key: key);
+  final String? searchTerm;
+  
+  const DictionarySearchScreen({Key? key, this.searchTerm}) : super(key: key);
 
   @override
   State<DictionarySearchScreen> createState() => _DictionarySearchScreenState();
@@ -30,6 +32,13 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     super.initState();
     _loadSearchHistory();
     _loadSavedWords();
+    // If search term provided, perform initial search
+    if (widget.searchTerm != null && widget.searchTerm!.isNotEmpty) {
+      _searchController.text = widget.searchTerm!;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _search(widget.searchTerm!);
+      });
+    }
   }
 
   @override

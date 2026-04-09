@@ -8,6 +8,7 @@ import '../services/language_service.dart';
 import '../services/lesson_favorites_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
+import 'vocabulary_cards_screen.dart'; // ✅ Import special-char-safe vocabulary display
 
 class LessonDetailScreen extends StatefulWidget {
   final Lesson lesson;
@@ -35,6 +36,11 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   bool _isFavorite = false;
   final LessonFavoritesService _favoritesService = LessonFavoritesService();
 
+  // ============= NEW: Vocabulary System State =============
+  bool _showVocabularyCards = false; // Toggle vocabulary display
+  
+  // ====================================================
+
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   @override
@@ -43,6 +49,19 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     _lessonService = LessonService();
     _loadLessonData();
     _checkFavoriteStatus();
+  }
+
+  /// Reload completion status when user returns to this screen
+  Future<void> _reloadSubLessonCompletions() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null || _subLessons.isEmpty) return;
+
+    try {
+      print('🔄 Reloading sub-lesson completions...');
+      await _loadSubLessonProgressFromDB(user.id, _subLessons);
+    } catch (e) {
+      print('⚠️ Error reloading completions: $e');
+    }
   }
 
   Future<void> _checkFavoriteStatus() async {
@@ -81,19 +100,28 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
   Future<void> _loadLessonData() async {
     try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        print('❌ User not authenticated');
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
+
       // If this is a parent lesson, load sub-lessons
       if (widget.lesson.isParent) {
         final subLessons = await _lessonService.getSubLessons(widget.lesson.id);
         if (mounted) {
           setState(() {
             _subLessons = subLessons;
-            // Initialize completion tracking - first lesson unlocked, rest locked
+            // Initialize completion tracking
             _lessonCompletion = {};
             for (int i = 0; i < subLessons.length; i++) {
-              _lessonCompletion[i] = false; // All start as not completed
+              _lessonCompletion[i] = false;
             }
             _isLoading = false;
           });
+          // Load completion status from DB
+          await _loadSubLessonProgressFromDB(user.id, subLessons);
         }
       } else {
         // If it's a sub-lesson, load questions directly
@@ -104,6 +132,24 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _loadSubLessonProgressFromDB(String userId, List<Lesson> subLessons) async {
+    try {
+      for (int i = 0; i < subLessons.length; i++) {
+        final progress = await _lessonService.getUserProgress(userId, subLessons[i].id);
+        if (progress != null && progress.completed) {
+          if (mounted) {
+            setState(() {
+              _lessonCompletion[i] = true;
+            });
+          }
+        }
+      }
+      print('✅ Loaded completion status for all sub-lessons');
+    } catch (e) {
+      print('⚠️ Error loading sub-lesson progress: $e');
     }
   }
 
@@ -130,7 +176,19 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
           });
         }
       } else {
-        // Navigate to QuizScreen for quiz lessons
+        // 🆕 Show vocabulary cards first (Part 1 of lesson)
+        final user = Supabase.instance.client.auth.currentUser;
+        if (user != null && _currentSubLesson != null) {
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _showVocabularyCards = true;
+            });
+          }
+          return;
+        }
+        
+        // Navigate to QuizScreen for quiz lessons (Part 2 of lesson)
         if (mounted) {
           await Navigator.push(
             context,
@@ -164,6 +222,121 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  // 🆕 Handle completion of vocabulary cards phase
+  void _handleVocabularyComplete() async {
+    setState(() {
+      _showVocabularyCards = false;
+      _isLoading = true;
+    });
+
+    // Load questions for Part 2 of lesson
+    try {
+      final lesson = _currentSubLesson ?? widget.lesson;
+      final data = await _lessonService.getLessonDetails(lesson.id);
+      
+      if (mounted) {
+        if (data != null && 
+            data['questions'] != null && 
+            (data['questions'] as List).isNotEmpty) {
+          // Open the dedicated quiz screen so question types are rendered correctly
+          setState(() {
+            _lessonData = data;
+            _showQuestions = false;
+            _isLoading = false;
+          });
+          _navigateToQuizScreen(lesson);
+        } else {
+          // Vocabulary lessons can be completed without quiz questions.
+          if (lesson.lessonType == 'vocabulary') {
+            if (_currentLessonIndex != null) {
+              await _saveSubLessonProgress(
+                subLessonId: lesson.id,
+                completed: true,
+                progressPercentage: 100,
+              );
+            }
+
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEnglish
+                      ? 'Vocabulary completed. No quiz questions for this lesson.'
+                      : 'Hoàn thành từ vựng. Bài này không có câu hỏi quiz.',
+                ),
+              ),
+            );
+
+            setState(() {
+              if (_currentLessonIndex != null) {
+                _lessonCompletion[_currentLessonIndex!] = true;
+              }
+              _currentSubLesson = null;
+              _showQuestions = false;
+              _showVocabularyCards = false;
+              _isLoading = false;
+            });
+            return;
+          }
+
+          // For non-vocabulary lesson types, still fallback to QuizScreen.
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isEnglish
+                    ? 'No questions found for this lesson. Opening Quiz screen...'
+                    : 'Không tìm thấy câu hỏi cho bài này. Đang mở Quiz...',
+              ),
+            ),
+          );
+          _navigateToQuizScreen(lesson);
+        }
+      }
+    } catch (e) {
+      print('Error loading questions: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi tải câu hỏi: $e')),
+        );
+        final lesson = _currentSubLesson ?? widget.lesson;
+        _navigateToQuizScreen(lesson);
+      }
+    }
+  }
+
+  void _navigateToQuizScreen(Lesson lesson) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QuizScreen(
+          lesson: lesson,
+          onComplete: (completed) {
+            if (completed && _currentLessonIndex != null) {
+              setState(() {
+                _lessonCompletion[_currentLessonIndex!] = true;
+              });
+            }
+          },
+        ),
+      ),
+    ).then((_) {
+      // ✅ Reload completions when returning from quiz screen
+      if (mounted && widget.lesson.isParent) {
+        print('✅ Returned from quiz, reloading all sub-lesson completions...');
+        _reloadSubLessonCompletions();
+      }
+      // Reset UI state
+      if (mounted) {
+        setState(() {
+          _currentSubLesson = null;
+          _showQuestions = false;
+          _showVocabularyCards = false;
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   void _selectAnswer(String optionId, bool isCorrect) {
@@ -244,12 +417,60 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     }
   }
 
+  /// Save sub-lesson progress when completing alphabet or quiz
+  Future<void> _saveSubLessonProgress({
+    required String subLessonId,
+    required bool completed,
+    required int progressPercentage,
+  }) async {
+    try {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user == null) {
+        print('❌ Error: User not authenticated');
+        return;
+      }
+
+      print('💾 Saving sub-lesson progress: $subLessonId ($progressPercentage%)');
+
+      final result = await _lessonService.updateUserProgress(
+        userId: user.id,
+        lessonId: subLessonId,
+        completed: completed,
+        progressPercentage: progressPercentage,
+        correctAnswers: progressPercentage,
+        totalAttempts: 100,
+      );
+
+      if (result) {
+        print('✅ Sub-lesson progress saved!');
+      } else {
+        print('❌ Failed to save sub-lesson progress');
+      }
+    } catch (e) {
+      print('❌ Error saving sub-lesson progress: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
         body: const Center(child: CircularProgressIndicator()),
       );
+    }
+
+    // 🆕 Show vocabulary cards first (Part 1 of lesson)
+    if (_showVocabularyCards) {
+      final user = Supabase.instance.client.auth.currentUser;
+      if (user != null && _currentSubLesson != null) {
+        return VocabularyCardsScreen(
+          lessonId: _currentSubLesson!.id,
+          userId: user.id,
+          isEnglish: _isEnglish,
+          onComplete: _handleVocabularyComplete,
+          cardLimit: 10,
+        );
+      }
     }
 
     // If showing questions, show the question screen
@@ -843,14 +1064,24 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      // Mark this lesson as completed when exiting
-                      if (_currentLessonIndex != null) {
+                    onTap: () async {
+                      // ✅ Save progress before exiting
+                      if (_currentLessonIndex != null && _currentSubLesson != null) {
+                        await _saveSubLessonProgress(
+                          subLessonId: _currentSubLesson!.id,
+                          completed: true,
+                          progressPercentage: 100, // Alphabet lessons are 100% when viewed
+                        );
+                        // Mark as completed in UI
+                        if (mounted) {
                         setState(() {
                           _lessonCompletion[_currentLessonIndex!] = true;
                           _currentSubLesson = null;
                           _showQuestions = false;
                         });
+                          // ✅ Reload ALL completions to ensure unlocking works
+                          await _reloadSubLessonCompletions();
+                        }
                       }
                     },
                     child: const Icon(Icons.arrow_back, size: 24),

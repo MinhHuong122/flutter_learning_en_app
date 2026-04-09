@@ -5,7 +5,9 @@ import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
 import '../services/lesson_favorites_service.dart';
+import '../services/custom_lesson_favorites_service.dart';
 import '../services/supabase_dictionary_service.dart';
+import '../services/lesson_service.dart';
 import '../models/dictionary_model.dart';
 import '../models/lesson_model.dart';
 import 'home_screen.dart';
@@ -13,6 +15,7 @@ import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
 import 'lesson_detail_screen.dart';
+import 'flashcard_swipe_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({Key? key}) : super(key: key);
@@ -27,18 +30,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   List<Lesson> _favoriteLessons = [];
   List<DictionaryEntry> _filteredFavoriteWords = [];
   List<Lesson> _filteredFavoriteLessons = [];
+  List<Map<String, dynamic>> _customLessons = [];
   bool _isLoadingWords = true;
   bool _isLoadingFavorites = true;
+  bool _isLoadingCustom = true;
   final LessonFavoritesService _lessonFavoritesService = LessonFavoritesService();
   final SupabaseDictionaryService _dictionaryService = SupabaseDictionaryService();
   bool _reloadedAfterOpen = false;
   final TextEditingController _searchController = TextEditingController();
+  final CustomLessonFavoritesService _customLessonFavoritesService = CustomLessonFavoritesService();
 
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_searchFavorites);
     _reloadAllFavorites();
+    _loadCustomLessons();
   }
 
   @override
@@ -55,6 +62,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _reloadAllFavorites();
       });
+    }
+  }
+
+  Future<void> _loadCustomLessons() async {
+    if (mounted) setState(() => _isLoadingCustom = true);
+    try {
+      // Load favorite custom lessons from the new service
+      final favoriteLessons = await _customLessonFavoritesService.getUserFavoriteCustomLessons();
+      if (mounted) {
+        setState(() {
+          _customLessons = favoriteLessons;
+          _isLoadingCustom = false;
+        });
+      }
+    } catch (e) {
+      print('❌ Error loading favorite custom lessons: $e');
+      if (mounted) setState(() => _isLoadingCustom = false);
     }
   }
 
@@ -118,7 +142,41 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     });
   }
 
-  bool get _isEnglish => context.watch<LanguageService>().isEnglish;
+  Future<void> _openCustomLesson(String lessonId, String lessonName) async {
+    try {
+      // Navigate to swipe view to practice the lesson
+      if (mounted) {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FlashcardSwiperScreen(
+              lessonId: lessonId,
+              lessonName: lessonName,
+            ),
+          ),
+        );
+        
+        // Reload favorites when returning from swipe view
+        if (result == true && mounted) {
+          _loadCustomLessons();
+        }
+      }
+    } catch (e) {
+      print('❌ Error opening custom lesson: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish ? 'Error opening lesson' : 'Lỗi khi mở bài học',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
   void _onBottomNavTap(int index) {
     if (index == _currentIndex) return;
@@ -139,7 +197,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       case 2:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+          MaterialPageRoute(builder: (_) => const ChatAiScreen()),
         );
         break;
       case 3:
@@ -378,7 +436,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
                     const SizedBox(height: 32),
 
-                    // My Created Lessons Section
+                    // My Created Lessons Section (only show favorited custom lessons)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: Column(
@@ -388,7 +446,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                _isEnglish ? 'Created Lessons' : 'Bài học riêng',
+                                _isEnglish ? 'Created & Favorited' : 'Tạo & Yêu thích',
                                 style: GoogleFonts.poppins(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
@@ -413,32 +471,68 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                     ),
 
-                    // Created lessons grid
+                    // Created lessons grid - Only show favorited custom lessons
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: GridView.count(
+                      child: _isLoadingCustom
+                          ? const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : _customLessons.isEmpty
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 24),
+                                      child: Center(
+                                        child: Text(
+                                          _isEnglish 
+                                              ? 'No created lessons favorited yet' 
+                                              : 'Chưa có bài học tạo nào được yêu thích',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: const Color(0xFF9CA3AF),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : GridView.count(
                         crossAxisCount: 2,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         childAspectRatio: 0.95,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        children: [
-                          _buildCreatedLessonCard(
-                            title: 'UI Design Notes',
-                            count: '12 Resources',
-                            icon: Icons.note_alt,
-                            backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                            iconColor: AppColors.primaryColor,
+                                      children: _customLessons.map((lesson) {
+                                        final cardCount = lesson['flashcardCount'] ?? 0;
+                                        final lessonId = lesson['id'] as String? ?? '';
+                                        final lessonName = lesson['name'] as String? ?? 'Untitled';
+                                        
+                                        const iconOptions = [Icons.note_alt, Icons.psychology, Icons.menu_book, Icons.school];
+                                        const bgColors = [
+                                          Color(0xFFEEF7FF),
+                                          Color(0xFFFFF5E6),
+                                          Color(0xFFF0FDF4),
+                                          Color(0xFFEFF6FF),
+                                        ];
+                                        const fgColors = [
+                                          AppColors.primaryColor,
+                                          Color(0xFFFFB347),
+                                          Color(0xFF10B981),
+                                          Color(0xFFA855F7),
+                                        ];
+                                        
+                                        final idx = lessonId.hashCode % iconOptions.length;
+                                        
+                                        return GestureDetector(
+                                          onTap: () => _openCustomLesson(lessonId, lessonName),
+                                          child: _buildCreatedLessonCard(
+                                            title: lessonName,
+                                            count: '$cardCount ${_isEnglish ? 'Cards' : 'Thẻ'}',
+                                            icon: iconOptions[idx],
+                                            backgroundColor: bgColors[idx].withOpacity(0.1),
+                                            iconColor: fgColors[idx],
                           ),
-                          _buildCreatedLessonCard(
-                            title: 'Brainstorming',
-                            count: '8 Resources',
-                            icon: Icons.psychology,
-                            backgroundColor: const Color(0xFFFFB347).withOpacity(0.1),
-                            iconColor: const Color(0xFFFFB347),
-                          ),
-                        ],
+                                        );
+                                      }).toList(),
                       ),
                     ),
 

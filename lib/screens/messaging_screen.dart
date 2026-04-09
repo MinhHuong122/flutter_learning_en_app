@@ -8,6 +8,7 @@ import '../utils/constants.dart';
 import '../services/messaging_service.dart';
 import '../services/auth_service.dart';
 import '../services/language_service.dart';
+import '../services/notification_center_service.dart';
 import '../services/file_upload_service.dart';
 import '../models/community_model.dart';
 
@@ -41,6 +42,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
   late MessagingService _messagingService;
   StreamSubscription<List<Message>>? _messagesSubscription;
   StreamSubscription<List<Conversation>>? _conversationsSubscription;
+  StreamSubscription<Message>? _incomingSubscription;
+  final Set<String> _notifiedMessageIds = <String>{};
   final FileUploadService _fileUploadService = FileUploadService();
   bool _isBlockedConversation = false;
   bool _isMutedConversation = false;
@@ -71,15 +74,15 @@ class _MessagingScreenState extends State<MessagingScreen> {
       _loadConversations();
       _startConversationsRealtime();
     }
+
+    _startIncomingMessageListener();
   }
 
   @override
   void dispose() {
     _messagesSubscription?.cancel();
     _conversationsSubscription?.cancel();
-    if (_isConversationMode) {
-      _messagingService.activeChatUserId = null;
-    }
+    _incomingSubscription?.cancel();
     _messageController.dispose();
     _searchController.dispose();
     _scrollController.dispose();
@@ -148,6 +151,42 @@ class _MessagingScreenState extends State<MessagingScreen> {
       if (!mounted) return;
       _showErrorSnackbar(_isEnglish ? 'Error: $e' : 'Lỗi: $e');
       setState(() => _isLoadingConversations = false);
+    });
+  }
+
+  void _startIncomingMessageListener() {
+    final authService = context.read<AuthService>();
+    final messagingService = context.read<MessagingService>();
+    final userId = authService.userId;
+
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+
+    _incomingSubscription?.cancel();
+    _incomingSubscription =
+        messagingService.watchIncomingMessages(userId).listen((message) async {
+      if (_notifiedMessageIds.contains(message.id)) {
+        return;
+      }
+      _notifiedMessageIds.add(message.id);
+
+      final isCurrentPeer = _isConversationMode && message.senderId == widget.recipientId;
+      if (_isMutedConversation && isCurrentPeer) {
+        _loadMessages();
+        return;
+      }
+
+      await NotificationCenterService().addMessageNotification(
+        senderName: message.senderName,
+        preview: message.content,
+      );
+
+      if (isCurrentPeer) {
+        _loadMessages();
+      } else if (!_isConversationMode) {
+        _loadConversations();
+      }
     });
   }
 

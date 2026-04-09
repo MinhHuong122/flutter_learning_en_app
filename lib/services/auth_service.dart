@@ -11,6 +11,7 @@ class AuthService extends ChangeNotifier {
   String? _userId;
   String? _errorMessage;
   bool _isFirstTimeUser = false;
+  bool _pendingEmailConfirmation = false;
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userName => _userName;
@@ -18,6 +19,7 @@ class AuthService extends ChangeNotifier {
   String? get userId => _userId;
   String? get errorMessage => _errorMessage;
   bool get isFirstTimeUser => _isFirstTimeUser;
+  bool get pendingEmailConfirmation => _pendingEmailConfirmation;
 
   /// Stream để lắng nghe thay đổi auth state từ Supabase
   Stream<AuthState> get authStateStream => _supabase.auth.onAuthStateChange;
@@ -73,6 +75,7 @@ class AuthService extends ChangeNotifier {
   Future<bool> loginWithEmailPassword(String email, String password) async {
     try {
       _errorMessage = null;
+      _pendingEmailConfirmation = false;
       
       final response = await _supabase.auth.signInWithPassword(
         email: email,
@@ -90,7 +93,11 @@ class AuthService extends ChangeNotifier {
       }
       return false;
     } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('email not confirmed')) {
+        _errorMessage = 'Email not confirmed. Please check your inbox and verify your email.';
+      } else {
       _errorMessage = e.message;
+      }
       print('Login error: ${e.message}');
       notifyListeners();
       return false;
@@ -108,6 +115,7 @@ class AuthService extends ChangeNotifier {
       String username, String email, String password) async {
     try {
       _errorMessage = null;
+      _pendingEmailConfirmation = false;
 
       final response = await _supabase.auth.signUp(
         email: email,
@@ -119,10 +127,17 @@ class AuthService extends ChangeNotifier {
       );
 
       if (response.user != null) {
-        _isAuthenticated = true;
+        final hasSession = response.session != null;
+
+        _isAuthenticated = hasSession;
         _userEmail = response.user!.email;
-        _userId = response.user!.id;
+        _userId = hasSession ? response.user!.id : null;
         _userName = username;
+        _pendingEmailConfirmation = !hasSession;
+
+        if (_pendingEmailConfirmation) {
+          _errorMessage = 'Registration successful. Please check your email to confirm your account.';
+        }
 
         notifyListeners();
         return true;
@@ -232,6 +247,7 @@ class AuthService extends ChangeNotifier {
   Future<bool> signupWithGoogle() async {
     try {
       _errorMessage = null;
+      _pendingEmailConfirmation = false;
       print('Starting Google Sign-up process...');
 
       final googleSignIn = GoogleSignIn(

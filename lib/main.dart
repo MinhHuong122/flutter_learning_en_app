@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'utils/constants.dart';
+import 'utils/route_observer.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/forgot_password_screen.dart';
@@ -14,6 +15,9 @@ import 'services/auth_service.dart';
 import 'services/language_service.dart';
 import 'services/database_helper.dart';
 import 'services/notification_center_service.dart';
+import 'services/community_service.dart';
+import 'services/messaging_service.dart';
+import 'providers/lesson_provider.dart';
 
 const bool _warmupDictionaryOnStartup = false;
 
@@ -34,14 +38,33 @@ Future<void> main() async {
 }
 
 Future<void> _initializeAppServices() async {
-  await Future.delayed(const Duration(milliseconds: 300));
+  // Reduce startup delay for faster app launch
+  await Future.delayed(const Duration(milliseconds: 100));
 
-  // Keep startup light: initialize notifications only.
-  await _safeRun(_initializeNotifications);
+  // Initialize notifications quickly with timeout
+  await _safeRun(() => _initializeNotificationsWithTimeout());
 
   // Optional warmup for dictionary DB. Disabled by default to avoid startup jank.
   if (_warmupDictionaryOnStartup) {
     await _safeRun(_initializeDictionaryDatabase);
+  }
+}
+
+Future<void> _initializeNotificationsWithTimeout() async {
+  try {
+    final notificationCenter = NotificationCenterService();
+    await notificationCenter.initialize();
+    
+    // Use timeout to prevent hanging
+    await notificationCenter.restoreSchedulesFromSavedSettings()
+        .timeout(const Duration(seconds: 3), onTimeout: () async {
+      debugPrint('Notification restore timeout - skipping');
+    });
+    
+    // Sync notifications in background without waiting
+    notificationCenter.syncNotifications().ignore();
+  } catch (e) {
+    print('⚠️ Notification initialization warning: $e');
   }
 }
 
@@ -95,6 +118,9 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
         ChangeNotifierProvider(create: (_) => LanguageService()),
+        ChangeNotifierProvider(create: (_) => LessonProvider()),
+        Provider(create: (_) => CommunityService()),
+        Provider(create: (_) => MessagingService()),
       ],
       child: MaterialApp(
         title: AppStrings.appTitle,
@@ -102,6 +128,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
           useMaterial3: true,
         ),
+        navigatorObservers: [appRouteObserver],
         home: const LoginScreen(),
         routes: {
           AppRoutes.login: (context) => const LoginScreen(),

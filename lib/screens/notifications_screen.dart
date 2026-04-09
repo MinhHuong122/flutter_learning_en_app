@@ -105,6 +105,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Map<String, dynamic> _metaByType(String type) {
     switch (type) {
+      case 'message':
+        return {
+          'icon': Icons.chat_bubble_outline,
+          'bg': const Color(0xFFE0F2FE),
+          'color': const Color(0xFF0284C7),
+        };
       case 'new_lesson':
         return {
           'icon': Icons.book,

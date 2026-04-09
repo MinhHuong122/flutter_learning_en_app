@@ -58,7 +58,7 @@ class LessonFavoritesService {
       });
       return true;
     } catch (e) {
-      print('Error adding favorite lesson: $e');
+      print('❌ Error adding favorite lesson: $e');
       return false;
     }
   }

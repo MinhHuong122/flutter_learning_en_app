@@ -10,12 +10,16 @@ class LessonProvider extends ChangeNotifier {
   Map<String, double> _progressCache = {};
   bool _isLoading = false;
   String? _error;
+  String? _recentSystemLessonId;
+  DateTime? _recentSystemLessonTouchedAt;
 
   // Getters
   List<Lesson> get allLessons => _allLessons;
   Map<String, double> get progressCache => _progressCache;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  String? get recentSystemLessonId => _recentSystemLessonId;
+  DateTime? get recentSystemLessonTouchedAt => _recentSystemLessonTouchedAt;
 
   // Load all lessons once and cache progress
   Future<void> loadLessonsOnce() async {
@@ -110,6 +114,18 @@ class LessonProvider extends ChangeNotifier {
     return _progressCache[lessonId] ?? 0.0;
   }
 
+  void markSystemLessonActivity(String lessonId) {
+    _recentSystemLessonId = lessonId;
+    _recentSystemLessonTouchedAt = DateTime.now();
+    notifyListeners();
+  }
+
+  void clearRecentSystemLessonActivity() {
+    _recentSystemLessonId = null;
+    _recentSystemLessonTouchedAt = null;
+    notifyListeners();
+  }
+
   // Calculate overall progress statistics
   Map<String, dynamic> getProgressStats() {
     if (_allLessons.isEmpty) {
@@ -166,6 +182,8 @@ class LessonProvider extends ChangeNotifier {
 
   // Force refresh (if user completes a lesson)
   Future<void> refresh() async {
+    _recentSystemLessonId = null;
+    _recentSystemLessonTouchedAt = null;
     _allLessons.clear();
     _progressCache.clear();
     await loadLessonsOnce();

@@ -253,7 +253,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
         width: 60,
         height: 60,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
           color: bgColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
@@ -262,7 +261,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: bgColor.withValues(alpha: 0.3),
+              color: primaryColor.withOpacity(0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),

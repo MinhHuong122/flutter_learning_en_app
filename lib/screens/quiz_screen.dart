@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/lesson_model.dart';
 import '../services/lesson_service.dart';
 import '../services/language_service.dart';
+import '../providers/lesson_provider.dart';
 import '../utils/constants.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -126,9 +127,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
     _showPenguinPopup(isCorrect);
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 2000), () async {
       if (mounted) {
-        _moveToNextQuestion();
+        await _moveToNextQuestion();
       }
     });
   }
@@ -151,9 +152,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
     _showPenguinPopup(isCorrect);
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 2000), () async {
       if (mounted) {
-        _moveToNextQuestion();
+        await _moveToNextQuestion();
       }
     });
   }
@@ -186,14 +187,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
     _showPenguinPopup(isCorrect);
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(const Duration(milliseconds: 2000), () async {
       if (mounted) {
-        _moveToNextQuestion();
+        await _moveToNextQuestion();
       }
     });
   }
 
-  void _moveToNextQuestion() {
+  Future<void> _moveToNextQuestion() async {
     final questions = _lessonData!['questions'] as List<LessonQuestion>;
     
     // Unfocus all text fields
@@ -218,7 +219,7 @@ class _QuizScreenState extends State<QuizScreen> {
     } else {
       setState(() => _showResults = true);
       // Save progress immediately when quiz is completed
-      _saveProgress();
+      await _saveProgress();
       if (widget.onComplete != null) {
         widget.onComplete!(true);
       }
@@ -234,10 +235,10 @@ class _QuizScreenState extends State<QuizScreen> {
       }
 
       final questions = _lessonData!['questions'] as List<LessonQuestion>? ?? [];
-      final progressPercentage = questions.isEmpty
-          ? 0
-          : ((_correctCount / questions.length) * 100).toInt();
-      final isCompleted = _correctCount == questions.length;
+      // For normal lessons, completion progress is based on finishing the quiz,
+      // while score is kept in correctAnswers.
+      final progressPercentage = questions.isEmpty ? 0 : 100;
+      final isCompleted = questions.isNotEmpty;
 
       print('🔄 Saving quiz progress...');
       print('📊 Quiz: ${widget.lesson.title}');
@@ -254,6 +255,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
       if (result) {
         print('✅ Quiz progress saved successfully!');
+        final provider = context.read<LessonProvider>();
+        provider.markSystemLessonActivity(widget.lesson.parentLessonId ?? widget.lesson.id);
       } else {
         print('❌ Failed to save quiz progress');
       }

@@ -138,6 +138,31 @@ class LessonService {
     }
   }
 
+  /// Get the most recent activity time for a parent lesson based on its sub-lessons.
+  Future<DateTime?> getParentLessonLastActivity(String userId, String parentLessonId) async {
+    try {
+      final subLessons = await getSubLessons(parentLessonId);
+      if (subLessons.isEmpty) return null;
+
+      final lessonIds = subLessons.map((lesson) => lesson.id).toList();
+      final response = await supabase
+          .from('user_lesson_progress')
+          .select('last_attempted')
+          .eq('user_id', userId)
+          .inFilter('lesson_id', lessonIds)
+          .order('last_attempted', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      final lastAttempted = response?['last_attempted'];
+      if (lastAttempted == null) return null;
+      return DateTime.tryParse(lastAttempted.toString());
+    } catch (e) {
+      print('❌ Error getting parent lesson last activity: $e');
+      return null;
+    }
+  }
+
   // Update user progress
   Future<bool> updateUserProgress({
     required String userId,
@@ -593,6 +618,33 @@ class LessonService {
     } catch (e) {
       print('❌ Error loading flashcards: $e');
       return [];
+    }
+  }
+
+  /// Get the most recent study time for a custom OCR lesson.
+  Future<DateTime?> getCustomLessonLastActivity(String userId, String lessonId) async {
+    try {
+      final cards = await getFlashcardsForLesson(lessonId);
+      if (cards.isEmpty) return null;
+
+      final vocabIds = cards.map((card) => card['id'].toString()).where((id) => id.isNotEmpty).toList();
+      if (vocabIds.isEmpty) return null;
+
+      final response = await supabase
+          .from('ocr_word_progress')
+          .select('last_studied')
+          .eq('user_id', userId)
+          .inFilter('word_id', vocabIds)
+          .order('last_studied', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      final lastStudied = response?['last_studied'];
+      if (lastStudied == null) return null;
+      return DateTime.tryParse(lastStudied.toString());
+    } catch (e) {
+      print('❌ Error getting custom lesson last activity: $e');
+      return null;
     }
   }
 

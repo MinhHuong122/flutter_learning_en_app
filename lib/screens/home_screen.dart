@@ -88,65 +88,54 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       // Ensure provider has lesson data before finding current lesson.
       await context.read<LessonProvider>().loadLessonsOnce();
-      await Future.wait([
-        _preloadCurrentLesson(),
-        _preloadCurrentCustomLesson(),
-      ]);
+
+      final userId = context.read<AuthService>().userId;
+      final provider = context.read<LessonProvider>();
+      final systemLessonData = userId == null ? null : await _getCurrentlyLearningLesson(userId);
+      final customLesson = userId == null ? null : await _getCurrentlyLearningCustomLesson(userId);
+
+      if (!mounted) return;
+
+      final systemLesson = systemLessonData;
+      final systemActivity = systemLesson == null ? null : systemLesson['lastActivity'] as DateTime?;
+      final customActivity = customLesson == null ? null : customLesson['lastActivity'] as DateTime?;
+
+      final shouldShowCustom = customLesson != null &&
+        (systemLesson == null ||
+          customActivity != null &&
+            (systemActivity == null || customActivity.isAfter(systemActivity)));
+
+      if (shouldShowCustom) {
+        final lessonId = customLesson['id'] as String?;
+        final cards = lessonId == null || lessonId.isEmpty
+            ? <Map<String, dynamic>>[]
+            : await LessonService().getFlashcardsForLesson(lessonId);
+
+        if (!mounted) return;
+        setState(() {
+          _cachedCurrentLesson = null;
+          _cachedCurrentCustomLesson = customLesson;
+          _cachedCurrentCustomFlashcards = cards;
+        });
+      } else if (systemLesson != null) {
+        setState(() {
+          _cachedCurrentLesson = systemLesson['lesson'] as Lesson?;
+          _cachedCurrentCustomLesson = null;
+          _cachedCurrentCustomFlashcards = [];
+        });
+      } else {
+        setState(() {
+          _cachedCurrentLesson = null;
+          _cachedCurrentCustomLesson = null;
+          _cachedCurrentCustomFlashcards = [];
+        });
+      }
     } catch (e) {
       print('Error preloading continue-learning data: $e');
     }
   }
 
-  Future<void> _preloadCurrentLesson() async {
-    try {
-      final lesson = await _getCurrentlyLearningLesson();
-      if (mounted) {
-        setState(() => _cachedCurrentLesson = lesson);
-      }
-    } catch (e) {
-      print('Error preloading current lesson: $e');
-    }
-  }
-
-  Future<void> _preloadCurrentCustomLesson() async {
-    try {
-      final userId = context.read<AuthService>().userId;
-      if (userId == null) {
-        return;
-      }
-
-      final lesson = await _getCurrentlyLearningCustomLesson(userId);
-      if (lesson == null) {
-        if (mounted) {
-          setState(() {
-            _cachedCurrentCustomLesson = null;
-            _cachedCurrentCustomFlashcards = [];
-          });
-        }
-        return;
-      }
-
-      final lessonId = lesson['id'] as String?;
-      if (lessonId == null || lessonId.isEmpty) {
-        return;
-      }
-
-      // Preload cards so opening swipe screen is immediate.
-      final cards = await LessonService().getFlashcardsForLesson(lessonId);
-      if (mounted) {
-        setState(() {
-          _cachedCurrentCustomLesson = lesson;
-          _cachedCurrentCustomFlashcards = cards;
-        });
-      }
-    } catch (e) {
-      print('Error preloading custom continue lesson: $e');
-    }
-  }
-
-  Future<Map<String, dynamic>?> _getCurrentlyLearningCustomLesson(
-    String userId,
-  ) async {
+  Future<Map<String, dynamic>?> _getCurrentlyLearningCustomLesson(String userId) async {
     try {
       final lessons = await LessonService().loadCustomLessons(userId);
       if (lessons.isEmpty) return null;
@@ -160,9 +149,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
 
         final progress = await LessonService().getCustomLessonProgress(userId, lessonId);
+        if (progress <= 0) {
+          continue;
+        }
+
+        final lastActivity = await LessonService().getCustomLessonLastActivity(userId, lessonId);
         lessonsWithProgress.add({
           ...lesson,
           'continueProgress': progress,
+          'lastActivity': lastActivity,
         });
       }
 
@@ -170,34 +165,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         return null;
       }
 
-      for (final lesson in lessonsWithProgress) {
-        final progress = (lesson['continueProgress'] as num?)?.toDouble() ?? 0.0;
-        if (progress > 0 && progress < 100) {
-          print(
-            '✅ Currently learning custom lesson (ongoing): ${lesson['name']} - ${progress.toStringAsFixed(1)}%',
-          );
-          return lesson;
-        }
-      }
-
-      for (final lesson in lessonsWithProgress) {
-        final progress = (lesson['continueProgress'] as num?)?.toDouble() ?? 0.0;
-        if (progress == 0) {
-          print('✅ Currently learning custom lesson (next to start): ${lesson['name']}');
-          return lesson;
-        }
-      }
-
       lessonsWithProgress.sort((a, b) {
-        final aDate = DateTime.tryParse((a['createdAt'] ?? '').toString()) ?? DateTime(1970);
-        final bDate = DateTime.tryParse((b['createdAt'] ?? '').toString()) ?? DateTime(1970);
+        final aDate = a['lastActivity'] as DateTime? ?? DateTime(1970);
+        final bDate = b['lastActivity'] as DateTime? ?? DateTime(1970);
         return bDate.compareTo(aDate);
       });
 
-      print('✅ Currently learning custom lesson (latest): ${lessonsWithProgress.first['name']}');
+      print('✅ Currently learning custom lesson (latest activity): ${lessonsWithProgress.first['name']}');
       return lessonsWithProgress.first;
     } catch (e) {
       print('Error loading currently learning custom lesson: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> _getCurrentlyLearningLesson(String userId) async {
+    try {
+      final provider = context.read<LessonProvider>();
+      final lessons = provider.allLessons;
+      if (lessons.isEmpty) return null;
+
+      final List<Map<String, dynamic>> lessonsWithActivity = [];
+
+      for (final lesson in lessons) {
+        final progress = provider.getProgress(lesson.id);
+        if (progress <= 0) {
+          continue;
+        }
+
+        final lastActivity = await LessonService().getParentLessonLastActivity(userId, lesson.id);
+        lessonsWithActivity.add({
+          'lesson': lesson,
+          'progress': progress,
+          'lastActivity': lastActivity,
+        });
+      }
+
+      if (lessonsWithActivity.isEmpty) {
+        return null;
+      }
+
+      lessonsWithActivity.sort((a, b) {
+        final aDate = a['lastActivity'] as DateTime? ?? DateTime(1970);
+        final bDate = b['lastActivity'] as DateTime? ?? DateTime(1970);
+        return bDate.compareTo(aDate);
+      });
+
+      final selected = lessonsWithActivity.first;
+      final lesson = selected['lesson'] as Lesson;
+      final progress = (selected['progress'] as num?)?.toDouble() ?? 0.0;
+      print('✅ Currently learning system lesson (latest activity): ${lesson.title} - ${progress.toStringAsFixed(1)}%');
+      return selected;
+    } catch (e) {
+      print('Error loading currently learning lesson: $e');
       return null;
     }
   }
@@ -283,6 +303,23 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           MaterialPageRoute(builder: (_) => const AccountScreen()),
         );
         break;
+    }
+  }
+
+  Future<void> _openLessonAndRefreshContinue(Lesson lesson) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LessonDetailScreen(lesson: lesson),
+      ),
+    );
+
+    if (!mounted) return;
+
+    await context.read<LessonProvider>().refresh();
+    await _preloadContinueLearning();
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -989,13 +1026,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final colors = _getPastelCardColors(index);
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => LessonDetailScreen(lesson: lesson),
-          ),
-        );
+      onTap: () async {
+        await _openLessonAndRefreshContinue(lesson);
       },
       child: Container(
         width: 240,
@@ -1231,40 +1263,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Future<Lesson?> _getCurrentlyLearningLesson() async {
-    try {
-      final provider = context.read<LessonProvider>();
-      final lessons = provider.allLessons;
-      
-      if (lessons.isEmpty) return null;
-
-      // Priority 1: Find a lesson with progress 0 < p < 100 (ongoing)
-      for (var lesson in lessons) {
-        final progress = provider.getProgress(lesson.id);
-        if (progress > 0 && progress < 100) {
-          print('✅ Currently learning (ongoing): ${lesson.title} - ${progress.toStringAsFixed(1)}%');
-          return lesson;
-        }
-      }
-
-      // Priority 2: Find a lesson with progress == 0 (not started yet)
-      for (var lesson in lessons) {
-        final progress = provider.getProgress(lesson.id);
-        if (progress == 0) {
-          print('✅ Currently learning (next to start): ${lesson.title}');
-          return lesson;
-        }
-      }
-
-      // Fallback: Return first lesson
-      print('✅ Currently learning (first): ${lessons.first.title}');
-      return lessons.first;
-    } catch (e) {
-      print('Error loading currently learning lesson: $e');
-      return null;
-    }
-  }
-
   double _calculateProgress(Lesson lesson) {
     try {
       final provider = context.read<LessonProvider>();
@@ -1358,13 +1356,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final progressPercent = progress.toInt();
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => LessonDetailScreen(lesson: lesson),
-          ),
-        );
+      onTap: () async {
+        await _openLessonAndRefreshContinue(lesson);
       },
       child: Container(
         decoration: BoxDecoration(

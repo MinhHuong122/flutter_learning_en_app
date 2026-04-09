@@ -5,6 +5,7 @@ import 'dart:ui';
 import '../models/lesson_model.dart';
 import '../services/lesson_service.dart';
 import '../services/language_service.dart';
+import '../providers/lesson_provider.dart';
 import '../services/lesson_favorites_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
@@ -349,7 +350,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     });
 
     // Move to next question automatically after a short delay
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 800), () async {
       if (mounted && _currentQuestionIndex < (_lessonData?['questions'] as List).length - 1) {
         setState(() {
           _currentQuestionIndex++;
@@ -358,7 +359,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       } else if (mounted) {
         // Show results
         setState(() => _showResults = true);
-        _saveProgress();
+        await _saveProgress();
       }
     });
   }
@@ -372,9 +373,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       }
 
       final questions = _lessonData?['questions'] as List<LessonQuestion>? ?? [];
-      final progressPercentage = questions.isEmpty
-          ? 0
-          : ((_correctCount / questions.length) * 100).toInt();
+      // For normal lessons, progress is completion-based.
+      // Accuracy is still tracked by correctAnswers.
+      final progressPercentage = questions.isEmpty ? 0 : 100;
 
       print('🔄 Saving progress for lesson ${widget.lesson.id}...');
       print('📊 Progress data - Correct: $_correctCount / Total: ${questions.length} (${progressPercentage}%)');
@@ -382,7 +383,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
       final result = await _lessonService.updateUserProgress(
         userId: user.id,
         lessonId: widget.lesson.id,
-        completed: _correctCount == questions.length,
+        completed: questions.isNotEmpty,
         progressPercentage: progressPercentage,
         correctAnswers: _correctCount,
         totalAttempts: questions.length,
@@ -390,6 +391,9 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
       if (result) {
         print('✅ Progress saved successfully!');
+        context.read<LessonProvider>().markSystemLessonActivity(
+          widget.lesson.parentLessonId ?? widget.lesson.id,
+        );
         // Show success toast
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -443,6 +447,7 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
 
       if (result) {
         print('✅ Sub-lesson progress saved!');
+        context.read<LessonProvider>().markSystemLessonActivity(widget.lesson.id);
       } else {
         print('❌ Failed to save sub-lesson progress');
       }

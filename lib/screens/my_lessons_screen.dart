@@ -9,7 +9,7 @@ import '../services/custom_lesson_favorites_service.dart';
 import 'create_lesson_screen.dart';
 import 'flashcard_swipe_screen.dart';
 import 'flashcard_editor_screen.dart';
-import 'dart:developer' as _dart;
+import 'dart:developer';
 
 class MyLessonsScreen extends StatefulWidget {
   final String? searchQuery;
@@ -24,7 +24,7 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _customLessons = [];
   final LessonService _lessonService = LessonService();
-  final LessonFavoritesService _lessonFavoritesService = LessonFavoritesService();
+
   final CustomLessonFavoritesService _customLessonFavoritesService = CustomLessonFavoritesService();
   final TextEditingController _searchController = TextEditingController();
   String _sortBy = 'recent';

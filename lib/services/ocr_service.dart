@@ -141,10 +141,7 @@ Requirements:
         }
 
       print('✅ OCR extraction complete: ${vocabularyList.length} words found');
-        return vocabularyList;
-      } else {
-        throw Exception('OCR API error: ${response.statusCode}');
-      }
+      return vocabularyList;
     } catch (e) {
       print('❌ Error processing image with Gemini: $e');
       throw Exception('Failed to process image with Gemini OCR');

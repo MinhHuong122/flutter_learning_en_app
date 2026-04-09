@@ -24,7 +24,7 @@ class LessonsScreen extends StatefulWidget {
 
 class _LessonsScreenState extends State<LessonsScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  final LessonService _lessonService = LessonService();
+
   String _selectedFilter = 'all'; // 'all', 'ongoing', 'completed'
   late TextEditingController _searchController;
 

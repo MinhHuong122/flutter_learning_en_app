@@ -834,7 +834,8 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
             ),
           ),
         ),
-      );
+      ),
+    );
   } 
 }
 

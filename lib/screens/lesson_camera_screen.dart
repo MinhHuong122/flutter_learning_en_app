@@ -699,5 +699,4 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
       ),
     );
   }
-
 }

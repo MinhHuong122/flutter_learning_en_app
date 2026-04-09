@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/lesson_model.dart';
+import '../models/dictionary_model.dart';
 
 class LessonService {
   static final LessonService _instance = LessonService._internal();
@@ -46,25 +47,52 @@ class LessonService {
   // Get lesson by ID with its questions and options
   Future<Map<String, dynamic>?> getLessonDetails(String lessonId) async {
     try {
+      final normalizedLessonId = lessonId.trim();
+
       // Get lesson
       final lessonResponse = await supabase
           .from('lessons')
           .select()
-          .eq('id', lessonId)
+          .eq('id', normalizedLessonId)
           .single();
 
       final lesson = Lesson.fromJson(lessonResponse);
 
-      // Get questions
+      // Get questions - explicitly select all columns to ensure question_type is included
       final questionsResponse = await supabase
           .from('lesson_questions')
-          .select()
-          .eq('lesson_id', lessonId)
+          .select(
+            'id, lesson_id, question_type, question_text, audio_url, image_url, '
+            'question_order, explanation, correct_answer, vietnamese_text, '
+            'conversation_context, points, created_at'
+          )
+          .eq('lesson_id', normalizedLessonId)
           .order('question_order', ascending: true);
 
       final questions = (questionsResponse as List)
           .map((q) => LessonQuestion.fromJson(q))
           .toList();
+
+      print(
+        '📘 Lesson details: id=$normalizedLessonId, title=${lesson.title}, '
+        'type=${lesson.lessonType}, configured_total=${lesson.totalQuestions}, '
+        'loaded_questions=${questions.length}',
+      );
+      
+      // Debug: Show question_type values from database
+      for (var i = 0; i < questions.length; i++) {
+        final textPreview = questions[i].questionText.length > 50
+            ? questions[i].questionText.substring(0, 50) + '...'
+            : questions[i].questionText;
+        print('   Q${i + 1}: id=${questions[i].id}, type="${questions[i].questionType}" | "$textPreview"');
+      }
+      
+      if (questions.isEmpty) {
+        print(
+          '⚠️ No rows found in lesson_questions for lesson_id=$normalizedLessonId. '
+          'Please verify lesson_questions.lesson_id matches lessons.id exactly and RLS SELECT policy allows read.',
+        );
+      }
 
       // Get options for each question
       final Map<String, List<LessonOption>> optionsByQuestion = {};
@@ -421,26 +449,155 @@ class LessonService {
     }
   }
 
-  /// Get flashcards cho custom lesson từ OCR vocabulary
-  Future<List<Map<String, dynamic>>> getFlashcardsForLesson(String lessonId) async {
-    try {
-      final response = await supabase
-          .from('ocr_vocabulary')
-          .select('id, term as word, meaning as definition, phonetic as pronunciation')
-          .eq('lesson_id', lessonId)
-          .order('id', ascending: true);
+  // ========== CUSTOM LESSON CREATION METHODS ==========
 
-      return (response as List)
-          .map((item) => item as Map<String, dynamic>)
-          .toList();
+  /// Create a custom lesson with vocabulary words (saves to OCR schema)
+  Future<Map<String, dynamic>?> createCustomLesson({
+    required String userId,
+    required String title,
+    required String description,
+    required List<Map<String, String>> vocabularyWords,
+  }) async {
+    try {
+      // Step 1: Create the lesson in ocr_lessons table
+      final lessonResponse = await supabase
+          .from('ocr_lessons')
+          .insert({
+            'user_id': userId,
+            'title': title,
+            'description': description,
+            'cloudinary_url': null,
+            'cloudinary_public_id': null,
+          })
+          .select()
+          .single();
+
+      final lessonId = lessonResponse['id'] as String;
+      print('✅ Created OCR lesson: $lessonId');
+
+      // Step 2: Save vocabulary words in ocr_vocabulary table
+      // Deduplicate words to prevent unique constraint violation
+      final Set<String> seenTerms = {};
+      final List<Map<String, dynamic>> vocabInserts = [];
+      for (var word in vocabularyWords) {
+        final term = (word['term'] ?? '').trim().toLowerCase();
+        if (term.isNotEmpty && !seenTerms.contains(term)) {
+          seenTerms.add(term);
+          vocabInserts.add({
+            'lesson_id': lessonId,
+            'term': term,
+            'meaning': word['meaning'] ?? '',
+            'pronunciation': word['pronunciation'] ?? '',
+            'word_class': word['wordClass'] ?? 'noun',
+            'vietnamese_term': '',
+            'vietnamese_meaning': '',
+          });
+        }
+      }
+
+      if (vocabInserts.isNotEmpty) {
+        final vocabResponse = await supabase.from('ocr_vocabulary').insert(vocabInserts).select();
+        print('✅ Saved ${vocabResponse.length} vocabulary words to ocr_vocabulary');
+
+        // Step 3: Create initial progress records in ocr_word_progress for each word
+        final progressInserts = [];
+        for (var vocab in vocabResponse) {
+          progressInserts.add({
+            'user_id': userId,
+            'word_id': vocab['id'],
+            'times_studied': 0,
+            'times_correct': 0,
+            'mastered': false,
+          });
+        }
+        
+        if (progressInserts.isNotEmpty) {
+          await supabase.from('ocr_word_progress').insert(progressInserts);
+          print('✅ Created ${progressInserts.length} progress records');
+        }
+      }
+
+      return {
+        'lessonId': lessonId,
+        'title': title,
+        'vocabularyCount': vocabularyWords.length,
+      };
     } catch (e) {
-      print('Error loading flashcards: $e');
+      print('❌ Error creating custom lesson: $e');
+      return null;
+    }
+  }
+
+  /// Load custom lessons for the current user from OCR_LESSONS table
+  Future<List<Map<String, dynamic>>> loadCustomLessons(String userId) async {
+    try {
+      // Get user's custom lessons from ocr_lessons table
+      final response = await supabase
+          .from('ocr_lessons')
+          .select('''
+            id, 
+            title, 
+            description, 
+            created_at,
+            ocr_vocabulary(id)
+          ''')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> customLessons = [];
+
+      for (var lesson in response as List) {
+        final vocabList = lesson['ocr_vocabulary'] as List? ?? [];
+        customLessons.add({
+          'id': lesson['id'],
+          'name': lesson['title'],
+          'description': lesson['description'] ?? '',
+          'flashcardCount': vocabList.length,
+          'createdAt': lesson['created_at'] ?? DateTime.now().toIso8601String(),
+        });
+      }
+
+      print('✅ Loaded ${customLessons.length} custom lessons from ocr_lessons');
+      return customLessons;
+    } catch (e) {
+      print('❌ Error loading custom lessons: $e');
       return [];
     }
   }
 
-  /// Cập nhật tiến độ học từ vocabulary (OCR)
-  Future<void> updateOcrWordProgress({
+  /// Get all flashcards/vocabulary for a lesson from OCR_VOCABULARY table
+  Future<List<Map<String, dynamic>>> getFlashcardsForLesson(String lessonId) async {
+    try {
+      final response = await supabase
+          .from('ocr_vocabulary')
+          .select('id, term, meaning, pronunciation, word_class, vietnamese_term, vietnamese_meaning')
+          .eq('lesson_id', lessonId)
+          .order('created_at', ascending: true);
+
+      final List<Map<String, dynamic>> flashcards = [];
+      
+      for (var item in response as List) {
+        flashcards.add({
+          'id': item['id'],
+          'word': item['term'] ?? 'Unknown',
+          'definition': item['meaning'] ?? 'No definition',
+          'pronunciation': item['pronunciation'] ?? '',
+          'partOfSpeech': item['word_class'] ?? 'noun',
+          'vietnameseTerm': item['vietnamese_term'] ?? '',
+          'vietnameseMeaning': item['vietnamese_meaning'] ?? '',
+        });
+      }
+
+      print('✅ Loaded ${flashcards.length} flashcards from ocr_vocabulary for lesson $lessonId');
+      return flashcards;
+    } catch (e) {
+      print('❌ Error loading flashcards: $e');
+      return [];
+    }
+  }
+
+  /// Update study progress for a single OCR vocabulary word.
+  Future<bool> updateOcrWordProgress({
     required String userId,
     required String wordId,
     required bool gotIt,
@@ -453,225 +610,69 @@ class LessonService {
           .from('ocr_word_progress')
           .select('id, times_studied, times_correct')
           .eq('user_id', userId)
-          .eq('word_id', wordId);
+          .eq('word_id', wordId)
+          .maybeSingle();
 
-      if (existing.isNotEmpty) {
-        // Update existing row
-        final current = existing.first as Map<String, dynamic>;
-        int timesStudied = (current['times_studied'] as int?) ?? 0;
-        int timesCorrect = (current['times_correct'] as int?) ?? 0;
-
-        await supabase
-            .from('ocr_word_progress')
-            .update({
-              'times_studied': timesStudied + 1,
-              'times_correct': gotIt ? timesCorrect + 1 : timesCorrect,
-              'mastered': gotIt && (timesCorrect + 1 >= 3),
-              'updated_at': now,
-            })
-            .eq('user_id', userId)
-            .eq('word_id', wordId);
-      } else {
-        // Insert new row
+      if (existing == null) {
         await supabase.from('ocr_word_progress').insert({
           'user_id': userId,
           'word_id': wordId,
           'times_studied': 1,
           'times_correct': gotIt ? 1 : 0,
+          'last_studied': now,
           'mastered': false,
-          'created_at': now,
-          'updated_at': now,
         });
+      } else {
+        final currentTimesStudied = (existing['times_studied'] as num?)?.toInt() ?? 0;
+        final currentTimesCorrect = (existing['times_correct'] as num?)?.toInt() ?? 0;
+        final updatedTimesStudied = currentTimesStudied + 1;
+        final updatedTimesCorrect = currentTimesCorrect + (gotIt ? 1 : 0);
+        final updatedMastered = updatedTimesCorrect >= 3;
+
+        await supabase
+            .from('ocr_word_progress')
+            .update({
+              'times_studied': updatedTimesStudied,
+              'times_correct': updatedTimesCorrect,
+              'last_studied': now,
+              'mastered': updatedMastered,
+            })
+            .eq('id', existing['id']);
       }
-    } catch (e) {
-      print('Error updating OCR progress: $e');
-    }
-  }
-
-  /// Tính tiến độ custom lesson từ ocr_word_progress
-  Future<double> getCustomLessonProgress(String userId, String lessonId) async {
-    try {
-      // Lấy tất cả vocabulary của lesson
-      final vocabResponse = await supabase
-          .from('ocr_vocabulary')
-          .select('id')
-          .eq('lesson_id', lessonId);
-
-      if (vocabResponse.isEmpty) return 0.0;
-
-      final vocabIds = (vocabResponse as List)
-          .map((v) => (v as Map<String, dynamic>)['id'] as String)
-          .toList();
-
-      // Lấy progress cho các vocab này
-      final progressResponse = await supabase
-          .from('ocr_word_progress')
-          .select('word_id, times_studied')
-          .eq('user_id', userId)
-          .inFilter('word_id', vocabIds);
-
-      // Đếm từ đã học (times_studied > 0)
-      final studiedCount = (progressResponse as List)
-          .where((p) => (((p as Map<String, dynamic>)['times_studied'] as int?) ?? 0) > 0)
-          .length;
-
-      return (studiedCount / vocabIds.length) * 100.0;
-    } catch (e) {
-      print('Error calculating lesson progress: $e');
-      return 0.0;
-    }
-  }
-
-  /// Load all custom lessons for a user
-  Future<List<Map<String, dynamic>>> loadCustomLessons(String userId) async {
-    try {
-      final response = await supabase
-          .from('custom_lessons')
-          .select('''
-            id,
-            user_id,
-            name,
-            description,
-            created_at,
-            updated_at
-          ''')
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
-      // Count flashcards for each lesson
-      List<Map<String, dynamic>> lessonsWithCount = [];
-      for (var lesson in response as List) {
-        final cardCount = await supabase
-            .from('custom_flashcards')
-            .select('id', const FetchOptions(count: CountOption.exact))
-            .eq('lesson_id', lesson['id'] as String);
-        
-        lesson['flashcardCount'] = cardCount.length;
-        lessonsWithCount.add(lesson as Map<String, dynamic>);
-      }
-
-      return lessonsWithCount;
-    } catch (e) {
-      print('Error loading custom lessons: $e');
-      return [];
-    }
-  }
-
-  /// Create a new custom lesson
-  Future<Map<String, dynamic>?> createCustomLesson({
-    required String userId,
-    required String title,
-    required String description,
-    required List<Map<String, dynamic>> vocabularyWords,
-  }) async {
-    try {
-      // Create lesson record
-      final lessonResponse = await supabase
-          .from('custom_lessons')
-          .insert({
-            'user_id': userId,
-            'name': title,
-            'description': description,
-            'created_at': DateTime.now().toIso8601String(),
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .select()
-          .single();
-
-      final lessonId = lessonResponse['id'] as String;
-
-      // Insert flashcards
-      for (var word in vocabularyWords) {
-        await supabase.from('custom_flashcards').insert({
-          'lesson_id': lessonId,
-          'term': word['term'] ?? '',
-          'meaning': word['meaning'] ?? '',
-          'pronunciation': word['pronunciation'] ?? '',
-          'word_class': word['wordClass'] ?? 'noun',
-          'created_at': DateTime.now().toIso8601String(),
-        });
-      }
-
-      return lessonResponse as Map<String, dynamic>;
-    } catch (e) {
-      print('Error creating custom lesson: $e');
-      return null;
-    }
-  }
-
-  /// Update an existing custom lesson
-  Future<Map<String, dynamic>?> updateCustomLesson({
-    required String lessonId,
-    required String title,
-    required String description,
-    required List<Map<String, dynamic>> vocabularyWords,
-  }) async {
-    try {
-      // Update lesson record
-      await supabase
-          .from('custom_lessons')
-          .update({
-            'name': title,
-            'description': description,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', lessonId);
-
-      // Delete existing flashcards
-      await supabase
-          .from('custom_flashcards')
-          .delete()
-          .eq('lesson_id', lessonId);
-
-      // Insert new flashcards
-      for (var word in vocabularyWords) {
-        await supabase.from('custom_flashcards').insert({
-          'lesson_id': lessonId,
-          'term': word['term'] ?? '',
-          'meaning': word['meaning'] ?? '',
-          'pronunciation': word['pronunciation'] ?? '',
-          'word_class': word['wordClass'] ?? 'noun',
-          'created_at': DateTime.now().toIso8601String(),
-        });
-      }
-
-      // Return updated lesson
-      final updated = await supabase
-          .from('custom_lessons')
-          .select()
-          .eq('id', lessonId)
-          .single();
-
-      return updated as Map<String, dynamic>;
-    } catch (e) {
-      print('Error updating custom lesson: $e');
-      return null;
-    }
-  }
-
-  /// Delete a custom lesson
-  Future<bool> deleteCustomLesson(String lessonId) async {
-    try {
-      // Delete flashcards first
-      await supabase
-          .from('custom_flashcards')
-          .delete()
-          .eq('lesson_id', lessonId);
-
-      // Delete lesson
-      await supabase
-          .from('custom_lessons')
-          .delete()
-          .eq('id', lessonId);
 
       return true;
     } catch (e) {
-      print('Error deleting custom lesson: $e');
+      print('❌ Error updating OCR word progress: $e');
       return false;
     }
   }
 
-  /// Save new English words to dictionary
+  /// Delete a custom lesson and all its vocabulary from OCR tables
+  Future<bool> deleteCustomLesson(String lessonId) async {
+    try {
+      // Step 1: Delete OCR vocabulary words
+      // NOTE: ocr_word_progress will be auto-deleted via CASCADE foreign key
+      await supabase
+          .from('ocr_vocabulary')
+          .delete()
+          .eq('lesson_id', lessonId);
+      print('✅ Deleted OCR vocabulary words (progress auto-deleted via CASCADE)');
+
+      // Step 2: Delete the OCR lesson
+      await supabase
+          .from('ocr_lessons')
+          .delete()
+          .eq('id', lessonId);
+      print('✅ Deleted custom lesson from ocr_lessons: $lessonId');
+
+      return true;
+    } catch (e) {
+      print('❌ Error deleting custom lesson: $e');
+      return false;
+    }
+  }
+
+  /// Save new vocabulary words to dictionary table if they don't exist
   Future<bool> saveNewEnglishWords(List<Map<String, dynamic>> words) async {
     try {
       for (var word in words) {
@@ -702,38 +703,140 @@ class LessonService {
     }
   }
 
-  /// Get all vocabulary (flashcards) for a custom lesson
+  /// Get lesson vocabulary as DictionaryEntry list for editing
   Future<List<DictionaryEntry>> getLessonVocabulary(String lessonId) async {
     try {
+      print('📚 Fetching vocabulary for lesson: $lessonId');
       final response = await supabase
-          .from('custom_flashcards')
-          .select('''
-            id,
-            term,
-            meaning,
-            pronunciation,
-            word_class
-          ''')
+          .from('ocr_vocabulary')
+          .select('id, term, meaning, pronunciation, word_class')
           .eq('lesson_id', lessonId)
           .order('created_at', ascending: true);
 
-      return (response as List)
-          .map((card) {
-            final data = card as Map<String, dynamic>;
-            return DictionaryEntry(
-              id: data['id'] as String? ?? '',
-              term: data['term'] as String? ?? '',
-              meaning: data['meaning'] as String? ?? '',
-              pronunciation: data['pronunciation'] as String? ?? '',
-              wordClass: data['word_class'] as String? ?? 'noun',
+      print('✅ Got response: ${(response as List).length} items');
+      
+      final List<DictionaryEntry> vocabulary = [];
+      
+      for (var item in response as List) {
+        try {
+          vocabulary.add(
+            DictionaryEntry(
+              id: int.tryParse(item['id'].toString()) ?? (vocabulary.length + 1),
+              term: item['term'] ?? 'Unknown',
               language: 'en',
-              createdAt: null,
-            );
-          })
-          .toList();
+              pronunciation: item['pronunciation'] ?? '',
+              wordClass: item['word_class'] ?? 'noun',
+              meaning: item['meaning'] ?? '',
+              isCommon: false,
+              frequency: 0,
+            ),
+          );
+        } catch (e) {
+          print('⚠️ Error parsing vocabulary item: $e, item: $item');
+        }
+      }
+
+      return vocabulary;
     } catch (e) {
-      print('Error getting lesson vocabulary: $e');
+      print('❌ Error loading lesson vocabulary: $e');
       return [];
     }
   }
+
+  /// Get custom lesson progress for a user
+  Future<int> getCustomLessonProgress(String userId, String lessonId) async {
+    try {
+      // Calculate progress as percentage of mastered words
+      final progressResponse = await supabase
+          .from('ocr_word_progress')
+          .select('mastered')
+          .eq('user_id', userId);
+
+      if (progressResponse.isEmpty) return 0;
+
+      final masteredCount = (progressResponse as List)
+          .where((p) => p['mastered'] == true)
+          .length;
+      
+      final progressPercentage = ((masteredCount / progressResponse.length) * 100).toInt();
+      return progressPercentage;
+    } catch (e) {
+      print('❌ Error getting custom lesson progress: $e');
+      return 0;
+    }
+  }
+
+  /// Update an existing custom lesson
+  Future<Map<String, dynamic>?> updateCustomLesson({
+    required String lessonId,
+    required String title,
+    required String description,
+    required List<Map<String, String>> vocabularyWords,
+  }) async {
+    try {
+      // Step 1: Update lesson info
+      await supabase
+          .from('ocr_lessons')
+          .update({
+            'title': title,
+            'description': description,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', lessonId);
+      print('✅ Updated lesson info for $lessonId');
+
+      // Step 2: Delete existing vocabulary
+      await supabase
+          .from('ocr_vocabulary')
+          .delete()
+          .eq('lesson_id', lessonId);
+      print('✅ Deleted old vocabulary for lesson $lessonId');
+
+      // Step 3: Get user_id from lesson
+      final lessonData = await supabase
+          .from('ocr_lessons')
+          .select('user_id')
+          .eq('id', lessonId)
+          .single();
+
+      // Step 4: Insert new vocabulary words
+      final Set<String> seenTerms = {};
+      final List<Map<String, dynamic>> vocabInserts = [];
+      
+      for (var word in vocabularyWords) {
+        final term = (word['term'] ?? '').trim().toLowerCase();
+        if (term.isNotEmpty && !seenTerms.contains(term)) {
+          seenTerms.add(term);
+          vocabInserts.add({
+            'lesson_id': lessonId,
+            'term': term,
+            'meaning': word['meaning'] ?? '',
+            'pronunciation': word['pronunciation'] ?? '',
+            'word_class': word['wordClass'] ?? 'noun',
+            'vietnamese_term': '',
+            'vietnamese_meaning': '',
+          });
+        }
+      }
+
+      // Insert new vocabulary
+      if (vocabInserts.isNotEmpty) {
+        await supabase.from('ocr_vocabulary').insert(vocabInserts);
+        print('✅ Updated ${vocabInserts.length} vocabulary words for lesson $lessonId');
+      }
+
+      // Return updated lesson
+      final updated = await supabase
+          .from('ocr_lessons')
+          .select()
+          .eq('id', lessonId)
+          .single();
+
+      return updated;
+    } catch (e) {
+      print('Error updating custom lesson: $e');
+      return null;
+    }
+  }
 }
+

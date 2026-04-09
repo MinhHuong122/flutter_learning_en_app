@@ -681,7 +681,7 @@ class _LessonCameraScreenState extends State<LessonCameraScreen> {
               color: _isProcessing ? const Color(0xFF4A6085).withOpacity(0.5) : const Color(0xFF4A6085),
               size: 28,
             ),
-            ),
+          ),
           if (label.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 4),

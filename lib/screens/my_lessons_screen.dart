@@ -665,7 +665,7 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: const Color(0xFF1C1C1C),
-                        ),
+                                        ),
                                       ),
                                       onTap: () async {
                                         print('📝 Edit button tapped');

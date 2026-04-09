@@ -889,7 +889,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     const SizedBox(height: 40),
                   ],
                 ),
-                ),
               ),
             ),
           ],

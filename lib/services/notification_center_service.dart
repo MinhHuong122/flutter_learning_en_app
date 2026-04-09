@@ -382,10 +382,4 @@ class NotificationCenterService {
       body: '$senderName: $safePreview',
     );
   }
-
-  Future<void> _saveInAppNotifications(List<AppNotificationItem> items) async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = jsonEncode(items.map((e) => e.toJson()).toList());
-    await prefs.setString(_kInAppNotifications, encoded);
-  }
 }

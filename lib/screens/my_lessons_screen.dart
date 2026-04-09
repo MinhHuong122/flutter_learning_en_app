@@ -11,6 +11,7 @@ import 'flashcard_swipe_screen.dart';
 import 'flashcard_editor_screen.dart';
 import 'dart:developer';
 
+
 class MyLessonsScreen extends StatefulWidget {
   final String? searchQuery;
   
@@ -802,18 +803,18 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: const Color(0xFF777777),
-                          ),
+                      ),
                     ),
-                          Text(
+                    Text(
                       '${(lesson['progressPercentage'] as num?)?.toDouble().toStringAsFixed(0) ?? '0'}%',
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryColor,
-                            ),
-                          ),
-                        ],
                       ),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 6),
 

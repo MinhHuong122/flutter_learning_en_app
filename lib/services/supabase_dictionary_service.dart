@@ -297,8 +297,12 @@ class SupabaseDictionaryService {
       print('✅ Word saved: $term ($language)');
       return true;
     } catch (e) {
+      if (e.toString().contains('PGRST205') &&
+          e.toString().contains('user_saved_words')) {
+        print('❌ Missing table public.user_saved_words. Run DATABASE_MIGRATION_FAVORITE_LESSONS.sql in Supabase.');
+      }
       print('⚠️ Error saving word: $e');
-      return true; // Might already be saved
+      return false;
     }
   }
 
@@ -318,6 +322,10 @@ class SupabaseDictionaryService {
       print('✅ Word unsaved: $term ($language)');
       return true;
     } catch (e) {
+      if (e.toString().contains('PGRST205') &&
+          e.toString().contains('user_saved_words')) {
+        print('❌ Missing table public.user_saved_words. Run DATABASE_MIGRATION_FAVORITE_LESSONS.sql in Supabase.');
+      }
       print('❌ Error unsaving word: $e');
       return false;
     }
@@ -354,6 +362,10 @@ class SupabaseDictionaryService {
       print('✅ Loaded ${results.length} saved words');
       return results;
     } catch (e) {
+      if (e.toString().contains('PGRST205') &&
+          e.toString().contains('user_saved_words')) {
+        print('❌ Missing table public.user_saved_words. Run DATABASE_MIGRATION_FAVORITE_LESSONS.sql in Supabase.');
+      }
       print('❌ Error loading saved words: $e');
       return [];
     }

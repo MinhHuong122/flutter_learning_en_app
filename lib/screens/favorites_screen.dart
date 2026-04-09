@@ -4,11 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
+import '../services/lesson_favorites_service.dart';
+import '../services/supabase_dictionary_service.dart';
+import '../models/dictionary_model.dart';
+import '../models/lesson_model.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
-import 'archive_screen.dart';
 import 'account_screen.dart';
+import 'lesson_detail_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({Key? key}) : super(key: key);
@@ -19,6 +23,100 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   int _currentIndex = 3;
+  List<DictionaryEntry> _favoriteWords = [];
+  List<Lesson> _favoriteLessons = [];
+  List<DictionaryEntry> _filteredFavoriteWords = [];
+  List<Lesson> _filteredFavoriteLessons = [];
+  bool _isLoadingWords = true;
+  bool _isLoadingFavorites = true;
+  final LessonFavoritesService _lessonFavoritesService = LessonFavoritesService();
+  final SupabaseDictionaryService _dictionaryService = SupabaseDictionaryService();
+  bool _reloadedAfterOpen = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_searchFavorites);
+    _reloadAllFavorites();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_reloadedAfterOpen) {
+      _reloadedAfterOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _reloadAllFavorites();
+      });
+    }
+  }
+
+  Future<void> _reloadAllFavorites() async {
+    await Future.wait([
+      _loadSavedWords(),
+      _loadFavorites(),
+    ]);
+  }
+
+  Future<void> _loadSavedWords() async {
+    if (mounted) setState(() => _isLoadingWords = true);
+    final words = await _dictionaryService.getUserSavedWords();
+    if (mounted) {
+      setState(() {
+        _favoriteWords = words;
+        _filteredFavoriteWords = words;
+        _isLoadingWords = false;
+      });
+    }
+  }
+
+  Future<void> _removeSavedWord(DictionaryEntry entry) async {
+    await _dictionaryService.unsaveWord(entry.term, entry.language);
+    await _loadSavedWords();
+  }
+
+  Future<void> _loadFavorites() async {
+    if (mounted) setState(() => _isLoadingFavorites = true);
+    final lessons = await _lessonFavoritesService.getUserFavoriteLessons();
+    if (mounted) {
+      setState(() {
+        _favoriteLessons = lessons;
+        _filteredFavoriteLessons = lessons;
+        _isLoadingFavorites = false;
+      });
+    }
+  }
+
+  Future<void> _removeFavorite(String lessonId) async {
+    await _lessonFavoritesService.removeFavorite(lessonId);
+    await _loadFavorites();
+  }
+
+  void _searchFavorites() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty) {
+        _filteredFavoriteWords = _favoriteWords;
+        _filteredFavoriteLessons = _favoriteLessons;
+      } else {
+        _filteredFavoriteWords = _favoriteWords.where((entry) {
+          return entry.term.toLowerCase().contains(query) ||
+              entry.meaning.toLowerCase().contains(query);
+        }).toList();
+
+        _filteredFavoriteLessons = _favoriteLessons.where((lesson) {
+          return lesson.title.toLowerCase().contains(query);
+        }).toList();
+      }
+    });
+  }
 
   bool get _isEnglish => context.watch<LanguageService>().isEnglish;
 
@@ -104,6 +202,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   ],
                 ),
                 child: TextField(
+                  controller: _searchController,
                   decoration: InputDecoration(
                     hintText: _isEnglish ? 'Search your favorites...' : 'Tìm kiếm yêu thích...',
                     hintStyle: GoogleFonts.poppins(
@@ -115,18 +214,33 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       color: Color(0xFF9CA3AF),
                       size: 20,
                     ),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.tune,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? GestureDetector(
+                            onTap: () {
+                              _searchController.clear();
+                              _searchFavorites();
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.only(right: 12),
+                              child: Icon(
+                                Icons.close,
+                                color: Color(0xFF9CA3AF),
+                                size: 18,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.tune,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                       vertical: 14,
@@ -182,44 +296,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     // Horizontal scrolling dictionary cards
                     SizedBox(
                       height: 165,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        children: [
-                          _buildDictionaryCard(
-                            title: 'Algorithm',
-                            description: _isEnglish
-                                ? 'Step-by-step procedure for calculations.'
-                                : 'Quy trình từng bước để tính toán.',
-                            icon: Icons.calculate,
-                            backgroundColor: const Color(0xFFEEF7FF),
-                            borderColor: const Color(0xFF6366F1).withOpacity(0.3),
-                            iconColor: const Color(0xFF6366F1),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildDictionaryCard(
-                            title: 'Framework',
-                            description: _isEnglish
-                                ? 'Standardized set of tools for development.'
-                                : 'Tập hợp công cụ chuẩn hóa để phát triển.',
-                            icon: Icons.architecture,
-                            backgroundColor: const Color(0xFFFFF5E6),
-                            borderColor: const Color(0xFFF97316).withOpacity(0.3),
-                            iconColor: const Color(0xFFF97316),
-                          ),
-                          const SizedBox(width: 12),
-                          _buildDictionaryCard(
-                            title: 'Prototype',
-                            description: _isEnglish
-                                ? 'Early sample or model of a product.'
-                                : 'Mẫu hoặc mô hình sớm của một sản phẩm.',
-                            icon: Icons.lightbulb_outline,
-                            backgroundColor: const Color(0xFFF0FDF4),
-                            borderColor: const Color(0xFF10B981).withOpacity(0.3),
-                            iconColor: const Color(0xFF10B981),
-                          ),
-                        ],
-                      ),
+                      child: _isLoadingWords
+                          ? const Center(child: CircularProgressIndicator())
+                          : _filteredFavoriteWords.isEmpty
+                              ? _buildEmptyDictionaryWords()
+                              : ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  itemCount: _filteredFavoriteWords.length,
+                                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                                  itemBuilder: (context, index) {
+                                    return _buildFavoriteDictionaryCard(
+                                      _filteredFavoriteWords[index],
+                                      index,
+                                    );
+                                  },
+                                ),
                     ),
 
                     const SizedBox(height: 32),
@@ -262,25 +354,26 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     // Favorite lessons list
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          _buildLessonCard(
-                            title: 'Digital Design Fundamentals',
-                            instructor: 'Courson Agency',
-                            progress: 70,
-                            backgroundColor: const Color(0xFFEFF6FF),
-                            progressColor: AppColors.primaryColor,
-                          ),
-                          const SizedBox(height: 12),
-                          _buildLessonCard(
-                            title: 'Creative Art & Layout',
-                            instructor: 'Design Masterclass',
-                            progress: 45,
-                            backgroundColor: const Color(0xFFF3E8FF),
-                            progressColor: const Color(0xFFA855F7),
-                          ),
-                        ],
-                      ),
+                      child: _isLoadingFavorites
+                          ? const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(child: CircularProgressIndicator()),
+                            )
+                          : _filteredFavoriteLessons.isEmpty
+                              ? _buildEmptyLessons()
+                              : Column(
+                                  children: [
+                                    ..._filteredFavoriteLessons.asMap().entries.map((e) {
+                                      return Column(
+                                        children: [
+                                          _buildFavoriteLessonCard(e.value, e.key),
+                                          if (e.key < _filteredFavoriteLessons.length - 1)
+                                            const SizedBox(height: 12),
+                                        ],
+                                      );
+                                    }),
+                                  ],
+                                ),
                     ),
 
                     const SizedBox(height: 32),
@@ -364,186 +457,235 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  Widget _buildDictionaryCard({
-    required String title,
-    required String description,
-    required IconData icon,
-    required Color backgroundColor,
-    required Color borderColor,
-    required Color iconColor,
-  }) {
-    return Container(
-      width: 160,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: borderColor, width: 1),
+  Widget _buildEmptyDictionaryWords() {
+    return Center(
+      child: Text(
+        _isEnglish ? 'No favorite words yet' : 'Chưa có từ yêu thích',
+        style: GoogleFonts.poppins(
+          fontSize: 13,
+          color: const Color(0xFF9CA3AF),
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      padding: const EdgeInsets.all(12),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: iconColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
+    );
+  }
+
+  Widget _buildFavoriteDictionaryCard(DictionaryEntry entry, int index) {
+    const iconColors = [
+      Color(0xFF6366F1),
+      Color(0xFFF97316),
+      Color(0xFF10B981),
+      Color(0xFF3B82F6),
+    ];
+    const bgColors = [
+      Color(0xFFEEF7FF),
+      Color(0xFFFFF5E6),
+      Color(0xFFF0FDF4),
+      Color(0xFFEFF6FF),
+    ];
+    final iconColor = iconColors[index % iconColors.length];
+    final backgroundColor = bgColors[index % bgColors.length];
+
+    return GestureDetector(
+      onTap: () => _showWordDetail(entry),
+      child: Container(
+        width: 160,
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: iconColor.withOpacity(0.3), width: 1),
+        ),
+        padding: const EdgeInsets.all(12),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: iconColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.translate, color: iconColor, size: 18),
                 ),
-                child: Icon(
-                  icon,
-                  color: iconColor,
+                const SizedBox(height: 10),
+                Text(
+                  entry.term,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  entry.meaning,
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFF6B7280),
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => _removeSavedWord(entry),
+                child: const Icon(
+                  Icons.favorite,
+                  color: Colors.red,
                   size: 18,
                 ),
               ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                description,
-                style: GoogleFonts.poppins(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w400,
-                  color: const Color(0xFF6B7280),
-                  height: 1.3,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Icon(
-              Icons.favorite,
-              color: Colors.red,
-              size: 18,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyLessons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Column(
+        children: [
+          const Icon(Icons.favorite_border, size: 56, color: Color(0xFFD1D5DB)),
+          const SizedBox(height: 12),
+          Text(
+            _isEnglish ? 'No favorite lessons yet' : 'Chưa có bài học yêu thích',
+            style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF9CA3AF)),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _isEnglish
+                ? 'Tap the ♥ on any course to save it here'
+                : 'Nhấn nút ♥ trong bài học để lưu vào đây',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFFD1D5DB)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLessonCard({
-    required String title,
-    required String instructor,
-    required int progress,
-    required Color backgroundColor,
-    required Color progressColor,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Stack(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Icon(
-                  Icons.image,
-                  color: progressColor,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1F2937),
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          instructor,
-                          style: GoogleFonts.poppins(
-                            fontSize: 10,
-                            color: const Color(0xFF9CA3AF),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$progress% ${_isEnglish ? 'Completed' : 'Hoàn thành'}',
-                          style: GoogleFonts.poppins(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w700,
-                            color: progressColor,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: progress / 100,
-                            minHeight: 4,
-                            backgroundColor: const Color(0xFFE5E7EB),
-                            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            top: 8,
-            right: 8,
-            child: Icon(
-              Icons.favorite,
-              color: Colors.red,
-              size: 18,
+  Widget _buildFavoriteLessonCard(Lesson lesson, int index) {
+    const bgColors = [
+      Color(0xFFEFF6FF),
+      Color(0xFFF3E8FF),
+      Color(0xFFFFF7ED),
+      Color(0xFFF0FDF4),
+    ];
+    const progressColors = [
+      AppColors.primaryColor,
+      Color(0xFFA855F7),
+      Color(0xFFF97316),
+      Color(0xFF10B981),
+    ];
+    final bgColor = bgColors[index % bgColors.length];
+    final progressColor = progressColors[index % progressColors.length];
+    final levelLabel = lesson.level.isEmpty
+        ? ''
+        : lesson.level[0].toUpperCase() + lesson.level.substring(1);
+
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => LessonDetailScreen(lesson: lesson)),
+        );
+        _loadFavorites();
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-          ),
-        ],
+          ],
+        ),
+        padding: const EdgeInsets.all(10),
+        child: Stack(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(Icons.menu_book_rounded, color: progressColor, size: 36),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        lesson.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1F2937),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        levelLabel,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                      ),
+                      if (lesson.durationMinutes != null) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.schedule, size: 12, color: Color(0xFF9CA3AF)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${lesson.durationMinutes} min',
+                              style: GoogleFonts.poppins(
+                                fontSize: 10,
+                                color: const Color(0xFF9CA3AF),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () => _removeFavorite(lesson.id),
+                child: const Padding(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.favorite, color: Colors.red, size: 20),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -607,6 +749,208 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showWordDetail(DictionaryEntry entry) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildWordDetailSheet(entry),
+    );
+  }
+
+  Widget _buildWordDetailSheet(DictionaryEntry entry) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFFFAFBFF),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Word Header
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.term,
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      // Pronunciation (English only)
+                      if (entry.isEnglish && entry.pronunciation.isNotEmpty)
+                        Text(
+                          '/${entry.pronunciation}/',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _removeSavedWord(entry);
+                    Navigator.pop(context);
+                  },
+                  child: const Icon(
+                    Icons.favorite,
+                    color: Colors.red,
+                    size: 28,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Language & Word Class
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    entry.languageName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    entry.wordClass,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                if (entry.isCommon)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _isEnglish ? 'Common' : 'Phổ biến',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Meaning
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isEnglish ? 'Meaning' : 'Nghĩa',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFFE5E7EB),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    entry.meaning,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF1F2937),
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Additional Info
+            if (entry.frequency > 0)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isEnglish ? 'Frequency' : 'Tần suất',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    entry.frequency.toString(),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

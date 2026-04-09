@@ -420,4 +420,105 @@ class LessonService {
       };
     }
   }
+
+  /// Get flashcards cho custom lesson từ OCR vocabulary
+  Future<List<Map<String, dynamic>>> getFlashcardsForLesson(String lessonId) async {
+    try {
+      final response = await supabase
+          .from('ocr_vocabulary')
+          .select('id, term as word, meaning as definition, phonetic as pronunciation')
+          .eq('lesson_id', lessonId)
+          .order('id', ascending: true);
+
+      return (response as List)
+          .map((item) => item as Map<String, dynamic>)
+          .toList();
+    } catch (e) {
+      print('Error loading flashcards: $e');
+      return [];
+    }
+  }
+
+  /// Cập nhật tiến độ học từ vocabulary (OCR)
+  Future<void> updateOcrWordProgress({
+    required String userId,
+    required String wordId,
+    required bool gotIt,
+  }) async {
+    try {
+      final now = DateTime.now().toIso8601String();
+
+      // Check xem progress row đã tồn tại chưa
+      final existing = await supabase
+          .from('ocr_word_progress')
+          .select('id, times_studied, times_correct')
+          .eq('user_id', userId)
+          .eq('word_id', wordId);
+
+      if (existing.isNotEmpty) {
+        // Update existing row
+        final current = existing.first as Map<String, dynamic>;
+        int timesStudied = (current['times_studied'] as int?) ?? 0;
+        int timesCorrect = (current['times_correct'] as int?) ?? 0;
+
+        await supabase
+            .from('ocr_word_progress')
+            .update({
+              'times_studied': timesStudied + 1,
+              'times_correct': gotIt ? timesCorrect + 1 : timesCorrect,
+              'mastered': gotIt && (timesCorrect + 1 >= 3),
+              'updated_at': now,
+            })
+            .eq('user_id', userId)
+            .eq('word_id', wordId);
+      } else {
+        // Insert new row
+        await supabase.from('ocr_word_progress').insert({
+          'user_id': userId,
+          'word_id': wordId,
+          'times_studied': 1,
+          'times_correct': gotIt ? 1 : 0,
+          'mastered': false,
+          'created_at': now,
+          'updated_at': now,
+        });
+      }
+    } catch (e) {
+      print('Error updating OCR progress: $e');
+    }
+  }
+
+  /// Tính tiến độ custom lesson từ ocr_word_progress
+  Future<double> getCustomLessonProgress(String userId, String lessonId) async {
+    try {
+      // Lấy tất cả vocabulary của lesson
+      final vocabResponse = await supabase
+          .from('ocr_vocabulary')
+          .select('id')
+          .eq('lesson_id', lessonId);
+
+      if (vocabResponse.isEmpty) return 0.0;
+
+      final vocabIds = (vocabResponse as List)
+          .map((v) => (v as Map<String, dynamic>)['id'] as String)
+          .toList();
+
+      // Lấy progress cho các vocab này
+      final progressResponse = await supabase
+          .from('ocr_word_progress')
+          .select('word_id, times_studied')
+          .eq('user_id', userId)
+          .inFilter('word_id', vocabIds);
+
+      // Đếm từ đã học (times_studied > 0)
+      final studiedCount = (progressResponse as List)
+          .where((p) => (((p as Map<String, dynamic>)['times_studied'] as int?) ?? 0) > 0)
+          .length;
+
+      return (studiedCount / vocabIds.length) * 100.0;
+    } catch (e) {
+      print('Error calculating lesson progress: $e');
+      return 0.0;
+    }
+  }
 }

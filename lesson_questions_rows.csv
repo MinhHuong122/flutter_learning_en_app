@@ -1,0 +1,757 @@
+id,created_at,lesson_id,question_type,question_text,audio_url,image_url,question_order,explanation,correct_answer,vietnamese_text,conversation_context,points,vocabulary_ids,difficulty_level
+0025725d-b492-4965-af11-75833c98e03d,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+00ac25de-d5a8-410b-8834-590a16aa5ab5,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+01b0660d-80eb-4aa4-b4e9-c678f9b95f8e,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+01fbec92-172c-4490-8889-5e2960ad347e,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+020e3ff8-836a-41c5-99a5-adf8bc5c883f,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+02b8a153-dcc6-4bb3-b7c7-df3733607cd4,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+047edaa7-7543-4458-a458-103cc86adbca,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+04f524bf-91bc-45f6-a8aa-1f3bfb7f4dac,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+050b4cfb-7fa4-4441-9850-9c19b8bc681d,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+0585fade-d57a-4151-bd52-57b7a5dd42f5,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+05d07a26-ad5b-428c-af99-ec65d25c9a24,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+06205a05-f926-4a4d-a4f2-a9ea7b8437c2,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+06318b25-6920-4994-90f1-904856411ab8,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+063b4130-fc53-41fd-a60d-a70c61485831,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+0686bc45-d2d2-4f3b-9dff-ef349b3b8174,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+08344a86-2d4e-4aba-a121-66e08a9374c6,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+0922f178-7cc5-46a7-a34e-42356172957e,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+093ab0c7-08d3-4c3a-baae-95ce27bb3855,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+09923e18-8b1a-4d97-8f55-5c48fb288a83,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+0a7356a4-7d6a-499e-a3d8-c4d66852a22b,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+0afdeec2-07de-4afa-b73a-e0edd744b27e,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+0b406886-6ec9-4dd5-b290-2a46e1994d2e,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+0b5b188f-f231-4006-a983-6cc983fc044d,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+0bc8a4f7-dbce-4628-a6a4-c9b4b82747b4,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+0c23b82a-93d7-4f85-9617-0f2d06f8ae4f,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+0ce7b89c-44d9-4a93-a763-fedb738680b0,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+0e053360-e521-4840-a409-0ad308472be7,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+0f2eb181-68ec-4b40-ace6-ac0f6b692345,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+1016b830-420f-4648-b053-61ec09142118,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+107441d2-747b-4ad5-b112-6c0fa7e266ba,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+108e2b0f-998d-4fd8-83eb-4ef539284ff2,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+109e1e83-b9fb-4f9e-a8c0-f89ab7342f07,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+10a62fa1-1201-458c-81da-49b126310370,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+11040287-752b-4512-b683-4f240d088721,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1112cba9-df8d-4a1a-ad2f-9b081fde3445,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+12d74268-6843-468d-9bbe-96d1f2cd6c85,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+12f32ab9-11cd-4236-afd3-ff4f1844f77a,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+13260994-b514-41e8-a759-1ffc49bb1c87,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+134bf3eb-1009-48ef-8a4a-a7368ec30c69,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+13a09ebc-6b34-4577-8ac7-bc2ba3a87caa,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+13be727d-e542-4084-a6ec-fb0bb46bf4bd,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+13d83227-85b3-433c-a68a-e24d23891ccf,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1429ea84-98b5-4df4-8344-f963afc46403,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+14aec51b-d7cb-4c89-a01f-3b69d5378dd8,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+14f95531-a997-48b3-a82b-53ddf0ce2560,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,conversation,"A: ""What genre do you prefer?"" B: ""I like _______.""",,,5,"Một cuộc trò chuyện về sở thích đọc sách. Bạn có thể trả lời ""science fiction"", ""romance"", ""horror"", v.v.",science fiction,,,10,,2
+151643e8-faa9-4a15-969e-b0a89429854d,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+15fc778c-3bfb-4386-a7e7-7600eb200468,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+16ab4e3d-a923-40b1-b9cb-c9c5a2a7630f,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+16c2f7c5-7074-4e50-8721-8ac35d563e1e,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+184410ff-2a84-44c1-9489-d93a404c5208,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+18c1a9b5-6e31-4628-8004-0fc5f518e406,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+18cd5ff6-4900-40f8-9dbd-ddee63fabe52,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+19872a55-b532-4eae-a607-fd95b1128aa0,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+1a449cca-ece4-487a-b8ff-ec71f733bf09,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1b10d7a6-c3f9-4334-8cb9-a6d60590d2a7,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1b20762e-2138-4cac-accf-e82808e39c10,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+1b775e46-c7bc-4dae-af4c-d4c1ffd05eff,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+1ba23f64-9d27-4ba0-b23d-2543c8774f42,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1bd9caf9-843a-4c4c-bdd7-20dee56b5c90,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+1be0d781-fef8-49c8-b6d0-4ccfa5f8ace4,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1be8863e-e823-49df-8e44-68c9b8c8f167,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1beb311e-76d9-4dbf-ba35-9108f6fb1937,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1c02e16f-f383-4be6-bc4c-4469442bfc13,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+1c3b1cd0-e758-45be-b5f1-2b7943f75c10,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1cef9a80-285b-4f31-8cea-84a51b8d582d,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+1d186e38-18f1-40d8-a426-1947a1879c78,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+1d2b5da5-0327-41a0-a03f-a4ed9c9b4545,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1d473fde-d371-4e6b-a0c8-d068e6099250,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+1dde571a-6f5a-4e5c-a857-9a9fe96d7e32,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+1dfd9136-2a71-4f6b-aee6-8eccff6e500d,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1dfef252-0566-4bc8-8e1d-09e4d580b366,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+1e99ab3c-2546-433e-9fd1-1fd82bc5576d,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+1ef656b6-2ffc-4d34-a8b8-9a05d5ae7489,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1eff84c3-ea31-455b-aa71-b130670d538e,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+1fabd10c-6077-495c-883c-d9a9647491fd,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+1fd2eab3-b142-41fa-a6d1-66d0ab0a7fe1,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+201171e8-9ae6-4729-b07f-5ec238c75a88,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+2017620a-43af-47bd-a735-f02df0e605a5,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+20350726-24b8-4117-99eb-cc9d5a2ec2fd,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+2066b4d2-5306-4c33-aa5d-7ba172bec155,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+20b4a378-33e1-4310-924e-bdd4523e5f19,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+20dfdc27-df6f-437d-ba37-775749b97be0,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+20eaf788-da6c-4e27-b762-f233356faa19,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,matching,Match genres with their descriptions,,,7,Bài nối ghép giúp bạn kết nối các thể loại văn học với đặc điểm của chúng,Các thể loại và đặc điểm,,,10,,2
+21caad28-16f0-4d3f-9633-fa8e42b14028,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+21d8ee47-f240-484f-a571-f99bb8b64e9f,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+21fe5591-b311-41cf-94a7-b9ee1a9c1651,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+224ed780-66c2-4b41-b977-7aeacc5327a3,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+234a5bab-40d9-4d8d-8562-d017491fe57c,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+242b76d0-b05f-42f6-99b9-e7c3df5c3468,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+2495eaa8-b6a3-429a-9373-d3563639fcd5,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+24d9b4c4-6a8f-46bf-80b7-da3eaad4ac63,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+25206411-bbac-430d-ba84-5a3c2302c30d,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+261935bf-4acc-46c9-ab48-8b9af03c73d8,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+26f19697-c6f2-4416-aca2-ebb845e8637f,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+27b07666-c280-4ef7-aba1-8558fab15f6b,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+27fdb2dd-0456-4a62-bdbd-ca828d92872f,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,translation,Translate: thriller,,,1,"""Thriller"" là một thể loại phim hoặc tiểu thuyết gây cấn thẳng và lo lắng cho người xem/đọc.",tiểu thuyết ly kỳ,,,10,,2
+2802dc27-6534-468c-a040-20794da407ca,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+28420bd6-ea07-4be4-a5d0-8da88e39c26f,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+287f430c-9b8b-4628-95fd-4c88bb36e740,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+28c3a2db-d386-4bde-a7a0-7250fb30eb8e,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+2907d8bd-fe4e-4461-81ae-81b121c2ca70,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+290bb855-042b-44a4-b846-8a23b845aad5,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+29e10fc9-0f4b-4c5d-88a9-cf1756366f93,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+2a81b8e0-a112-45d5-9b87-03bbfb36cb75,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2b96ec93-315b-481d-8e45-9063aca272fe,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2bb51f58-f3b9-4523-8413-7c7aafd2148b,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+2c41f5f0-50b6-4afa-85ce-3294e9dd55c3,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+2c43a83a-7eef-472b-b2ab-22c270b99452,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+2c84678c-92f0-4a3d-9cb3-235a9cbd52d1,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+2c9e8b8f-3c6b-4ba0-a3e1-34a4644c1714,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+2caf7974-3666-49c2-ac62-980a65ebe52d,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2cd62a9e-1c1e-4f16-b137-1f302539b7fa,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+2d272a53-eb4d-4b7c-8924-0d1da01383f3,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+2d8eb3be-51db-4248-9689-554ba529a31e,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+2e1940c6-48dd-44ee-9401-715aeade4b0c,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+2e2946bb-172d-461c-ac8c-8a24a2d01c2e,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+2f0cf87b-46d0-4d0e-b0e1-1b481a9ba19b,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+2f62622c-9906-4955-a58b-0e4b39c4b8d1,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+2f6e1539-8049-4dcc-9188-c50ed8013f3c,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2f8570ff-139f-421c-b56e-041aa41dd668,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2f893030-7961-4a6f-a582-c0eacd9164de,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+2fc2d248-a148-4142-8428-23ae4e3c7eb2,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+302a6cb1-6d46-43fe-8a32-453b63ef59f5,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+3047ade4-625a-4191-a904-574a1517ced6,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+309e985c-6e1c-4cc2-874c-20bef68475e4,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+30b29053-dd3c-4403-83f5-de2dce1ab271,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+31299536-93a4-4a58-b2fe-a1a7f8125799,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+31b2d3ea-e3c9-42b9-8ecd-f2b6e5ecbbe5,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+31bdfea8-4c25-4dc3-b348-c0ce9a67833f,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+31c212d2-45ba-4b4f-ad05-06ba487fc2f3,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+31dc2bfe-233a-42dc-ae15-203763c3e732,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+3223afbc-7d2e-4c6b-95a9-7bde26d7825d,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+32af518f-2290-4d76-80e2-b7415baa37ae,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+33083951-353a-4071-bc3c-895d266cc8ee,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+332d07e1-5801-46e5-8b32-fc07d814e675,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+33c92b73-4a7a-4678-96e0-bc71f0b844eb,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+34224cc1-1072-458d-844b-f2a9b150fba3,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+342899b9-dc34-4f28-a79f-d956afdea771,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+3454866f-5475-4c90-812e-bc60bf037c2c,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+350b1821-43a2-4a1c-a158-7c1cb2b00496,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+3595c2f4-b7e0-4750-98a2-f35a34e29b6d,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+360698e6-67b3-447d-8c16-7bf56ab26743,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+362c6cc6-9f53-40cb-8357-bcc01aacbd5a,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+364bf793-4054-42aa-9bbc-52f893fd0191,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+36cb1c3a-d63f-4c9c-b292-3f5df7ffde65,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+37bb6acb-af73-44f9-adf5-81fcfa167c26,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+38792b6f-e973-4d10-aeed-adbc7589f1f7,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+38cce009-909c-4434-a4d5-bffb98e35f96,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+3964d087-0478-4df2-87ee-a9bd75b638ff,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+3a118e69-3772-4248-a8c2-c65b0216fb16,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+3a9e275a-c8f3-418b-b72d-27b13a93b600,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+3b012923-5821-4a13-b95c-1eb7db30b296,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+3c60585f-f747-4266-9ff1-b4a0600807c2,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+3c904bc0-f5f5-4433-849c-09e1db2f1832,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+3c961845-df4d-49b0-b5d8-805fc05128d5,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+3ccd1a77-8e23-4cc9-87f9-300811782c78,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+3ce3471b-daaa-474f-be66-9a92d15b0235,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+3d3223e9-c75d-46fe-b467-4f13427a8417,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+3d9710a8-71d0-4ea8-8705-c2b9de4d8656,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+3db1fda9-e71f-4441-bb1d-172aca5fc7f3,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+3e22cdfa-3d8c-439e-a19b-fcb2f650899b,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+3e849b49-f6eb-4a7c-be96-13e4fb1bd231,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+3f1b6de5-7a95-4430-9a02-9eff76b3b5bd,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+3f9d6d52-774e-4f52-a2ad-f9730e290731,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+3fc90fd3-a2e4-456e-b9fd-73d3857c7a09,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4095ee4d-a907-4424-832f-182969c71646,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+41d18a08-bbf0-42a1-a8d5-016f7888fbbf,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+431b2605-fcd7-42cb-8266-207eb7a86d54,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+4395f1f2-a5ac-40ec-865e-452b76e1a750,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+445c5dce-7af7-4946-9636-8cd2c5b00616,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+44a8edb1-0cda-483c-94e3-df58c74349de,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+44e955be-ee6f-445d-872b-56e8c563170b,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+44f5ff3e-7d7e-4125-8997-c50582463810,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4508ce2f-033a-4192-b752-3e8799e603bd,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+454ff226-6de0-48b0-9473-1b22c0325bb1,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+4574f9be-c361-4d1d-b751-3d0e8f2fca3a,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+45acc713-4b33-400f-afd6-6e7a3996688e,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+467f7c04-c18b-4a30-96ec-692d656e55bf,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+46b3c912-f959-4a74-8455-9e34cd56b1e4,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+46b8b76b-146e-41d4-b925-687a17ed9424,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+471eec4e-3a7c-4cdd-83ed-b7b902b15892,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4749627e-35b7-43fc-8818-ca35939cc3c3,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4791633c-97a1-49a3-8088-f49d77664055,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4795e012-8e42-45a3-8106-4c9aec83cc5f,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+486b4790-4d23-46d8-a475-4313c3ed6952,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+48b1d7ea-460c-41d7-a745-c703fa9bbada,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+48bc9167-4f02-466e-b9b9-894b7b082607,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+492fb405-1dc2-4b36-931f-f98963749a16,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+49a2112f-3a68-4927-b768-b103084acdb5,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+49be591e-5fd0-42d1-823a-d37510d9f9c4,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+4a2fce9d-0105-4407-a8a9-32b6432c3db0,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4a339287-0b9b-4be2-ad99-f15e5bb1cd11,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4a7d9252-4483-467f-bcbc-83147d0c5a42,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4a936e66-f910-42a2-8d39-8a26100dbfea,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+4ac108ca-0334-40ff-ab30-ef7cfe412c14,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4ae2b638-4593-410a-b440-4410092f7a62,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+4afaa4c6-cce7-4b94-be11-69efbaa11dc0,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4bc4c477-aa4e-42a7-8c5d-c04254399e27,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4bd04913-65e2-4cfc-881f-432b86e4ac0e,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+4be6f19f-398b-46c0-97f9-45490ca5b185,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4bf4bdf4-4a01-4201-b356-c322a9df6336,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4c583517-bf9b-452b-b746-93bdaead6e61,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+4c7fe20f-149d-4009-a60b-c443d8a331d0,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+4cf2edf9-1a48-4ce9-b334-64d94cf0e02e,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4d02a13b-09bb-42db-af7e-afaf45785e4c,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4d0e99e5-2a1a-408c-81d0-75003fbb57b6,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+4d187997-f7c8-469c-ba75-4064f4a6976b,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4dc0c1d2-5d88-45e5-a7f8-d2e9c4a0581b,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+4dd2f9e8-bfee-488a-97de-73fa17717829,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+4e34ce6e-b712-48a2-b1ec-3187ba26e793,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+4e7a4a86-3d42-4216-b400-06a98c1db97a,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+4e7ff9c9-a5d6-4852-9543-7fefae8761ae,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4e803978-faff-4c65-8250-73f4975a7441,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+4e84a37c-da02-4f06-8c2e-47113c67a658,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4e976b8e-ac10-4038-a0bd-e27fbf4723f6,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+4f723733-abdd-40ad-85ab-fa4dfc60a874,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+4fa4ea9c-feb0-4fae-8816-b8cf4cfdbebb,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+501354c0-a8ca-4eef-b581-5b72180f32bb,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+507d5438-cdee-48dc-8064-62101fd35584,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+50a1ba91-e2cf-4620-ae0a-6a53a4567fc4,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+513e7ba5-cb38-4ef9-829f-7f62a7087d9d,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+517538f0-d4c3-4b25-b9a6-0d3262e4e462,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+51d223d8-a593-48a3-9bab-2a0aa86e194c,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+520c82d5-806b-46ac-94d4-898b55fe41c9,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+524ce367-fc2a-496e-af36-ad0b45a323e9,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5343b8c0-152f-4c8d-b73d-efc898d2fb46,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+535d870c-2269-492c-a5b8-88051baeaa4c,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+53af23b9-90de-4b8d-8797-e635a8022c6b,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+53efa76d-b196-4709-8dc7-41a539518530,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+53f06b75-9cf4-4f93-927b-b48bafce71ec,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+544dfbe6-0fc2-41b7-9d5b-d2026a1100f4,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+54661e1f-96e2-41ea-bda2-6f43c5004992,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5494e1c2-ae52-443d-9907-61f68ddd1781,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+54c69cef-5b19-4b7b-b17a-c6123685e233,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+54d36cea-7f89-43e2-b277-a1c0b4b30237,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+5531149c-043c-4557-95bb-f6e67c4590f5,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+5555ab11-dade-46ca-b08a-f70c0ee52889,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+55ba2b85-92b8-46da-80de-acb7546405db,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+55d2eb82-c7ac-40e5-b21c-a5259dacbb1c,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+560c2894-818e-4605-be6f-0bd75ce9f4f3,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5698ed35-4ceb-47bf-96f2-875f6166287f,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+56fc0325-f707-47b2-b701-43976fe4158c,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+5726bfa9-efb0-430c-95ea-77b9681273cf,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+5744f360-d9f1-417b-9eee-0dcec0da4742,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+5779a6c5-595a-4327-8327-a2778e4f4f6b,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+58b04fb5-1beb-480b-a3a4-aeedd7e61f94,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+58c86342-df52-47e2-962a-4b283380bec3,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+58cbc328-00e1-4602-b3b7-828cc0a585b4,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+591b1b31-10ab-46f5-baa7-0cd5ff2d7689,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+59707973-2144-46ba-b4dd-01080a3bf524,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5a0f782d-1233-42c9-8453-c8360859b1a1,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5a34729f-500c-492b-9dd4-7849d0357f8f,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5a4104ef-0acb-4838-9b17-6f93933cf1e3,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+5a54a5d3-af2f-4fbc-a4a0-55b2c0115347,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+5a5986d2-5123-4411-ac0b-11c280404eaa,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+5a988c32-d406-4603-9e62-4dfbff6da0d7,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+5abaa209-ba2d-409d-b355-943e8f239106,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5acb0728-e5b1-4557-94d5-6fa0763521ca,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5afdedf3-f13f-4f75-ab43-2462f02d3953,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+5b18ee1a-eccd-4dda-9af6-7f3695154288,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+5b3a10c1-4a00-4549-bf32-042cc8e096dd,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+5baed125-cae7-4213-a34e-cc26d8cb1289,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5c6b052c-f7bd-4204-8a15-053bbeae220e,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+5cd1c10d-8c71-4459-b065-a1ffcc9cf6d7,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+5d010628-9fda-4582-abc8-6efd28029d05,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+5d18ec54-dcb8-46ff-a408-38d90e8a3684,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+5e1df709-072d-452b-a567-1d7130e23985,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5e26a4ca-3ceb-45c4-a747-8c6a806d73c0,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5e27f1a3-dd5e-4460-8dfc-ac9c6d785558,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+5e8f84ca-457c-4d76-90f3-cd113076f655,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5f3fc7fd-9150-467c-a6fd-2adce39e58b9,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+5f7a20a7-409d-45ad-a752-c11693446e7c,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+5f85a523-8a8d-4b05-9142-a139d2b48932,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+60065f92-b180-4860-ac85-42ee77c0d810,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+6012b2fb-3ca4-4bfe-a07d-cb8c30dfdb5b,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+60599bd0-ac64-4e78-a0c7-cfba7c1dcdf6,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+60fe2be1-c489-4ef1-b898-b1fb6c965036,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+612e3f93-02f9-4414-82b5-ad090c599756,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+61586d11-1e42-4981-afb0-3c02a0924b11,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+61b511cb-da74-42fe-ab3b-cdf3d023eff7,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+62200908-5d7a-4e14-8ab6-6b8a1395c171,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+628ae2ef-b74b-4570-9a9b-51f0c89eac5f,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+62cace0b-0cd0-4904-b8fe-c7f06c9ef119,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+62ce04ed-a971-4f0d-b9c5-737c1ee1e58b,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+630281db-1a4f-46d5-ac68-a7d64a4fb506,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+630fc29b-8518-4616-ba9d-3525c08719f7,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+637e364c-e6f6-45cb-8625-dde2227daa6d,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+638a906b-03dd-4dc5-b24e-27a6ef982bee,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+63b3ab6b-2af5-4ad2-91f8-7fb0e536ec65,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+63e3f381-158f-4583-8c51-835fb2437640,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+648a84ef-045c-402b-9c52-5d710a45aeab,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+64ebce11-3b8c-4ffb-bf27-7e7e9ff1da49,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+64f68b36-3723-48af-b5d9-b666976017c9,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+64fe6803-7767-4497-8606-427b86e45e53,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+654f2406-55f4-49c6-a069-b93a661337d2,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+6638888a-f79e-4cda-a9a2-671f63f00eb0,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+664b7dec-be70-45f2-87e8-b7755e13de15,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+667ef49a-73e8-4ec9-bdc9-37a04420911c,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6683897f-ac1f-43ec-a837-dbdd3ce02d99,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+6688cd95-4019-4c8f-bda9-625beed02e7f,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+66b42be4-b6b7-4d44-ad57-1e3c62100fd7,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+66be583b-50fc-4cda-b18a-15baf033be62,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+66d54ec8-e685-4b26-a539-dac6b7d9d649,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+67480ddb-4cf8-4d69-aaf4-b2df19683c80,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+6770c9f0-bff1-4668-8436-faafaf77575c,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+67a0465c-4174-4dda-815f-af5cd5f8c37a,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+67b58bff-9fca-4540-9cb4-e9b194c32dca,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+67b71451-0311-4a1a-9731-095de6c3f023,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+67d92c32-1d0b-4a03-9a98-1cd06231b332,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+680db8b3-9fb5-4ee9-82dc-a74ed1da9918,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+6822d6a2-5b91-4bc6-ad94-26021833d158,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+6861d014-e835-4054-bee3-a11cc5e96fd0,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+68e6489b-1127-4b57-b424-d809c2942da8,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+68f74817-e820-4cdf-ab6f-e9a5106428dc,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+698525e5-e9dd-4641-a7d1-d5130a402355,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+69d6f345-5dd3-4272-8988-c30be9a2daf6,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+6a6d8a84-98c4-4c05-9f92-27a8c4c73717,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+6ae0cead-0f6a-4fdb-9666-77af2fae477d,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6b05ebb1-cf41-48cf-af5d-94b56e6266aa,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+6b65b744-c0b7-4152-817b-8e6c18d64649,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+6b8f8e4b-883d-41e0-a5ff-fd50c6d561a9,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+6c734fa0-28cd-457f-81f9-213e4ac8aa63,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+6ce2e7b5-afad-4a18-baee-49c8692c23bf,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+6d70cdd3-146f-4228-a242-14fd4663c850,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+6dce6674-081a-496b-805d-ab092ca083fa,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6de14a74-ea36-4518-a1dd-633c6b72b475,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6e94c81e-155b-4192-be6c-0ba74077e9e7,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6e98b05f-05b6-4a67-8cb2-b91a28e0f01d,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+6f695f5e-ceea-46cc-9e93-05803c8e6498,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+6f7a6ad0-ad9b-4c1b-a815-b3733c9ca14b,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+6fb71b91-3a67-42a5-b155-0b332c907613,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+6fcf5c79-4ebc-4255-b539-214eab35998d,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+6ffa7b9e-0e2a-4836-afca-99e2174b876b,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+70189253-b426-457d-90be-303c8ab22809,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+702905cb-f303-4c1d-baa4-b520c7de4181,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+71104fc0-17ea-47e3-89de-b2e8a7cc917b,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+7117774f-6757-4947-ac5a-26290e112281,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+71758483-f1a8-43ca-944c-3ba0976cf582,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+71956462-98e9-45d9-bda7-e893530a720d,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+71af1b31-9294-4e51-9523-7d85b25040f3,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+71c171dc-3163-43a8-9e2f-355b9a394c54,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+7221d78c-2232-4d1b-b0ee-5e7679e8157a,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+73300be4-bd9d-45f0-adc3-90c30f4b1f7a,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+735b457b-36d6-4f63-b72b-32e44dfe3827,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+73be686d-c5ca-497e-a87c-2d2fdcae20b1,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+74346b0f-8d5d-44c5-a1a6-d04d5d5fb66f,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+74717ede-2f55-407a-bbf3-edad9fbdd2fc,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+74dd0829-de8e-4eb0-a876-54aaa6934569,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+74ebb8b3-ccb8-494b-9e4b-4ea4f2d04c3e,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+74fe2a39-8b72-497b-a5a8-eb09b565dbea,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+752550b4-0cbf-464b-9d87-0becfa881725,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+75af9b99-e4c9-40c0-b0d6-bf2317fd79ac,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+75fcb20a-ed52-4c8a-b766-7c67e5d87f63,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+75fd98f5-3434-4fcd-9da4-706545fb814c,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+76c10e3f-fdfa-490a-84cd-2550342e47f9,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+77120382-fbec-403f-b3d4-b8ff93ad4a02,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+7735dfe8-95f7-4599-97f2-c6fea5fe8494,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+7781d69f-b107-4490-8e7c-caa6704836c2,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+77faef68-c7a9-43b5-aab0-ee86942038a6,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+7824b933-bba4-4df5-b168-294a757d9a82,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+7830b6b0-4501-43af-8e5f-0098a06fc276,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+79ff49b1-0290-43aa-8877-e9aaf1a05a28,2026-04-02 10:00:00,411c419a-c126-40a3-bbe9-068a951b9026,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+7a20715e-f557-4361-94c8-0a67f4a42e19,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+7a72343a-d4af-439f-9968-71c05fd0e1a1,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+7b199290-82d7-4dda-9b1d-f01b82d1e28b,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+7b1ec85e-f9cd-4ffe-b342-876a69cb67b7,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+7bbe5d00-6c68-48a5-b7c6-c07c49a3210a,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+7c12817b-77be-487e-9b1d-fe5ef0cb099f,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+7c90898c-3b28-427b-8131-9a256d65ae29,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+7d4079ac-40f6-477b-b149-2c923d63ab9e,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+7d4c182a-fc01-445d-b935-1bef091cc29e,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+7dd810b2-5c04-4c73-aa07-cacaa6899759,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+7e76023e-cbd1-40d4-88ce-c4b6fb2671d6,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+7ec5a721-c737-405a-bc74-d763c7432f97,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+7f01c195-64b0-4d2e-99c6-65f444465667,2026-04-02 10:00:00,23517e96-f9dd-4318-8b61-083c140556f8,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+7f54c712-6a5a-4705-9d77-c7e39f72b2b9,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+7f7bb9cd-8c7d-410e-9444-a790d580b6be,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+7f8bb265-768d-478e-9e6d-a0bbd30b4f9c,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+7fdfdad6-335c-4a09-8d0b-ca3b58fbc42d,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+808929ef-66c6-4da2-99ae-67ad050bbd4b,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+815c5e0a-94f8-4759-b195-c9c632b1f211,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+81727dec-a224-4df6-979f-b42692c4ad0e,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+835582ff-1c15-4212-b1a8-a29f48680283,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+83e96e10-5511-455c-9cdf-647180bf1f25,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+83eefeab-78c2-467b-8165-fd8d8b4f7e4d,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+842abd3f-6c92-476c-aba0-24f8159e4728,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+84537b96-f888-4d0a-a05b-c974fb1f92be,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+845b35f4-0b17-4866-a610-567f7f4453e1,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+849c56dc-68b0-4df5-97bd-6b99b1788b45,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+84ac2854-63ac-41f0-adb5-3cd9d9ae358c,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+84f0571a-c16f-48dd-b4a0-c0577320628a,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+85003893-2851-48ba-b260-597942cdfc45,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+851317a1-a169-4f33-9fa5-776253ad2767,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+858760b7-d289-4103-9ca4-413c72af787e,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+85aaa5b1-c8d0-4390-a131-ac794a27444f,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+85b47e59-38df-494a-babd-1e3e724496f7,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+85dcafd3-e495-464a-ba20-71decd275c65,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+86293d2b-d83c-4bfc-b505-addc4208ae8f,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+8638e5ef-62ea-4294-99b5-a787d74ecc8d,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+87348dec-7c73-4b9f-85e5-670eca669f0a,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+87813904-668e-403f-9ba7-713c2f9c0b1f,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+87875ef9-0a8d-4215-82b2-9f9eb1d70248,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+87f51ef7-df1b-4188-b48d-1625e41ca080,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+88944cfe-4b59-46ff-a066-5becf0afb9da,2026-04-02 10:00:00,94f318ec-e9f9-444b-9756-98b9571cb67f,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+893f69ed-94e8-4e30-ad94-b98a43cba997,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+8951b3ae-f961-41b1-b0ca-45060c61046e,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+89748f3d-0169-40fb-b497-83c0fb904704,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+8a2dc33b-13e0-4a98-b7b0-668f57ca9d54,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+8a61715e-132e-4423-a484-db7368db0c09,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+8abddce3-0c35-4d7c-ab35-4d0729703418,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+8adc5188-d58a-4070-8112-c89245c181e7,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+8ae0cb0e-37b1-4dac-bad8-fe9e52c28be2,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+8b5aeb31-105c-4245-bca3-b3fdd07828b2,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+8c2cb01b-b51b-4acd-864e-908dd91e21c3,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+8c38fcca-c84f-470f-8af2-eeb1f40e386b,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+8c3f4e51-53c2-4f1b-b382-637cfe4ae468,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+8c5e8011-75e3-48d7-b7f5-7c6ea044d782,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+8c84ca93-e604-4cb0-957b-4272acc6ddd9,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+8ccbc42a-52c5-4b55-9488-a0a38876f4cf,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+8d3c95ce-217e-4533-8759-74c6082e82bd,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+8d59de9f-626f-471c-b9ee-32f001f7dd91,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+8d9404d0-2f81-46ca-bace-ce15c993f5e9,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+8db740c4-6124-4381-9bf3-09b86594a1e3,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+8e478455-567c-4f0d-8023-49c0639853ab,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+8eec9b6c-3325-4b87-80b3-718f8b677f19,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+8f204b71-7c67-4786-95e1-d6ab436d7520,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+8f426d31-122b-4f42-bc01-c8470ba0d3bb,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+8f7dfc78-ae54-42c0-972c-18f5e2d9bcbb,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+8faa0cdd-5afc-4b90-b9e9-944474a81b8c,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+90f531c4-412c-495a-8922-21dad73ca935,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+9106d63a-b922-4459-b322-749303731ae3,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+910af6a8-2050-4853-892d-43ebd68af46a,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+91562f70-5cb6-4680-866f-f695b512e993,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+93aa4510-de37-4d2f-9a23-779b135ea575,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+940cea10-db57-4288-b4a8-3522aa8d9305,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+94b9c3cb-430b-4b0b-8f44-b556ac5a6062,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+94c5919a-611e-4831-a5d0-21dbd1f27163,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+94de28a2-c690-40af-a623-d65277d3417d,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+957a716a-1dc4-4b3b-bd7d-16e44442e7bb,2026-04-02 10:00:00,67df2b1f-aa96-48db-b64d-0d889f000e9a,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+95b8c4b9-061d-46a8-9f14-1554a59107ac,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+95c52f8e-8203-466d-a337-df4c46b9c97a,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+95c5ceee-c1c3-4f91-b845-37a69234bc7a,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+96151b17-9aef-4f16-ac69-4c7063c5ca1b,2026-04-02 10:00:00,f3aaed13-86c6-49be-8f73-c117a646f1ff,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+963f5a40-0d25-404e-9a1d-27c3595278c2,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+96530eae-2ccf-4708-aa59-ecb3976c56e1,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+96f080de-5407-4686-b1bc-c4756b6d87ce,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+97098821-fa70-4be5-8958-09d63f833715,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+972f0225-3635-4477-ac00-dd5cb00b97fe,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+9770035b-c66e-4710-b9e1-166e45ef924c,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+97814bbb-f4a8-48c2-9bd1-457a59be8d35,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+97c79115-c58a-49f8-ba24-475fdf9b708f,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+97d9f1f2-b4c3-48d8-8585-b61d3fe70dd0,2026-04-02 10:00:00,349e1df9-b9b6-4a64-ab4b-babd170cadc4,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+97fcc19c-d3b3-40af-933b-e4db377710aa,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+982867ae-b1ed-49ea-b116-bbe34b3f7741,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+9875ba57-cad2-47af-b797-7dbe7a3036f2,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+9961cd69-f46f-4519-bf30-8fa710a01e7b,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+997fa180-cfdc-413b-9f9c-ca3f304e7bb3,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+998c9f28-c0f4-4ca9-957d-241dae2e1845,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+99ea8f3b-dc79-4f74-aab8-86d5e36e3c34,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+9ab3a09b-e66d-41cd-9a47-3b1e23ba679c,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+9b4b34f5-1ac5-48d0-b950-5848eed8bffa,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+9b5b6c97-c0ff-4348-a8cb-381efe44277e,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+9bdab168-2f2c-4c20-aa28-0487a4978d67,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+9be20828-7ec7-4514-9fa3-0e0732b122ec,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+9d21643b-c11a-4092-b37c-b9ede0fe90ab,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+9dbe0146-573a-41b3-ad0f-d7738e3d10a9,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+9e4ba257-9f41-4717-9e45-41c601014524,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+9ec55751-a649-492f-a271-972741db8412,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+9f155859-f0e8-4448-b462-c77a8247c012,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+a02afa38-00db-4362-880c-451a4ecf8a05,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+a042d761-6a5b-49e3-ada2-ff1aee3dbfc1,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+a044ce1b-72b4-422e-80ca-245e8905c112,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+a0c56ae0-9957-4545-ab48-051daf1b1160,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+a17ca0aa-c977-46cf-8c1a-af914f2d6fdb,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a18a570f-31e6-48f6-b6c6-4619ba8c8d54,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+a2a12736-ec00-4a07-a9ed-5a73d435fdd9,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+a2e92705-ceab-4307-b49a-038044406ae9,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a39c4f6b-c0c5-4d9a-9fd9-08bc47e90a79,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+a39f9eb8-8f47-4f19-8c14-2d5d7760b695,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+a3a6ca8e-394f-427a-8d44-d2f499b89648,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+a3e41dcd-5848-437d-932c-79f633bd9b53,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+a40acdbc-4835-4e07-8565-dbf0e837e4aa,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+a48ea40c-668b-4bcd-98ac-d86047d6755a,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a4e75285-8fb7-4645-87a1-973a01a9dfb8,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+a523f6c5-49d5-4188-b43a-8f7dca081fe7,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a62ff6d3-38f4-49ea-85c5-e075d6e6fa67,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a6525863-0e8b-43e6-a136-676b5b4b5bf6,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+a6be97a8-c6b4-421e-8ca0-b82e58eed2d1,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+a6d97760-525b-4a4e-a152-d9ee2920e8cc,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+a76223c9-23f0-422b-8caf-59b408f4a233,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+a80ca0b5-3eb8-4b37-aaa2-c4ff80b8cd7c,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+a84bd2d3-fbfd-408b-90f3-10f3dc155b7d,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+a8ae0cf8-dc44-416b-9f60-1cb7b0511f82,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+a8efc791-34bd-41a3-8b04-c372a61315fb,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+a9338447-83b7-4487-8901-b3c88c2f23f7,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+a9d010e5-9c9f-401d-8362-c80361c8fb43,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+aa0d2b17-ee05-4f64-be1c-5bfa409e2634,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+aa70bc3c-766f-40d0-bf64-9198c05bec42,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+aa746dac-8a45-4524-866b-2a2b6a460b0e,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+aa8d8455-9c8d-4ef5-a41a-c6c576cbe86b,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+aa9dc379-5f1c-4cce-b759-dfd3ec1e0d57,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+aabe9411-066c-4891-8685-a72abec05d87,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+aad02098-29f4-4aaf-beb4-cbfebc9f27fb,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+aadd8255-497e-475b-818a-99e298875f9e,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+aae2843c-aef6-4833-916f-c0cea6fa3554,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+aaeca2f1-3476-40fa-a4f3-f4814835e555,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+aaf0b04d-3ac4-4edb-a655-2aa9e4235357,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+ab925747-5209-4eea-95dd-935216f2b233,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+abbd0994-5bf1-46b4-a9d7-c7be05ce475b,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+abcdcfcb-2de2-49c5-aadb-c4d7b7fe1e03,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+abd3f834-b0f2-4723-80df-c82ac518c7bb,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+ac376582-7b26-45d2-bc0e-8ef53f095e35,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+ac9a682b-c385-414f-8769-69e39839a111,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+ace338cd-3be6-477a-b0bb-555b69281027,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+acf9cdc9-03ff-4232-b4c2-74a832764942,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+ad215b43-6b46-4e68-9392-c118e423fc62,2026-04-02 10:00:00,88443e68-aebe-44f0-800c-c17266b21ff9,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+aeeb7b1f-a10e-4704-bc2a-7b8b22da1b85,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+af80f9fe-fa7d-4373-909b-100502f59b3f,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+b076e28b-9454-4617-bf20-de3fd960aead,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b08ebe34-bdc4-4596-b0d6-e929b422625b,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+b0b24549-1b28-491a-9bec-a8e8ecd2dc67,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+b0ed9511-ab9a-47ba-9cab-e2060c82ab69,2026-04-02 10:00:00,f35e320a-ec1d-497e-90b9-830150a5f34d,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+b1244d17-0b2c-4388-aa6e-e8ccb3f5da71,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b19e3a42-0203-4c4f-84d9-f8a34bf0bc5b,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b1bea614-b117-4162-acd0-896b093de76b,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b2541309-ddfe-4e80-bebd-0e5ed72127bc,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+b2f88a59-7344-4ceb-967a-5f9a41202712,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+b2fe96f2-6210-433a-beb0-fc827392f423,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+b30d2290-7aae-4c0d-8cf2-77a2c85d5c01,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+b3745706-714b-4159-b896-7047f45e19b4,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+b3bec1c4-320c-4780-8e2b-09815d04131f,2026-04-02 10:00:00,aa794f3a-f98a-43df-8271-67b923f0f383,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b3fa8928-fd11-48dd-9f5f-3df3e512d853,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+b455fbf9-929e-443b-803e-1b61d45aaf2f,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+b4b7310c-fca7-42d9-8632-aee38bf32e7f,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+b4f3b157-116f-4d1a-a9e4-25c8abe8c088,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b552ec49-6f41-4954-86e9-99a8ec53b027,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b55960ae-a48a-44a4-87ed-e95a179acc36,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,multiple_choice,Which genre focuses on paranormal activities?,,,6,"""Horror"" là thể loại tập trung vào những sự kiện siêu nhiên và đáy sợ.",horror,,,10,,2
+b55d2cc8-14bf-47b3-9b40-338ac4b252be,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+b57e4e9a-9e74-4aa6-95d6-6cad83f259d2,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+b695a46c-f91a-4620-8b9c-76a4e6007384,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b6dc100f-3fa5-4e07-b415-4a489f2b89a9,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b721193e-05de-46f1-b9bd-fea599b2f5f2,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b74f3cfc-422c-4301-8b25-ae33653f679a,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+b77728d1-5cee-48da-950e-95151cfe1fe9,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+b829d068-60aa-4bd2-9485-88051039863a,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+b831b990-07be-4ecc-8fb2-5a752368dfc7,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+b8acff6b-dc2d-4e03-b946-e70614f9ae53,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+b8b45423-9883-41e1-8f9a-89c7570b00cb,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+b8b8d6c6-3464-4183-a618-ee5fea4c33a5,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,fill_blank,A _______ is a story with a sad or tragic ending.,,,3,"""Tragedy"" là một thể loại tác phẩm nghệ thuật có kết thúc buồn. Shakespeare đã viết nhiều tác phẩm tragedy nổi tiếng.",tragedy,,,10,,2
+bb04b7e4-0451-41d8-a93f-76c0fc969562,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+bb364fc8-fca7-4ebf-83f2-4606726c42f1,2026-04-02 10:00:00,370abe73-2ce6-40b0-b3ef-82d8f9857e1f,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+bbc2332f-ba27-42a4-aa1d-d13e381f1a7f,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+bbf0239c-cca0-4734-99b1-fd836e826e86,2026-04-02 10:00:00,48adeeb4-ea05-4c89-95d1-7c278e83dedb,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+bc05cf7e-bdd8-4e46-8f52-1c84297b26ad,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+bc07dd89-9936-4b56-bd2e-8214f82598cb,2026-04-02 10:00:00,474d17e5-c32b-4585-9bfd-feefa44aa3a8,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+bc08d346-1fe2-46eb-b12a-af047dc5aadf,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+bc39b6ad-09dc-426c-82c9-f014a5aaa449,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+bcf7da96-e3f7-4276-9e4a-3bab9c4fb9f3,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+bd25e020-63e6-4ade-9eb0-7f4a4628d24e,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+bd323f38-0d71-423e-8097-8d0dbc177d58,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+be57da9d-3632-4ed1-952a-ac44cc4ce5a2,2026-04-02 10:00:00,b16db79c-1b16-46bf-9bd8-3596a44d8609,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+bebefd06-58b0-4ca8-8cd9-509a35bc9f4a,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+bf5f433f-c52a-44fe-ae5b-8fb6e3ab7248,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+bf8bf6fc-22c9-4fde-ab93-adb790c65843,2026-04-02 10:00:00,306cd435-7556-4ca6-b508-0a5dfdec7100,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c08da966-28d3-4c88-887c-8b66d2ef8727,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c142eb4d-c7e3-4c70-9b1d-6d1ca6e34ce1,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+c183ef1f-783d-4809-bc99-bfb3b648879a,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+c22462fd-eccc-466f-8f0d-ab715523e1a3,2026-04-02 10:00:00,ddea0c96-bacc-484f-9d4d-66d741cc51d8,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+c230db1d-dfa0-40c3-bd1b-69ad1d24ca7b,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c28126ae-02c4-4dca-ab77-d24f8e60f7e4,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+c2f1ca03-e682-4bff-9c2f-90da518138fc,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c31710be-ff8e-45d5-9633-1af11c50c979,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+c3485554-b1cc-4a15-b71c-beaab28dc77e,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+c3661cb6-88ca-42f5-aa72-ba73ee8c5101,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+c397b18c-6526-46b9-a9db-426ec2c392ca,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+c39bf774-70c0-4cb9-a7cb-71390189ed30,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+c42cf5fa-84de-4e5e-98b0-762e4884ffec,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+c4c877a5-6081-42d7-915c-efdc9da30aee,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c4f8dd4c-533d-4ca9-b2d7-99de6ca8089f,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+c5acf0d6-9710-412c-913c-6472a0c2a3b4,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+c68e549c-3dd7-4cf7-b0b3-29817f81c5e1,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+c7cdb437-189d-4dff-9cb2-946449b266fc,2026-04-02 10:00:00,dd29c719-2106-4c8b-b503-aa3173b0b0df,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+c7e68e9b-27c3-4ed6-b546-2ac385a6716c,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+c87c6b11-32d5-44a9-a585-9020e9ca9773,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+c8e1087f-5029-465e-b360-9cd3b97d4d31,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+c90b7e32-0a39-4426-9001-4b6862858a12,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+c9240f71-afd1-4cb7-89bd-60425dcc5910,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+c94e1672-a66e-41f7-86e4-9ce013161b88,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+c9c5fb8b-b468-4917-8b8a-7b89a45a9c9c,2026-04-02 10:00:00,b317a1e7-1993-43b0-bb4d-84738612837c,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+ca4e4a78-428e-41db-bfd1-c70937b95f17,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+caba2dcf-2df3-4d60-ad84-fef4d2a04039,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+cada8ae6-4767-42d3-8bc3-bcde6a823f52,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+cb0a40db-bb4d-4ab6-bf13-05fc298f915b,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+cb4a212f-165d-4e9c-9199-57dab97d48e5,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+cc240c40-310c-46bc-b5ae-fd30b0bdb7c7,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+cc391bbe-94a0-46f8-9587-e586137ac5b8,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+cc6ca6ad-796d-4743-9d96-0b8c67536ec2,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+cce012c7-ce47-4800-94d4-fb2262e4b2f1,2026-04-02 10:00:00,d5b49957-9ff7-450f-ae5b-da190b021f76,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+ccff1135-7a99-4697-b29d-172f13c1b6b2,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+cd0e2e95-ad49-464c-a4cc-d08c196793f7,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+cd3069c9-b8dc-4fed-9428-3cea46b9bb31,2026-04-02 10:00:00,b48f8788-ab02-4e87-a86b-e4cda07b2a8d,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+ce2d8e1a-2172-45c7-9607-60ae775468cb,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+cef1455f-27d8-4092-b5c1-90fcbce1161a,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+cfd97dbd-2b0b-4cdc-945b-0f30b3cbe04e,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+d0811ec2-c87e-4c73-9342-7fbf24103f92,2026-04-02 10:00:00,dd37cd9c-fd13-43c8-8f32-cc50a38476a0,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+d0a8c184-1067-47eb-b2bd-a60002df2453,2026-04-02 10:00:00,89da3255-c13a-4384-9292-e7a67b866ee0,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+d0b86c4c-4501-44ef-afd5-dd6aa5f44907,2026-04-02 10:00:00,a58554ec-5e72-4981-b30c-ce5f10aee993,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+d0e0ffe1-298d-4d79-a449-7190a14c8869,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+d10fd680-87ba-4f98-b57a-20387a61d3ee,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+d1207cb1-239f-489a-8f5a-100fbaafe139,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+d14273d7-6304-44ed-9dc5-09dcc9c38fcc,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d15f9f65-dc86-4643-ac9c-849d376e23b2,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+d16ce3ed-21ab-4acf-b3d5-6f4963f4ea01,2026-04-02 10:00:00,1768a53f-3b47-4afe-a231-feea190002ef,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d2c33180-bad9-4907-8166-4fb6b80eb299,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+d3bfc0ca-2665-4dc3-99dc-d2ea4a1a1f67,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+d3e98a01-04e5-4924-97ea-fb0d47a468e8,2026-04-02 10:00:00,b07f3d0e-a184-4cd0-937d-4f3cbd063d36,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+d42783e2-2d62-4fcc-a5ba-971435af2996,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+d441dda2-66b1-4207-9fdf-befcac3ed510,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+d476a76a-bd57-4948-8fc0-46647c1231d8,2026-04-02 10:00:00,501a150d-fbe9-48ce-be53-52a6f1aeb3ff,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+d4992a1f-ae7e-48a4-892c-ce2b0c0ed367,2026-04-02 10:00:00,b4326ceb-0fb7-49f5-aac6-a54bdd1d9163,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+d6025e69-8750-499c-b937-160e319b3ab8,2026-04-02 10:00:00,f2546e9a-13dd-460f-97a6-4a9d4903e6be,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d61e97fa-92b8-4157-a426-81f996272177,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+d6e55131-fd4e-41e0-8f0d-1eedce419eb4,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,dictation,Listen and spell the literary genre.,,,4,"Luyện tập nghe và viết ""comedy"" - thể loại hài hước.",comedy,,,10,,2
+d71d0e7c-e65a-4296-809b-7090bd08628d,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d76ab1ca-4640-4435-8eca-901d8f6ffbbb,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d7d132be-51e0-400a-aa44-e0e58e4b48b9,2026-04-02 10:00:00,7e5d0907-64fa-482f-b968-a5efd9168a61,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+d7d516bd-7bc9-4713-9ae2-cb9983a1177d,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+d7d9241e-8902-481b-9c29-b1057227e264,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+d80adcc3-3441-469c-bcc2-a5f03996dec4,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+d8101e18-7f87-4850-b7ba-68511b919ba7,2026-04-02 10:00:00,be4596fe-4524-4164-9f6e-3ca16a48abc4,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+d81f294c-60c5-4a37-bc18-1527137941d9,2026-04-02 10:00:00,f46a14f4-283c-4d9b-b52b-76e8648d68c4,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+d869eaae-2038-4f93-9a41-feff53496f38,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+d8803962-d58c-4859-86d8-5cd9ae5ac82c,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+d906efbe-4248-47a9-990a-da2f2d910c2f,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+d92a5e33-c05d-401a-9a23-7f6ca56b8de0,2026-04-02 10:00:00,dd56df6c-e0c0-44a9-b706-28b5106b1978,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+d93400f8-f17c-415e-8ee2-b3857feb59f4,2026-04-02 10:00:00,2f78ac95-e536-4cc1-bd0e-e350497283ee,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+da1419b2-580e-465d-acf3-27d227440316,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+daa324f2-a5e9-403e-838b-aa55fe360336,2026-04-02 10:00:00,2bddc0bd-c221-4bc1-8b6f-72096e4a7674,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+db041796-25cf-42e3-ab9f-9f1f01706c97,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+db90c799-0ddd-41d3-95bc-92b23f61fc89,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+dbd1f38f-99c6-4fb8-be52-0d1963abcfb5,2026-04-02 10:00:00,95ad0b6d-ecef-4e64-9d00-1f9a355214bb,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+dbf59cdc-224d-4389-984a-3f8b3341f2f8,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+dc22c061-9411-433e-bd49-933e4445456f,2026-04-02 10:00:00,f5963936-9e64-4d38-bd67-8490e7b3a302,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+dc5b4fcb-6a76-4b8b-86a1-6a2a0a6e4c66,2026-04-02 10:00:00,12c09afc-e4cd-4cc3-b911-1e5d9e07c387,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+dca98b1a-d710-4717-836c-65ef044c029b,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+dcd2e857-4d5c-4a4e-bda8-b1290ff3c4f6,2026-04-02 10:00:00,c19483d2-a4f7-462e-a5b8-6fb57f61ef95,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+dce5d8eb-ae28-4371-9b7c-de911934464d,2026-04-02 10:00:00,861b28e6-a21c-4b16-8250-0228c87f55b4,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+dd74314f-1f3e-4caf-a85b-c00ac35deab1,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+dd8de3be-8c81-4d3a-86dc-ba45e357cf5b,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+dddb00c0-e364-4a82-853e-25eb35b8fe74,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+dde1cc30-e89f-4b07-a962-f1419cd581dc,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+de966134-6feb-4cbd-bf89-d2853cec93e5,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+dedb1946-8d76-4b3a-b1b2-4975a8824ce4,2026-04-02 10:00:00,e62729fd-2c68-41d8-8dea-aec377434133,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+deef6e16-552b-4a00-a6b9-dad233eb433d,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+df418b05-e2e8-4680-b571-7e5f25058c85,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+df5620e6-5d53-4ce1-88ff-4c8cca99ab76,2026-04-02 10:00:00,2cf6f90d-7ccb-417b-929e-361097a98afa,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+df60292b-85b7-41fd-8c30-2a2df62cb712,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+df62eef3-95fe-49ff-b359-79b6c6e89e8d,2026-04-02 10:00:00,169b29f8-cd25-4fd5-9e0c-bcf9fdd56b6a,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+dfb54600-a0f4-4bee-b92b-e3a5ab12ca29,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+dfcffcc4-99d7-4fb7-9134-5d626a132287,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+e03c948b-d1ac-4226-8d67-ea7ab6ca6b2f,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e0b782d1-1751-4c31-848e-950622918716,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e11f11a8-777a-4a19-b269-74039e312cc9,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+e1c394d8-fe4d-4d96-8f91-649c2c550c6b,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+e1cb8f2b-794f-455e-8923-de7381b77df6,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e1d33698-6063-4eed-b14c-9672b676a374,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e2133f67-940f-4d2a-b37e-bf0eea9bfad7,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e2494242-a1c2-4aa8-affc-8f10c93b564e,2026-04-02 10:00:00,68cc7887-5460-44f9-a583-9dbf0e95b24d,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+e2b43629-035e-47f1-9dfa-5fcda35284f8,2026-04-02 10:00:00,ac13c7e8-492c-46d1-b46e-755272c6d9d6,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+e2e78166-bd84-45e4-af8e-769e5d1a46a1,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e3321363-741f-4e86-9198-f9ecd0fa66e1,2026-04-02 10:00:00,3bbde304-12b8-40b2-a620-510efc4a776f,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e33f5ba7-8613-4727-8017-c6b9eb68baf2,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e39a17f1-1672-4144-9af7-d4c9030737db,2026-04-02 10:00:00,29889dcf-a772-4499-bf3b-826af93ea3b0,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e3b6c098-0378-45e0-92d3-2204b2790eef,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e4730f8e-a7a0-490f-8c83-03a6672673ed,2026-04-02 10:00:00,2d825671-b231-4d6a-9c0c-5ec2fa5d7d70,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+e4786943-ceba-454a-ae18-7990593f1517,2026-04-02 10:00:00,d33c8d93-322e-4680-b491-2ce58f9bc75f,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e4b3e453-7793-4d2b-a8fe-4353df8a59a5,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+e608253c-3b27-4df4-88f3-6a7aaff3e72a,2026-04-02 10:00:00,84b45efa-148b-4307-94b0-ebaae6c7b32a,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e67078ec-d844-49a5-ae6a-0ec305b2d193,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e67f76ee-5b86-431a-97cc-b0be13a5a283,2026-04-02 10:00:00,ef83ea3c-996c-4048-8968-7237e72a6e5d,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e73d7a03-08db-49c7-9bad-1b42187ad768,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+e746be04-324c-4e65-8559-c09bb289ba14,2026-04-02 10:00:00,efe6a928-8995-47cc-8e83-458a37872a80,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e756f49a-c712-4138-b6a0-221c6bcb64c2,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e75db2d5-2a7d-4cdd-b9ad-5a6d0e4e7706,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+e7814f70-b76f-4fde-a11f-1e6aa748931d,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+e7e63666-b372-458b-9ef6-081ba65ec245,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+e832525a-dd6a-4dd4-9464-0a047184c746,2026-04-02 10:00:00,9c08d2d5-ab12-4b90-9273-35e16928fd20,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+e9d0cdae-e31b-4a60-9a11-f1497c4ee18f,2026-04-02 10:00:00,88643a0a-de0e-4726-8c56-ca9e62f3614a,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+e9e68ad1-6e37-4054-a342-6cf93d44e4c7,2026-04-02 10:00:00,cc221d3d-60b1-4412-953e-65d4d427c9fc,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+eb1ef3e9-2a6d-4597-b94d-20db61c7a1c4,2026-04-02 10:00:00,afa3e499-8717-431c-93a3-3d851d68fc7e,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+eb9645dd-7f9d-428a-b5b7-772ecfaa9243,2026-04-02 10:00:00,205b1709-dae5-421b-b2ec-7bfd6528a0ea,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+ebc95f9c-a47d-40c6-8e18-9c94da756db8,2026-04-02 10:00:00,ff02df4a-ece1-4847-923b-0f9273cb89be,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+ebca5e66-307f-44d4-bb2c-b9bcb7dddf2d,2026-04-02 10:00:00,e0dc609f-c176-4fdb-93bf-e39d087671f5,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+ec4db472-8235-466b-aef1-ffe68b2efa33,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+ec4f84a7-2b52-4139-9517-52368ddc5113,2026-04-02 10:00:00,805d2653-cac0-438b-953b-cb1f832c4321,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+ec827cb2-25af-4655-aa34-c375fdad6373,2026-04-02 10:00:00,4e41fc79-f556-476c-b28f-f579df42a2ba,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+ec86125b-b6e8-448d-a2eb-f92858072f3d,2026-04-02 10:00:00,81af8b32-9da0-4143-8743-6fdc051fac85,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+ecc5b893-1ee8-4c47-ae4e-25d017b7afa4,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+ed04b899-dc86-4b33-a949-e0656730bc6b,2026-04-02 10:00:00,59baddf7-e856-4276-9fab-c2cbd73c8911,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+ed44285b-b10d-4be6-b55a-ff7a7701be9f,2026-04-02 10:00:00,37f72f2b-f802-4bb4-91cd-72dbad87ecde,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+edb644b8-7d66-4ff3-a572-ca16efae43c8,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+edd7e515-2988-4e2c-ae9b-91bb8e9eca8d,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+ef206911-6154-4d9c-bd21-ceaf8b501f8e,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+efb64706-0cb8-4ce7-9778-0c15339d329a,2026-04-02 10:00:00,c326f285-fc07-4764-a284-b7222d917173,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+efca68c0-d8f8-4727-97cb-3cb59eca430c,2026-04-02 10:00:00,568d01b2-5a64-4823-afa2-fd4664ca4c1c,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+f04fc449-6f17-4a79-8945-dc72803e0760,2026-04-02 10:00:00,967cb953-d9f0-413d-9444-c2de97d17102,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+f0838520-b7a7-4d20-ad41-13daf7fdbac7,2026-04-02 10:00:00,113a8d3e-ddda-4419-9a38-fde75df58c3e,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+f092e5c8-bd64-4ac2-bba4-4c738c58d533,2026-04-02 10:00:00,ce34e158-9a8f-400a-a082-d921b3afdb61,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+f0a32686-bf96-47e7-a665-eebddd783f3a,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f0acd749-6498-46c3-a8a4-05c393d38b4d,2026-04-02 10:00:00,484c0e0d-e1af-4005-87ba-675dd65a4bae,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+f0b5724e-e351-489e-b8fe-9322bbe60c9a,2026-04-02 10:00:00,c4423548-9463-45ef-bc70-285c0c8c3ea1,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+f167e0c9-1235-446b-8cfe-c22f257bc74d,2026-04-02 10:00:00,5c7eeb64-bb5a-42f9-8b15-33d0428dd34d,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f1716aa4-c466-42cc-8c4e-1278b2c15bc7,2026-04-02 10:00:00,67c2c95b-aa85-4e49-a0b3-dfb7ee8a5b29,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+f232c412-f8cd-4001-bed3-780e865714ed,2026-04-02 10:00:00,70c77765-6416-4d36-950a-7c93580b2fa0,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+f2369a72-48f5-4ce8-bb20-62386b2aaad9,2026-04-02 10:00:00,62e76fe1-bd25-4280-b7de-7e2e3dd35126,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f3e747b8-972e-4f6b-9a97-1111b40b9a51,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+f4584d02-b919-4b28-9cff-4284d2246fe0,2026-04-02 10:00:00,f2867ff8-da21-42e1-ad58-ff38fa6324b8,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f4650434-372e-4acd-a65f-2bcb44cc9bf5,2026-04-02 10:00:00,3ea443f8-3295-449b-9410-9f7a9062bdb4,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+f48d2c06-a133-4ab0-946c-29ae4c16566e,2026-04-02 10:00:00,cf8c05bc-3687-4329-be42-38da0c0125ca,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+f4f2da44-8187-4377-96d6-39f6e2aad8e6,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+f588029a-a55e-4cf8-afbd-095ff87a1985,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+f5966205-3c8e-4cda-8813-ef585a84319d,2026-04-02 10:00:00,3762124f-a01f-42b4-a821-e14298c128dc,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f5d6d63f-8729-4a73-a2c8-cdf8dc21ba93,2026-04-02 10:00:00,a27485a8-7d88-47ed-8ce5-93266a425c11,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+f5de2f9e-26da-42c0-83dc-591c98f4e176,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f6161149-e8a8-422a-9f24-1210ea9734e3,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+f631bf58-cfff-4671-b686-79a557522775,2026-04-02 10:00:00,e1c6a531-951b-49e8-a205-ed0b9486f723,multiple_choice,Which is related to this topic?,,,6,Knowledge check,{keyword},,,10,,2
+f635f2cc-b694-45dd-b953-c4b5edd9878f,2026-04-02 10:00:00,8f558c2d-9555-4f2e-a822-5c74891ffe67,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+f6be5ab8-c480-4d13-b821-df623d1f7655,2026-04-02 10:00:00,444c779c-e14e-4d61-8461-f6ecf6ddf27b,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+f79bf0c8-986f-40a4-9327-9bf80e7f8649,2026-04-02 10:00:00,65b2fc5a-c86b-4f36-8107-f8ee0ebe5d78,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+f7ffe5d1-997d-4362-a0ac-4d52ce2f2009,2026-04-02 10:00:00,0a01cbc9-8eaf-40d0-85f9-f4ad9a7fd19c,listening_choice,Listen and select: mystery,,,2,"""Mystery"" là một thể loại có phần không rõ ràng cần được khám phá. Các cuốn sách Agatha Christie là ví dụ điển hình.",bí ẩn,,,10,,2
+f81c0744-2c2a-41f0-bf95-78fa0aba5bfa,2026-04-02 10:00:00,563bcdd8-3e04-4744-947b-08885bc9308b,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+f89960c3-4d5b-4619-9d11-a6784781120c,2026-04-02 10:00:00,81aeef50-eae8-4ff2-941c-b321e482e121,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+f944769c-10c9-4c49-b129-648b1dcf2ea6,2026-04-02 10:00:00,73f5c5b2-5c82-4434-bcef-a0ad0e5d7de5,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+f99573f1-0347-4cac-87c3-508f56c74dd0,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+fa9fed62-5d84-4d1e-9c02-41ba3ca1161f,2026-04-02 10:00:00,69d16e3e-74ca-45eb-8c06-8cef65b85134,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+facd9f28-bce7-4857-b9a8-5a978324da7c,2026-04-02 10:00:00,ad3e6677-2586-40ff-bd67-b5e6acd96ad7,translation,Translate: {keyword},,,1,Definition of {keyword},{keyword},,,10,,2
+faf47169-7749-4488-8084-aff4e2179b45,2026-04-02 10:00:00,cdbc767d-9b38-4792-a420-be0b00b83339,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fb12ed4f-5d29-4c65-a37d-269437b70e91,2026-04-02 10:00:00,1a91724d-2d99-4c3f-a140-ea1e6c617aeb,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2
+fb1f00d0-426a-4d0a-8d3a-10089566b726,2026-04-02 10:00:00,ed55870d-2fd2-4ba1-b0aa-7a280a6cd587,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fb58accf-c2cd-4dde-97c7-454b3f82eee4,2026-04-02 10:00:00,d0d60af4-a86f-4442-a1a0-892d2a5cdbd3,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+fbe66335-ed90-423f-8cb4-e780a4acdf62,2026-04-02 10:00:00,4a545b1d-d759-4331-b1c8-6619db4b1e87,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+fbe88a6b-03df-4c63-9789-dca0ec12bb40,2026-04-02 10:00:00,f19c0271-02f0-46de-b01d-d124844bd385,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+fbeafe9d-185b-4dd0-952e-1915aa0b69d3,2026-04-02 10:00:00,5dd944a2-6707-4592-a3c4-99c480de8197,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fbf62921-058f-42b2-a5dd-5e395ebe2ab7,2026-04-02 10:00:00,6b254450-7004-433c-bf69-1fb053a62f52,dictation,Listen and spell the word,,,4,Spelling practice,{keyword},,,10,,2
+fc593b27-8ab3-4b55-89fb-608666a92c50,2026-04-02 10:00:00,bced27c8-2c20-4107-bf2d-2dfe46687373,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+fcc13d1c-e234-4ba6-8158-2a57c632d72f,2026-04-02 10:00:00,d57a850d-30c0-4988-a53f-fc9638884178,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+fcd54e88-d56e-4ee1-9703-7a99e5556d71,2026-04-02 10:00:00,3ee29751-c03a-4df1-b428-51e2797aba31,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+fd0feeda-6274-4322-ba91-658a071b40ef,2026-04-02 10:00:00,7cf8f06f-0441-4076-a651-76da132eb2bf,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+fd3a2eee-17eb-4403-aef7-cfef4e941e1b,2026-04-02 10:00:00,73ca6f19-8411-46ab-ae0d-39b4da6198c8,listening_choice,Listen and select: {keyword},,,2,Meaning of {keyword},{keyword},,,10,,2
+fd5d1f54-cf38-4f56-b96f-36f34a85477d,2026-04-02 10:00:00,81c08f3f-0705-472c-8a7e-682c4197dc80,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fd831ac1-df66-4d1f-9d50-ebdb4315c666,2026-04-02 10:00:00,819c177f-eeaa-482b-9a10-e90cca890e76,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+fdc50bca-c718-480a-9b3d-09dacfab886d,2026-04-02 10:00:00,c93ab659-8f04-4947-b4fc-e9b66409b54f,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fddc3bea-7ecb-4377-986a-e90138e14ded,2026-04-02 10:00:00,d4986ac8-fc5b-4d7c-9960-c7a32512ee69,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+fe1f986b-89b5-4ab0-9dc9-aaa40463eb1f,2026-04-02 10:00:00,faf4d62d-4fb0-4373-8fd4-3a5360963de1,fill_blank,The _______ is important. ({keyword}),,,3,Usage of {keyword},{keyword},,,10,,2
+ff3895c6-9a45-4b7e-93e3-f3a528ef7cd1,2026-04-02 10:00:00,33b3b961-a831-48ce-bcba-4ec9b1406006,conversation,"A: ""What about _______?"" B: ""It's _______.""",,,5,Conversation practice,{keyword},,,10,,2
+ff6787af-075a-4069-8003-ecfe69436573,2026-04-02 10:00:00,dab29c7e-633e-4611-83f9-6a1781fed230,matching,Match items with descriptions,,,7,Connect items,Matching exercise,,,10,,2

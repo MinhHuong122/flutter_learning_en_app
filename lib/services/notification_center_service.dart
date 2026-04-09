@@ -363,4 +363,16 @@ class NotificationCenterService {
     final encoded = jsonEncode(items.map((e) => e.toJson()).toList());
     await prefs.setString(_kInAppNotifications, encoded);
   }
+
+  /// Thêm in-app notification cho tin nhắn mới
+  Future<void> addMessageNotification({
+    required String senderName,
+    required String preview,
+  }) async {
+    await _addInAppNotification(
+      type: 'message',
+      title: 'New message from $senderName',
+      description: preview,
+    );
+  }
 }

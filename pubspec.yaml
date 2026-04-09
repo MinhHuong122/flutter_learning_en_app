@@ -48,27 +48,47 @@ dependencies:
   shared_preferences: ^2.2.2
   
   # Image Picker
-  image_picker: ^1.0.0
+  image_picker: ^1.0.4
   
-  # Permissions
-  permission_handler: ^12.0.1
+  # Flutter TTS
+  flutter_tts: ^4.2.5
+  
+  # Voice Recording & Transcription
+  record: ^6.2.0
+  speech_to_text: ^7.3.0
+  permission_handler: ^11.0.0
+  
+  # File Picker (v2 embedding compatible)
+  file_picker: ^10.3.10
   
   # Google Fonts
   google_fonts: ^6.1.0
   
   # HTTP Client
   http: ^1.1.0
+  http_parser: ^4.0.2
+  
+  # Google Generative AI (Gemini API)
+  google_generative_ai: ^0.4.0
   
   # SQLite
   sqflite: ^2.3.0
   path: ^1.8.3
-  
-  # Text to Speech
-  flutter_tts: ^4.2.5
 
   # Local notifications
   flutter_local_notifications: ^17.2.3
   timezone: ^0.9.4
+
+  # In-app document preview
+  webview_flutter: ^4.10.0
+
+  # Voice input recording
+  path_provider: ^2.1.5
+  dio: ^5.9.2
+  open_filex: ^4.7.0
+  
+  # Dotted Border for UI components
+  dotted_border: ^2.1.0
 
 dev_dependencies:
   flutter_test:

@@ -11,6 +11,8 @@ import 'chat_ai_screen.dart';
 import 'account_screen.dart';
 import 'favorites_screen.dart';
 import 'my_lessons_screen.dart';
+import 'exercise_screen.dart';
+import 'community_screen.dart';
 
 class ArchiveScreen extends StatefulWidget {
   const ArchiveScreen({Key? key}) : super(key: key);
@@ -237,12 +239,19 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                 },
                               ),
                               _buildActionCard(
-                                icon: Icons.history,
-                                title: _isEnglish ? 'Review' : 'Ôn tập',
-                                subtitle: _isEnglish ? 'Check history' : 'Kiểm tra lịch sử',
-                                iconBgColor: const Color(0xFFFFF7ED),
+                                icon: Icons.quiz,
+                                title: _isEnglish ? 'Exercise' : 'Bài tập',
+                                subtitle: _isEnglish ? 'Daily practice' : 'Luyện tập hàng ngày',
+                                iconBgColor: const Color(0xFFFFF5E6),
                                 iconColor: const Color(0xFFF97316),
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const ExerciseScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                               _buildActionCard(
                                 icon: Icons.favorite,
@@ -265,7 +274,14 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                 subtitle: _isEnglish ? 'Shared docs' : 'Tài liệu chia sẻ',
                                 iconBgColor: const Color(0xFFEFFEED),
                                 iconColor: const Color(0xFF10B981),
-                                onTap: () {},
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const CommunityScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -480,3 +496,5 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
     );
   }
 }
+
+

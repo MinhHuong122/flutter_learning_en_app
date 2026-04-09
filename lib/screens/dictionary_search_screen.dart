@@ -170,14 +170,20 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
     try {
       final key = '${entry.term}|${entry.language}';
       final isSaved = _savedWords.contains(key);
+      bool success;
 
       if (isSaved) {
-        await _supabaseService.unsaveWord(entry.term, entry.language);
+        success = await _supabaseService.unsaveWord(entry.term, entry.language);
+        if (!success) throw Exception('unsave failed');
         setState(() => _savedWords.remove(key));
       } else {
-        await _supabaseService.saveWord(entry.term, entry.language);
+        success = await _supabaseService.saveWord(entry.term, entry.language);
+        if (!success) throw Exception('save failed');
         setState(() => _savedWords.add(key));
       }
+
+      // Pull from server again so UI always reflects Supabase state.
+      await _loadSavedWords();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

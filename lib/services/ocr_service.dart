@@ -5,9 +5,21 @@ import '../models/dictionary_model.dart';
 import 'supabase_dictionary_service.dart';
 
 class OcrService {
-  // TODO: Replace with your actual backend OCR API endpoint
-  // This should be a Python backend running DeepSeek OCR
-  static const String _baseUrl = 'http://your-backend-url.com/api';
+  // You can override by passing --dart-define=OCR_API_BASE_URL=http://<host>:8000/api
+  static const String _configuredBaseUrl = String.fromEnvironment('OCR_API_BASE_URL', defaultValue: '');
+
+  static String get _baseUrl {
+    if (_configuredBaseUrl.isNotEmpty) {
+      return _configuredBaseUrl;
+    }
+
+    // Android emulator cannot access localhost directly.
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:8000/api';
+    }
+
+    return 'http://127.0.0.1:8000/api';
+  }
   
   final SupabaseDictionaryService _dictionaryService = SupabaseDictionaryService();
 
@@ -17,13 +29,10 @@ class OcrService {
   Future<List<DictionaryEntry>> extractVocabulary(String imagePath) async {
     try {
       // Method 1: Call actual OCR backend (recommended for production)
-      // return await _callOcrBackend(imagePath);
-
-      // Method 2: Mock data for testing (current implementation)
-      return await _mockOcrExtraction(imagePath);
+      return await _callOcrBackend(imagePath);
     } catch (e) {
-      print('❌ Error in OCR extraction: $e');
-      rethrow;
+      print('OCR backend unavailable, fallback to mock data: $e');
+      return _mockOcrExtraction(imagePath);
     }
   }
 

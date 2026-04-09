@@ -5,6 +5,7 @@ import 'dart:ui';
 import '../models/lesson_model.dart';
 import '../services/lesson_service.dart';
 import '../services/language_service.dart';
+import '../services/lesson_favorites_service.dart';
 import '../utils/constants.dart';
 import 'quiz_screen.dart';
 
@@ -31,6 +32,8 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
   bool _showQuestions = false;
   Map<int, bool> _lessonCompletion = {}; // Track completion status by index
   int? _currentLessonIndex; // Track which lesson is currently being worked on
+  bool _isFavorite = false;
+  final LessonFavoritesService _favoritesService = LessonFavoritesService();
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
@@ -39,6 +42,41 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
     super.initState();
     _lessonService = LessonService();
     _loadLessonData();
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    final isFav = await _favoritesService.isFavorite(widget.lesson.id);
+    if (mounted) setState(() => _isFavorite = isFav);
+  }
+
+  Future<void> _toggleFavorite() async {
+    final isFav = await _favoritesService.toggleFavorite(widget.lesson.id);
+    if (!mounted) return;
+
+    if (isFav == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isEnglish ? 'Cannot sync with server' : 'Không thể đồng bộ với server'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isFavorite = isFav);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isFav
+              ? (_isEnglish ? 'Added to favorites' : 'Đã thêm vào yêu thích')
+              : (_isEnglish ? 'Removed from favorites' : 'Đã xóa khỏi yêu thích'),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: isFav ? Colors.pink : Colors.grey,
+      ),
+    );
   }
 
   Future<void> _loadLessonData() async {
@@ -292,24 +330,27 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                             color: Color(0xFF1F2937),
                           ),
                         ),
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 4,
-                                spreadRadius: 1,
-                              )
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.more_horiz,
-                            size: 24,
-                            color: Color(0xFF475569),
+                        GestureDetector(
+                          onTap: _toggleFavorite,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                )
+                              ],
+                            ),
+                            child: Icon(
+                              _isFavorite ? Icons.favorite : Icons.favorite_border,
+                              size: 22,
+                              color: _isFavorite ? Colors.red : const Color(0xFF475569),
+                            ),
                           ),
                         ),
                       ],

@@ -306,24 +306,28 @@ class DatabaseHelper {
       final examples = data['examples'] as List<Example>;
 
       print('💾 Importing ${headwords.length} headwords...');
-      for (final hw in headwords) {
-        await db.insert('headwords', hw.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
-      }
+      await _insertInChunks(
+        db: db,
+        table: 'headwords',
+        rows: headwords.map((e) => e.toMap()).toList(growable: false),
+        chunkSize: 1000,
+      );
 
       print('💾 Importing ${senses.length} senses...');
-      for (final sense in senses) {
-        await db.insert('senses', sense.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
-      }
+      await _insertInChunks(
+        db: db,
+        table: 'senses',
+        rows: senses.map((e) => e.toMap()).toList(growable: false),
+        chunkSize: 1000,
+      );
 
       print('💾 Importing ${examples.length} examples...');
-      // Batch insert examples for better performance
-      await db.transaction((txn) async {
-        final batch = txn.batch();
-        for (final example in examples) {
-          batch.insert('examples', example.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
-        }
-        await batch.commit(noResult: true);
-      });
+      await _insertInChunks(
+        db: db,
+        table: 'examples',
+        rows: examples.map((e) => e.toMap()).toList(growable: false),
+        chunkSize: 1500,
+      );
 
       // Verify import was successful
       final verifyCount = await db.rawQuery('SELECT COUNT(*) as count FROM headwords LIMIT 1');
@@ -332,6 +336,39 @@ class DatabaseHelper {
     } catch (e) {
       print('❌ Error importing dictionary: $e');
       rethrow;
+    }
+  }
+
+  Future<void> _insertInChunks({
+    required Database db,
+    required String table,
+    required List<Map<String, dynamic>> rows,
+    int chunkSize = 1000,
+  }) async {
+    final total = rows.length;
+    if (total == 0) return;
+
+    for (var start = 0; start < total; start += chunkSize) {
+      final end = (start + chunkSize < total) ? start + chunkSize : total;
+
+      await db.transaction((txn) async {
+        final batch = txn.batch();
+        for (var i = start; i < end; i++) {
+          batch.insert(
+            table,
+            rows[i],
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+        }
+        await batch.commit(noResult: true, continueOnError: true);
+      });
+
+      final inserted = end;
+      if (inserted == total || inserted % (chunkSize * 10) == 0) {
+        print('   • $table: $inserted/$total');
+      }
+
+      await Future.delayed(Duration.zero);
     }
   }
 

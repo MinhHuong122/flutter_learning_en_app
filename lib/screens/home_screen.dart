@@ -893,6 +893,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 ),
               ),
             ),
+          ),
           ],
         ),
       ),
@@ -986,7 +987,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   Widget _buildCourseCardFromLesson(Lesson lesson, int index) {
     final colors = _getPastelCardColors(index);
-    final categoryLabel = _getLessonTypeLabel(lesson.lessonType);
 
     return GestureDetector(
       onTap: () {
@@ -1013,7 +1013,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         padding: const EdgeInsets.all(20),
         child: Stack(
           children: [
-            // Background icon (bottom-right corner)
             Positioned(
               right: -30,
               bottom: -30,
@@ -1023,15 +1022,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 color: (colors['primary'] as Color).withOpacity(0.1),
               ),
             ),
-            // Content - Column
             Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top section: Badge
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
@@ -1049,39 +1042,32 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Middle section: Title and description
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-            Text(
-              lesson.title,
-              style: GoogleFonts.poppins(
-                        color: colors['textPrimary'] as Color,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-                    const SizedBox(height: 6),
-            Text(
-              lesson.description,
-              style: GoogleFonts.poppins(
-                        color: colors['textSecondary'] as Color,
-                fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        height: 1.3,
-              ),
-                      maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-                  ],
+                Text(
+                  lesson.title,
+                  style: GoogleFonts.poppins(
+                    color: colors['textPrimary'] as Color,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  lesson.description,
+                  style: GoogleFonts.poppins(
+                    color: colors['textSecondary'] as Color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 12),
-                // Bottom section: Info items
-            Row(
-              children: [
+                Row(
+                  children: [
                     Expanded(
                       child: _buildCardInfoItem(
                         Icons.folder_open,
@@ -1090,7 +1076,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         colors['textSecondary'] as Color,
                       ),
                     ),
-                const SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: _buildCardInfoItem(
                         Icons.schedule,

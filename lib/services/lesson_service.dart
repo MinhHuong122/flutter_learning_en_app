@@ -596,6 +596,41 @@ class LessonService {
     }
   }
 
+  /// Get OCR lesson progress as a percentage based on studied vocabulary cards.
+  Future<double> getCustomLessonProgress(String userId, String lessonId) async {
+    try {
+      final cards = await getFlashcardsForLesson(lessonId);
+      final totalCards = cards.length;
+      if (totalCards == 0) return 0.0;
+
+      final vocabIds = cards
+          .map((card) => card['id'])
+          .whereType<String>()
+          .toList();
+
+      if (vocabIds.isEmpty) return 0.0;
+
+      final progressRows = await supabase
+          .from('ocr_word_progress')
+          .select('word_id, times_studied, mastered')
+          .eq('user_id', userId)
+          .inFilter('word_id', vocabIds);
+
+      int studiedCount = 0;
+      for (final row in progressRows as List) {
+        final timesStudied = (row['times_studied'] as num?)?.toInt() ?? 0;
+        if (timesStudied > 0 || row['mastered'] == true) {
+          studiedCount++;
+        }
+      }
+
+      return (studiedCount / totalCards) * 100;
+    } catch (e) {
+      print('❌ Error loading OCR lesson progress: $e');
+      return 0.0;
+    }
+  }
+
   /// Update study progress for a single OCR vocabulary word.
   Future<bool> updateOcrWordProgress({
     required String userId,
@@ -603,7 +638,6 @@ class LessonService {
     required bool gotIt,
   }) async {
     try {
-      final now = DateTime.now().toIso8601String();
 
       // Check xem progress row đã tồn tại chưa
       final existing = await supabase
@@ -612,6 +646,8 @@ class LessonService {
           .eq('user_id', userId)
           .eq('word_id', wordId)
           .maybeSingle();
+
+      final now = DateTime.now().toIso8601String();
 
       if (existing == null) {
         await supabase.from('ocr_word_progress').insert({
@@ -672,33 +708,37 @@ class LessonService {
     }
   }
 
-  /// Save new vocabulary words to dictionary table if they don't exist
-  Future<bool> saveNewEnglishWords(List<Map<String, dynamic>> words) async {
+  /// Save new vocabulary words to english_headwords table if they don't exist
+  Future<bool> saveNewEnglishWords(List<Map<String, String>> vocabularyWords) async {
     try {
-      for (var word in words) {
+      for (var word in vocabularyWords) {
+        final term = (word['term'] ?? '').trim().toLowerCase();
+        if (term.isEmpty) continue;
+
         // Check if word already exists
         final existing = await supabase
-            .from('dictionary')
+            .from('english_headwords')
             .select('id')
-            .eq('term', word['term'] ?? '')
-            .eq('language', 'en')
+            .eq('term', term)
             .maybeSingle();
 
         // Only insert if doesn't exist
         if (existing == null) {
-          await supabase.from('dictionary').insert({
-            'term': word['term'] ?? '',
-            'meaning': word['meaning'] ?? '',
+          // Word doesn't exist, so save it
+          await supabase.from('english_headwords').insert({
+            'term': term,
             'pronunciation': word['pronunciation'] ?? '',
             'word_class': word['wordClass'] ?? 'noun',
-            'language': 'en',
-            'created_at': DateTime.now().toIso8601String(),
+            'meaning': word['meaning'] ?? 'New vocabulary word',
+            'is_common': false,
+            'frequency': 0,
           });
+          print('✅ Saved new English word: $term');
         }
       }
       return true;
     } catch (e) {
-      print('Error saving new English words: $e');
+      print('⚠️ Error saving new English words: $e');
       return false;
     }
   }
@@ -736,33 +776,11 @@ class LessonService {
         }
       }
 
+      print('✅ Loaded ${vocabulary.length} vocabulary items for lesson $lessonId');
       return vocabulary;
     } catch (e) {
       print('❌ Error loading lesson vocabulary: $e');
       return [];
-    }
-  }
-
-  /// Get custom lesson progress for a user
-  Future<int> getCustomLessonProgress(String userId, String lessonId) async {
-    try {
-      // Calculate progress as percentage of mastered words
-      final progressResponse = await supabase
-          .from('ocr_word_progress')
-          .select('mastered')
-          .eq('user_id', userId);
-
-      if (progressResponse.isEmpty) return 0;
-
-      final masteredCount = (progressResponse as List)
-          .where((p) => p['mastered'] == true)
-          .length;
-      
-      final progressPercentage = ((masteredCount / progressResponse.length) * 100).toInt();
-      return progressPercentage;
-    } catch (e) {
-      print('❌ Error getting custom lesson progress: $e');
-      return 0;
     }
   }
 
@@ -798,6 +816,8 @@ class LessonService {
           .select('user_id')
           .eq('id', lessonId)
           .single();
+      
+      final userId = lessonData['user_id'] as String;
 
       // Step 4: Insert new vocabulary words
       final Set<String> seenTerms = {};
@@ -821,20 +841,37 @@ class LessonService {
 
       // Insert new vocabulary
       if (vocabInserts.isNotEmpty) {
-        await supabase.from('ocr_vocabulary').insert(vocabInserts);
-        print('✅ Updated ${vocabInserts.length} vocabulary words for lesson $lessonId');
+        final vocabResponse = await supabase
+            .from('ocr_vocabulary')
+            .insert(vocabInserts)
+            .select();
+        print('✅ Saved ${vocabResponse.length} updated vocabulary words');
+
+        // Step 5: Create progress records for new words
+        final progressInserts = [];
+        for (var vocab in vocabResponse) {
+          progressInserts.add({
+            'user_id': userId,
+            'word_id': vocab['id'],
+            'times_studied': 0,
+            'times_correct': 0,
+            'mastered': false,
+          });
+        }
+        
+        if (progressInserts.isNotEmpty) {
+          await supabase.from('ocr_word_progress').insert(progressInserts);
+          print('✅ Created ${progressInserts.length} progress records');
+        }
       }
 
-      // Return updated lesson
-      final updated = await supabase
-          .from('ocr_lessons')
-          .select()
-          .eq('id', lessonId)
-          .single();
-
-      return updated;
+      return {
+        'lessonId': lessonId,
+        'title': title,
+        'vocabularyCount': vocabularyWords.length,
+      };
     } catch (e) {
-      print('Error updating custom lesson: $e');
+      print('❌ Error updating custom lesson: $e');
       return null;
     }
   }

@@ -36,6 +36,11 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize search controller with passed search query from HomeScreen
+    if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
+      _searchController.text = widget.searchQuery!;
+      print('🔍 MyLessonsScreen: Initialized with search query: "${widget.searchQuery}"');
+    }
     _loadCustomLessons();
     _loadFavoriteLessons();
   }

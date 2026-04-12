@@ -514,6 +514,7 @@ class LessonService {
             'meaning': word['meaning'] ?? '',
             'pronunciation': word['pronunciation'] ?? '',
             'word_class': word['wordClass'] ?? 'noun',
+            'example': word['example'] ?? '',
             'vietnamese_term': '',
             'vietnamese_meaning': '',
           });
@@ -595,7 +596,7 @@ class LessonService {
     try {
       final response = await supabase
           .from('ocr_vocabulary')
-          .select('id, term, meaning, pronunciation, word_class, vietnamese_term, vietnamese_meaning')
+          .select('id, term, meaning, pronunciation, word_class, vietnamese_term, vietnamese_meaning, example')
           .eq('lesson_id', lessonId)
           .order('created_at', ascending: true);
 
@@ -608,6 +609,7 @@ class LessonService {
           'definition': item['meaning'] ?? 'No definition',
           'pronunciation': item['pronunciation'] ?? '',
           'partOfSpeech': item['word_class'] ?? 'noun',
+          'example': item['example'] ?? '',
           'vietnameseTerm': item['vietnamese_term'] ?? '',
           'vietnameseMeaning': item['vietnamese_meaning'] ?? '',
         });
@@ -885,6 +887,7 @@ class LessonService {
             'meaning': word['meaning'] ?? '',
             'pronunciation': word['pronunciation'] ?? '',
             'word_class': word['wordClass'] ?? 'noun',
+            'example': word['example'] ?? '',
             'vietnamese_term': '',
             'vietnamese_meaning': '',
           });
@@ -925,6 +928,154 @@ class LessonService {
     } catch (e) {
       print('❌ Error updating custom lesson: $e');
       return null;
+    }
+  }
+
+  /// Share custom lesson to community
+  Future<bool> shareCustomLessonToCommunity({
+    required String lessonId,
+    required String userId,
+    required String title,
+    required String description,
+    required List<Map<String, dynamic>> flashcards,
+  }) async {
+    try {
+      // Create shared lesson entry
+      final sharedLessonData = {
+        'original_lesson_id': lessonId,
+        'user_id': userId,
+        'title': title,
+        'description': description,
+        'flashcard_count': flashcards.length,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      final response = await supabase
+          .from('shared_lessons')
+          .insert(sharedLessonData)
+          .select()
+          .single();
+
+      final sharedLessonId = response['id'] as String;
+      print('✅ Created shared lesson: $sharedLessonId');
+
+      // Share the flashcards
+      final sharedFlashcards = flashcards.map((card) {
+        return {
+          'shared_lesson_id': sharedLessonId,
+          'term': card['word'] ?? card['term'] ?? '',
+          'meaning': card['definition'] ?? card['meaning'] ?? '',
+          'pronunciation': card['pronunciation'] ?? '',
+          'word_class': card['partOfSpeech'] ?? card['word_class'] ?? 'noun',
+          'example': card['example'] ?? '',
+        };
+      }).toList();
+
+      if (sharedFlashcards.isNotEmpty) {
+        await supabase
+            .from('shared_flashcards')
+            .insert(sharedFlashcards);
+        print('✅ Shared ${sharedFlashcards.length} flashcards');
+      }
+
+      return true;
+    } catch (e) {
+      print('❌ Error sharing lesson to community: $e');
+      return false;
+    }
+  }
+
+  /// Get shared lessons from community
+  Future<List<Map<String, dynamic>>> getSharedLessons() async {
+    try {
+      final response = await supabase
+          .from('shared_lessons')
+          .select('id, user_id, title, description, flashcard_count, created_at, ocr_lessons(user_id)')
+          .order('created_at', ascending: false);
+
+      final List<Map<String, dynamic>> sharedLessons = [];
+      
+      for (var lesson in response as List) {
+        sharedLessons.add({
+          'id': lesson['id'],
+          'userId': lesson['user_id'],
+          'title': lesson['title'],
+          'description': lesson['description'] ?? '',
+          'flashcardCount': lesson['flashcard_count'] ?? 0,
+          'createdAt': lesson['created_at'] ?? DateTime.now().toIso8601String(),
+        });
+      }
+
+      print('✅ Loaded ${sharedLessons.length} shared lessons from community');
+      return sharedLessons;
+    } catch (e) {
+      print('❌ Error loading shared lessons: $e');
+      return [];
+    }
+  }
+
+  /// Save shared lesson to user's custom lessons
+  Future<bool> saveSharedLessonToCustom({
+    required String sharedLessonId,
+    required String userId,
+  }) async {
+    try {
+      // Get shared lesson details
+      final sharedLesson = await supabase
+          .from('shared_lessons')
+          .select('title, description, original_lesson_id')
+          .eq('id', sharedLessonId)
+          .single();
+
+      // Create new custom lesson for user
+      final newLessonData = {
+        'user_id': userId,
+        'title': '${sharedLesson['title']} (Shared)',
+        'description': sharedLesson['description'] ?? '',
+        'cloudinary_url': null,
+        'cloudinary_public_id': null,
+      };
+
+      final lessonResponse = await supabase
+          .from('ocr_lessons')
+          .insert(newLessonData)
+          .select()
+          .single();
+
+      final newLessonId = lessonResponse['id'] as String;
+      print('✅ Created new custom lesson: $newLessonId');
+
+      // Get shared flashcards
+      final sharedFlashcards = await supabase
+          .from('shared_flashcards')
+          .select('term, meaning, pronunciation, word_class, example')
+          .eq('shared_lesson_id', sharedLessonId);
+
+      // Copy flashcards to new lesson
+      if ((sharedFlashcards as List).isNotEmpty) {
+        final flashcardsToInsert = (sharedFlashcards as List).map((card) {
+          return {
+            'lesson_id': newLessonId,
+            'term': card['term'] ?? '',
+            'meaning': card['meaning'] ?? '',
+            'pronunciation': card['pronunciation'] ?? '',
+            'word_class': card['word_class'] ?? 'noun',
+            'example': card['example'] ?? '',
+            'vietnamese_term': '',
+            'vietnamese_meaning': '',
+          };
+        }).toList();
+
+        await supabase
+            .from('ocr_vocabulary')
+            .insert(flashcardsToInsert);
+        print('✅ Copied ${flashcardsToInsert.length} flashcards to new lesson');
+      }
+
+      return true;
+    } catch (e) {
+      print('❌ Error saving shared lesson: $e');
+      return false;
     }
   }
 }

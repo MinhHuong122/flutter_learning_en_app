@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
 import '../utils/constants.dart';
 import '../services/community_service.dart';
 import '../services/auth_service.dart';
 import '../services/language_service.dart';
+import '../services/file_history_service.dart';
+import '../services/storage_quota_service.dart';
 import '../models/community_model.dart';
 import 'post_detail_screen.dart';
 import 'messaging_screen.dart';
+import 'storage_upgrade_screen.dart';
 
 
 class CommunityProfileScreen extends StatefulWidget {
@@ -28,8 +35,9 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
   late CommunityUserProfile _userProfile;
   List<CommunityPost> _userPosts = [];
   List<CommunityPost> _sharedPosts = [];
+  List<Map<String, dynamic>> _userSharedLessons = [];
   bool _isLoading = true;
-  int _selectedTab = 0; // 0: Posts, 1: Shared
+  int _selectedTab = 0; // 0: Posts, 1: Shared Lessons
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
@@ -46,17 +54,23 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
       final userProfile = await communityService.getUserProfile(widget.userId);
       final userPosts = await communityService.getUserPosts(widget.userId);
       final sharedPosts = await communityService.getUserSharedPosts(widget.userId);
+      final userSharedLessons = await communityService.getUserSharedLessons(widget.userId);
 
       setState(() {
         _userProfile = userProfile;
         _userPosts = userPosts;
         _sharedPosts = sharedPosts;
+        _userSharedLessons = userSharedLessons;
         _isLoading = false;
       });
     } catch (e) {
       _showErrorSnackbar(_isEnglish ? 'Error: $e' : 'Lỗi: $e');
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _refreshPage() async {
+    await _loadUserData();
   }
 
   void _openMessage() {
@@ -81,6 +95,343 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
+  }
+
+  /// Download file from community post with progress dialog
+  Future<void> _recordFileDownload(CommunityPost post) async {
+    try {
+      if (post.fileUrl == null || post.fileUrl!.isEmpty) {
+        _showErrorSnackbar(_isEnglish ? 'File URL not available' : 'URL file không có');
+        return;
+      }
+
+      // Check storage quota before downloading
+      final quotaService = StorageQuotaService();
+      
+      // Estimate file size - we'll use a reasonable estimate (10MB average)
+      const estimatedFileSizeBytes = 10 * 1024 * 1024; // 10MB estimate
+      
+      final canDownload = await quotaService.canDownloadFile(estimatedFileSizeBytes);
+      if (!canDownload) {
+        // Show storage full dialog
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(_isEnglish ? 'Storage Full' : 'Dung lượng đầy'),
+              content: Text(
+                _isEnglish 
+                    ? 'You have reached your storage limit. Please upgrade to continue downloading.'
+                    : 'Bạn đã hết giới hạn dung lượng. Vui lòng nâng cấp để tiếp tục tải.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(_isEnglish ? 'Cancel' : 'Hủy'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const StorageUpgradeScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryColor),
+                  child: Text(_isEnglish ? 'Upgrade Now' : 'Nâng cấp ngay'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      // Get downloads directory - use external storage + /Download
+      Directory? downloadsDir;
+      try {
+        // Try getDownloadsDirectory first
+        downloadsDir = await getDownloadsDirectory();
+        
+        // Fallback: construct path manually if null
+        if (downloadsDir == null) {
+          final downloadPath = '/storage/emulated/0/Download';
+          downloadsDir = Directory(downloadPath);
+        }
+      } catch (e) {
+        // Silent catch
+      }
+
+      // Last resort: use /storage/emulated/0/Download directly
+      downloadsDir ??= Directory('/storage/emulated/0/Download');
+
+      if (!await downloadsDir.exists()) {
+        try {
+          await downloadsDir.create(recursive: true);
+        } catch (e) {
+          _showErrorSnackbar(_isEnglish ? 'Cannot access downloads folder: $e' : 'Không thể truy cập thư mục tải xuống: $e');
+          return;
+        }
+      }
+
+      // Get unique file path
+      final fileName = post.fileName ?? 'download_${DateTime.now().millisecondsSinceEpoch}';
+      final filePath = _getUniqueFilePath(downloadsDir.path, fileName);
+      final file = File(filePath);
+
+      // Create cancel token for download
+      final CancelToken cancelToken = CancelToken();
+      
+      // Progress state for dialog
+      double downloadProgress = 0.0;
+      late StateSetter setDialogState;
+
+      // Show beautiful progress dialog
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => StatefulBuilder(
+            builder: (context, setState) {
+              setDialogState = setState;
+              return Dialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.cloud_download, color: AppColors.primaryColor, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _isEnglish ? 'Downloading File' : 'Đang Tải File',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1F2937),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: LinearProgressIndicator(
+                              value: downloadProgress,
+                              minHeight: 12,
+                              backgroundColor: const Color(0xFFE5E7EB),
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _isEnglish ? 'Progress' : 'Tiến độ',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                              ),
+                              Text(
+                                '${(downloadProgress * 100).toStringAsFixed(0)}%',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF9FAFB),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.insert_drive_file, color: Colors.red, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                fileName,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF4B5563),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Cancel button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            cancelToken.cancel();
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE5E7EB),
+                            foregroundColor: const Color(0xFF1F2937),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            _isEnglish ? 'Cancel Download' : 'Hủy Tải',
+                            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      // Download file with cancel token
+      final dio = Dio(BaseOptions(receiveTimeout: const Duration(seconds: 60)));
+      
+      try {
+        await dio.download(
+          post.fileUrl!,
+          filePath,
+          cancelToken: cancelToken,
+          onReceiveProgress: (received, total) {
+            if (total != -1) {
+              downloadProgress = received / total;
+              try {
+                setDialogState(() {});
+              } catch (e) {
+                // Dialog closed
+              }
+            }
+          },
+        );
+      } on DioException catch (e) {
+        if (e.type == DioExceptionType.cancel) {
+          // Download cancelled by user
+          if (mounted && Navigator.canPop(context)) {
+            Navigator.pop(context);
+          }
+          // Delete incomplete file
+          if (await file.exists()) {
+            await file.delete();
+          }
+          return;
+        }
+        rethrow;
+      }
+
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      if (!await file.exists()) {
+        _showErrorSnackbar(_isEnglish ? 'Download failed' : 'Tải xuống thất bại');
+        return;
+      }
+
+      final fileSize = await file.length();
+      final fileSizeMB = (fileSize / (1024 * 1024)).toStringAsFixed(2);
+
+      String fileType = 'doc';
+      if (post.fileName != null) {
+        final ext = post.fileName!.split('.').last.toLowerCase();
+        fileType = ext;
+      }
+
+      await FileHistoryService().addFileToHistory(
+        fileName: post.fileName ?? 'Unknown File',
+        fileSize: '$fileSizeMB MB',
+        fileType: fileType,
+        action: 'download',
+        sourceScreen: 'community',
+        filePath: filePath,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish
+                  ? '✅ File downloaded ($fileSizeMB MB)'
+                  : '✅ File đã tải ($fileSizeMB MB)',
+            ),
+            duration: const Duration(seconds: 3),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      String errorMsg = _isEnglish ? 'Download error' : 'Lỗi tải xuống';
+      if (e.type == DioExceptionType.connectionTimeout) {
+        errorMsg = _isEnglish ? 'Connection timeout' : 'Hết thời gian kết nối';
+      }
+      _showErrorSnackbar(errorMsg);
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      _showErrorSnackbar(_isEnglish ? 'Error: $e' : 'Lỗi: $e');
+    }
+  }
+
+  /// Generate unique file path by appending (1), (2), etc
+  String _getUniqueFilePath(String dirPath, String fileName) {
+    // Use path package for proper path joining
+    final filePath = p.join(dirPath, fileName);
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      return filePath;
+    }
+
+    final baseName = p.basenameWithoutExtension(fileName);
+    final extension = p.extension(fileName); // Includes the dot
+
+    for (int i = 1; i <= 100; i++) {
+      final newFileName = '$baseName ($i)$extension';
+      final newFilePath = p.join(dirPath, newFileName);
+      final newFile = File(newFilePath);
+      if (!newFile.existsSync()) {
+        return newFilePath;
+      }
+    }
+
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return p.join(dirPath, '$baseName ($timestamp)$extension');
   }
 
   void _showEditPostDialog(CommunityPost post) {
@@ -197,7 +548,10 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
         ],
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: _refreshPage,
+        color: AppColors.primaryColor,
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -210,7 +564,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
                 children: [
                   _buildTabChip(_isEnglish ? 'Posts' : 'Bài viết', 0),
                   const SizedBox(width: 12),
-                  _buildTabChip(_isEnglish ? 'Shared' : 'Chia sẻ', 1),
+                  _buildTabChip(_isEnglish ? 'Shared Lessons' : 'Bài học chia sẻ', 1),
                 ],
               ),
               const SizedBox(height: 16),
@@ -218,6 +572,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
             ],
           ),
         ),
+      ),
       );
   }
 
@@ -298,6 +653,12 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
   }
 
   Widget _buildStatsCard() {
+    // Calculate total likes from all posts
+    int totalLikes = 0;
+    for (final post in _userPosts) {
+      totalLikes += post.likes;
+    }
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
@@ -308,9 +669,9 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
         children: [
           Expanded(child: _buildStatColumn('${_userProfile.postsCount}', _isEnglish ? 'Posts' : 'Bài viết')),
           Container(width: 1, height: 44, color: const Color(0xFFD6E3FF)),
-          Expanded(child: _buildStatColumn('${_userProfile.followersCount}', _isEnglish ? 'Followers' : 'Người theo dõi')),
+          Expanded(child: _buildStatColumn('${_userSharedLessons.length}', _isEnglish ? 'Lessons' : 'Bài học')),
           Container(width: 1, height: 44, color: const Color(0xFFD6E3FF)),
-          Expanded(child: _buildStatColumn('${_userProfile.followingCount}', _isEnglish ? 'Following' : 'Đang theo dõi')),
+          Expanded(child: _buildStatColumn('$totalLikes', _isEnglish ? 'Likes' : 'Lượt thích')),
         ],
       ),
     );
@@ -438,7 +799,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
   }
 
   Widget _buildSharedTab() {
-    if (_sharedPosts.isEmpty) {
+    if (_userSharedLessons.isEmpty) {
       return Container(
         margin: const EdgeInsets.only(top: 10),
         padding: const EdgeInsets.symmetric(vertical: 34, horizontal: 20),
@@ -448,7 +809,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
           border: Border.all(color: const Color(0xFFD6E3FF)),
         ),
         child: Text(
-          _isEnglish ? 'No shared posts yet' : 'Chưa chia sẻ bài viết nào',
+          _isEnglish ? 'No shared lessons yet' : 'Chưa chia sẻ bài học nào',
           textAlign: TextAlign.center,
           style: GoogleFonts.inter(
             fontSize: 13,
@@ -463,15 +824,289 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
       padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
-      itemCount: _sharedPosts.length,
+      itemCount: _userSharedLessons.length,
       itemBuilder: (context, index) {
-        final post = _sharedPosts[index];
-        return GestureDetector(
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => PostDetailScreen(post: post)),
+        final lesson = _userSharedLessons[index];
+        return _buildSharedLessonCard(lesson);
+      },
+    );
+  }
+
+  Widget _buildSharedLessonCard(Map<String, dynamic> lesson) {
+    final flashcards = (lesson['shared_flashcards'] as List?) ?? [];
+    final createdAt = lesson['created_at'] != null
+        ? DateTime.parse(lesson['created_at'] as String)
+        : DateTime.now();
+
+    return GestureDetector(
+      onTap: () => _showSharedLessonDetail(lesson),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFD6E3FF)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        lesson['title'] as String? ?? 'Untitled',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1F2937),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (lesson['description'] != null && (lesson['description'] as String).isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          lesson['description'] as String,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: const Color(0xFF6B7280),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE5F2FF),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    '${lesson['flashcard_count'] ?? flashcards.length} ${_isEnglish ? 'cards' : 'thẻ'}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Time
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 14,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _formatTime(createdAt),
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSharedLessonDetail(Map<String, dynamic> lesson) {
+    final flashcards = (lesson['shared_flashcards'] as List?) ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      backgroundColor: Colors.white,
+      builder: (BuildContext context) {
+        return FractionallySizedBox(
+          heightFactor: 0.9,
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Close button at top right
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3F4F6),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Title
+                    Text(
+                      lesson['title'] as String? ?? 'Untitled',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F2937),
+                      ),
+                    ),
+                    // Description
+                    if (lesson['description'] != null && (lesson['description'] as String).isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        lesson['description'] as String,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: const Color(0xFF6B7280),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              // Flashcards List
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  itemCount: flashcards.length,
+                  itemBuilder: (context, index) {
+                    final card = flashcards[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${index + 1}/${flashcards.length}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: const Color(0xFF9CA3AF),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE5F2FF),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  _isEnglish ? 'Flashcard' : 'Thẻ',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 10,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _isEnglish ? 'Term' : 'Từ',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: const Color(0xFF9CA3AF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            card['term'] ?? card['front'] ?? 'Term',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1F2937),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _isEnglish ? 'Meaning' : 'Định nghĩa',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              color: const Color(0xFF9CA3AF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            card['meaning'] ?? card['back'] ?? 'Meaning',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: const Color(0xFF4B5563),
+                              height: 1.5,
+                            ),
+                          ),
+                          if (card['example'] != null && (card['example'] as String).isNotEmpty) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                              _isEnglish ? 'Example' : 'Ví dụ',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: const Color(0xFF9CA3AF),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              card['example'] as String,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: const Color(0xFF6B7280),
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          child: _buildPostPreview(post),
         );
       },
     );
@@ -549,35 +1184,36 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         onSelected: (value) {
-                            if (value == 'edit') {
-                              _showEditPostDialog(post);
-                            } else if (value == 'delete') {
-                              _showDeletePostDialog(post);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.edit, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(_isEnglish ? 'Edit' : 'Chỉnh sửa'),
-                                ],
-                              ),
+                          if (value == 'edit') {
+                            _showEditPostDialog(post);
+                          } else if (value == 'delete') {
+                            _showDeletePostDialog(post);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.edit, size: 18),
+                                const SizedBox(width: 8),
+                                Text(_isEnglish ? 'Edit' : 'Chỉnh sửa'),
+                              ],
                             ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.delete, color: Colors.red, size: 18),
-                                  const SizedBox(width: 8),
-                                  Text(_isEnglish ? 'Delete' : 'Xóa', style: const TextStyle(color: Colors.red)),
-                                ],
-                              ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.delete, color: Colors.red, size: 18),
+                                const SizedBox(width: 8),
+                                Text(_isEnglish ? 'Delete' : 'Xóa', style: const TextStyle(color: Colors.red)),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
                     Text(
                       _formatTime(post.createdAt),
                       style: GoogleFonts.inter(
@@ -585,6 +1221,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF4A6085),
                       ),
+                      textAlign: TextAlign.right,
                     ),
                   ],
                 ),
@@ -593,35 +1230,38 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
           ),
 
           if (post.fileUrl != null)
-            Container(
-              margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFFE0F4FF),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.insert_drive_file,
-                    size: 16,
-                    color: AppColors.primaryColor,
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      post.fileName ?? (_isEnglish ? 'Attached file' : 'Tệp đính kèm'),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
+            GestureDetector(
+              onTap: () => _recordFileDownload(post),
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: const Color(0xFFE0F4FF),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.insert_drive_file,
+                      size: 16,
+                      color: AppColors.primaryColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        post.fileName ?? (_isEnglish ? 'Attached file' : 'Tệp đính kèm'),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 

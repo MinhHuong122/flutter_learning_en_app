@@ -9,6 +9,9 @@ class DictionaryEntry {
   final String pronunciation; // Only for English
   final String wordClass; // noun, verb, adjective, etc.
   final String meaning;
+  final String example; // Example sentence in English
+  final String? vietnameseMeaning; // Vietnamese translation of meaning
+  final String? vietnameseExample; // Example sentence in Vietnamese
   final bool isCommon; // Common/basic vocabulary
   final int frequency; // Usage frequency (higher = more common)
   final DateTime createdAt;
@@ -21,6 +24,9 @@ class DictionaryEntry {
     this.pronunciation = '',
     this.wordClass = 'noun',
     required this.meaning,
+    this.example = '',
+    this.vietnameseMeaning,
+    this.vietnameseExample,
     this.isCommon = false,
     this.frequency = 0,
     DateTime? createdAt,
@@ -36,6 +42,9 @@ class DictionaryEntry {
       pronunciation: json['pronunciation'] as String? ?? '',
       wordClass: json['word_class'] as String? ?? 'noun',
       meaning: json['meaning'] as String,
+      example: json['example'] as String? ?? '',
+      vietnameseMeaning: json['vietnamese_meaning'] as String?,
+      vietnameseExample: json['vietnamese_example'] as String?,
       isCommon: json['is_common'] as bool? ?? false,
       frequency: json['frequency'] as int? ?? 0,
       createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ?? DateTime.now(),
@@ -52,6 +61,9 @@ class DictionaryEntry {
       'pronunciation': pronunciation,
       'word_class': wordClass,
       'meaning': meaning,
+      'example': example,
+      'vietnamese_meaning': vietnameseMeaning,
+      'vietnamese_example': vietnameseExample,
       'is_common': isCommon,
       'frequency': frequency,
     };

@@ -91,7 +91,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     final wordController = TextEditingController(text: word.term);
     final phoneticController = TextEditingController(text: word.pronunciation);
     final meaningController = TextEditingController(text: word.meaning);
-    final exampleController = TextEditingController(text: '');
+    final exampleController = TextEditingController(text: word.example);
+    final wordClassController = TextEditingController(text: word.wordClass);
 
     showDialog(
       context: context,
@@ -196,6 +197,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                   pronunciation: phoneticController.text.trim(),
                   wordClass: word.wordClass,
                   meaning: meaningController.text.trim(),
+                  example: exampleController.text.trim(),
+                  vietnameseMeaning: word.vietnameseMeaning,
+                  vietnameseExample: word.vietnameseExample,
                   isCommon: word.isCommon,
                   frequency: word.frequency,
                 );
@@ -403,6 +407,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     final wordController = TextEditingController();
     final phoneticController = TextEditingController();
     final meaningController = TextEditingController();
+    final exampleController = TextEditingController();
     final wordClassController = TextEditingController(text: 'noun');
 
     showDialog(
@@ -469,6 +474,14 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                         controller: meaningController,
                         label: _isEnglish ? 'Meaning *' : 'Nghĩa *',
                         maxLines: 3,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Example Field
+                      _buildFloatingLabelField(
+                        controller: exampleController,
+                        label: _isEnglish ? 'Example' : 'Ví dụ',
+                        maxLines: 2,
                       ),
                       const SizedBox(height: 24),
 
@@ -563,6 +576,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                                     pronunciation: phoneticController.text.trim(),
                                     wordClass: wordClassController.text,
                                     meaning: meaning,
+                                    example: exampleController.text.trim(),
+                                    vietnameseMeaning: null,
+                                    vietnameseExample: null,
                                     isCommon: false,
                                     frequency: 0,
                                   ),
@@ -640,6 +656,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 'meaning': word.meaning,
                 'pronunciation': word.pronunciation,
                 'wordClass': word.wordClass,
+                'example': word.example,
               })
           .toList();
 

@@ -4,6 +4,8 @@ import '../models/community_model.dart';
 class CommunityService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  SupabaseClient get supabase => _supabase;
+
   Future<Map<String, int>> _countByPostId({
     required String table,
     required String postIdColumn,
@@ -812,4 +814,81 @@ class CommunityService {
       throw Exception('Lỗi lấy trending: $e');
     }
   }
+
+  // ==================== SHARED LESSONS OPERATIONS ====================
+
+  /// Lấy tất cả shared lessons
+  Future<List<Map<String, dynamic>>> getSharedLessons() async {
+    try {
+      final data = await _supabase
+          .from('shared_lessons')
+          .select('*, shared_flashcards(*)')
+          .order('created_at', ascending: false);
+
+      return (data as List).map((lesson) {
+        return {
+          'id': lesson['id'] as String,
+          'title': lesson['title'] as String,
+          'description': lesson['description'] as String?,
+          'flashcard_count': lesson['flashcard_count'] as int?,
+          'user_id': lesson['user_id'] as String,
+          'created_at': lesson['created_at'] as String?,
+          'shared_flashcards': lesson['shared_flashcards'] as List? ?? [],
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Lỗi lấy shared lessons: $e');
+    }
+  }
+
+  /// Lấy shared lessons của một user
+  Future<List<Map<String, dynamic>>> getUserSharedLessons(String userId) async {
+    try {
+      final data = await _supabase
+          .from('shared_lessons')
+          .select('*, shared_flashcards(*)')
+          .eq('user_id', userId)
+          .order('created_at', ascending: false);
+
+      return (data as List).map((lesson) {
+        return {
+          'id': lesson['id'] as String,
+          'title': lesson['title'] as String,
+          'description': lesson['description'] as String?,
+          'flashcard_count': lesson['flashcard_count'] as int?,
+          'user_id': lesson['user_id'] as String,
+          'created_at': lesson['created_at'] as String?,
+          'shared_flashcards': lesson['shared_flashcards'] as List? ?? [],
+        };
+      }).toList();
+    } catch (e) {
+      throw Exception('Lỗi lấy shared lessons của user: $e');
+    }
+  }
+
+  /// Lấy thông tin shared lesson chi tiết
+  Future<Map<String, dynamic>?> getSharedLessonDetail(String lessonId) async {
+    try {
+      final data = await _supabase
+          .from('shared_lessons')
+          .select('*, shared_flashcards(*)')
+          .eq('id', lessonId)
+          .maybeSingle();
+
+      if (data == null) return null;
+
+      return {
+        'id': data['id'] as String,
+        'title': data['title'] as String,
+        'description': data['description'] as String?,
+        'flashcard_count': data['flashcard_count'] as int?,
+        'user_id': data['user_id'] as String,
+        'created_at': data['created_at'] as String?,
+        'shared_flashcards': data['shared_flashcards'] as List? ?? [],
+      };
+    } catch (e) {
+      throw Exception('Lỗi lấy chi tiết shared lesson: $e');
+    }
+  }
 }
+

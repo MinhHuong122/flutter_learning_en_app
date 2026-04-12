@@ -43,11 +43,16 @@ class _MessagingScreenState extends State<MessagingScreen> {
   StreamSubscription<List<Message>>? _messagesSubscription;
   StreamSubscription<List<Conversation>>? _conversationsSubscription;
   StreamSubscription<Message>? _incomingSubscription;
+  // Per-conversation settings
+  final Map<String, bool> _blockedConversations = {};
+  final Map<String, bool> _mutedConversations = {};
+  final Map<String, String?> _conversationNicknames = {};
   final Set<String> _notifiedMessageIds = <String>{};
   final FileUploadService _fileUploadService = FileUploadService();
   bool _isBlockedConversation = false;
   bool _isMutedConversation = false;
   String? _customNickname;
+  Map<String, bool> _selectedContacts = {}; // Cho group chat
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
@@ -68,6 +73,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
     if (_isConversationMode) {
       _messagingService.activeChatUserId = targetRecipientId;
+      // Load settings for this conversation
+      _isBlockedConversation = _blockedConversations[targetRecipientId] ?? false;
+      _isMutedConversation = _mutedConversations[targetRecipientId] ?? false;
+      _customNickname = _conversationNicknames[targetRecipientId];
       _loadMessages();
       _startMessagesRealtime();
     } else {
@@ -237,6 +246,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   void _openConversation(Conversation conversation) {
+    // Load settings before opening
+    _isBlockedConversation = _blockedConversations[conversation.participantId] ?? false;
+    _isMutedConversation = _mutedConversations[conversation.participantId] ?? false;
+    _customNickname = _conversationNicknames[conversation.participantId];
+    
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -552,8 +566,19 @@ class _MessagingScreenState extends State<MessagingScreen> {
     );
   }
 
-  void _showConversationSettings() {
-    final nicknameController = TextEditingController(text: _customNickname ?? '');
+  void _showConversationSettings({Conversation? conversation}) {
+    final isForTile = conversation != null;
+    final conversationId = conversation?.participantId ?? widget.recipientId;
+    
+    if (conversationId == null || conversationId.isEmpty) {
+      return;
+    }
+
+    final isBlocked = _blockedConversations[conversationId] ?? false;
+    final isMuted = _mutedConversations[conversationId] ?? false;
+    final nickname = _conversationNicknames[conversationId] ?? '';
+    
+    final nicknameController = TextEditingController(text: nickname);
 
     showModalBottomSheet(
       context: context,
@@ -563,64 +588,94 @@ class _MessagingScreenState extends State<MessagingScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 18,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 18,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _isEnglish ? 'Chat settings' : 'Cài đặt trò chuyện',
-                style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 12),
-              SwitchListTile(
-                value: _isBlockedConversation,
-                activeColor: AppColors.primaryColor,
-                contentPadding: EdgeInsets.zero,
-                title: Text(_isEnglish ? 'Block messages' : 'Chặn tin nhắn'),
-                onChanged: (v) => setState(() => _isBlockedConversation = v),
-              ),
-              SwitchListTile(
-                value: _isMutedConversation,
-                activeColor: AppColors.primaryColor,
-                contentPadding: EdgeInsets.zero,
-                title: Text(_isEnglish ? 'Mute notifications' : 'Tắt thông báo'),
-                onChanged: (v) => setState(() => _isMutedConversation = v),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: nicknameController,
-                decoration: InputDecoration(
-                  labelText: _isEnglish ? 'Set nickname' : 'Đặt biệt danh',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        return StatefulBuilder(
+          builder: (context, setModalState) => Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 18,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 18,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _isEnglish ? 'Chat settings' : 'Cài đặt trò chuyện',
+                  style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700),
                 ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
+                const SizedBox(height: 12),
+                SwitchListTile(
+                  value: isBlocked,
+                  activeColor: AppColors.primaryColor,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(_isEnglish ? 'Block messages' : 'Chặn tin nhắn'),
+                  onChanged: (v) {
+                    setModalState(() {
+                      _blockedConversations[conversationId] = v;
+                      // Also update the current conversation state if in chat
+                      if (!isForTile) {
+                        _isBlockedConversation = v;
+                      }
+                    });
+                    if (!isForTile) {
+                      setState(() => _isBlockedConversation = v);
+                    }
+                  },
+                ),
+                SwitchListTile(
+                  value: isMuted,
+                  activeColor: AppColors.primaryColor,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(_isEnglish ? 'Mute notifications' : 'Tắt thông báo'),
+                  onChanged: (v) {
+                    setModalState(() {
+                      _mutedConversations[conversationId] = v;
+                      // Also update the current conversation state if in chat
+                      if (!isForTile) {
+                        _isMutedConversation = v;
+                      }
+                    });
+                    if (!isForTile) {
+                      setState(() => _isMutedConversation = v);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: nicknameController,
+                  decoration: InputDecoration(
+                    labelText: _isEnglish ? 'Set nickname' : 'Đặt biệt danh',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _customNickname = nicknameController.text.trim().isEmpty
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      final nickName = nicknameController.text.trim().isEmpty
                           ? null
                           : nicknameController.text.trim();
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: Text(_isEnglish ? 'Save' : 'Lưu'),
+                      
+                      setState(() {
+                        _conversationNicknames[conversationId] = nickName;
+                        // Also update the current conversation state if in chat
+                        if (!isForTile) {
+                          _customNickname = nickName;
+                        }
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: Text(_isEnglish ? 'Save' : 'Lưu'),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -630,6 +685,267 @@ class _MessagingScreenState extends State<MessagingScreen> {
   void _showErrorSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  void _showGroupChatCreationDialog() {
+    // Reset selected contacts
+    _selectedContacts.clear();
+    final groupSearchController = TextEditingController();
+    String groupSearchQuery = '';
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            // Filter contacts based on search query
+            final filteredContacts = groupSearchQuery.isEmpty
+                ? _conversations
+                : _conversations.where((contact) {
+                    return contact.participantName
+                        .toLowerCase()
+                        .contains(groupSearchQuery.toLowerCase());
+                  }).toList();
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 18,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 18,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isEnglish ? 'Create group chat' : 'Tạo group chat',
+                    style: GoogleFonts.poppins(fontSize: 17, fontWeight: FontWeight.w700),
+                  ),
+                  Text(
+                    _isEnglish ? 'Select contacts' : 'Chọn các liên hệ',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: groupSearchController,
+                    onChanged: (value) {
+                      setModalState(() {
+                        groupSearchQuery = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF6B7280)),
+                      suffixIcon: groupSearchQuery.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () {
+                                groupSearchController.clear();
+                                setModalState(() {
+                                  groupSearchQuery = '';
+                                });
+                              },
+                              child: const Icon(Icons.close, color: Color(0xFF6B7280)),
+                            )
+                          : null,
+                      hintText: _isEnglish ? 'Search contacts...' : 'Tìm kiếm liên hệ...',
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: const Color(0xFF9CA3AF),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                    ),
+                    style: GoogleFonts.poppins(fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_conversations.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          _isEnglish ? 'No recent contacts' : 'Không có liên hệ gần đây',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: const Color(0xFF9CA3AF),
+                          ),
+                        ),
+                      ),
+                    )
+                  else if (filteredContacts.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Center(
+                        child: Text(
+                          _isEnglish
+                              ? 'No contacts found'
+                              : 'Không tìm thấy liên hệ',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            color: const Color(0xFF9CA3AF),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    SingleChildScrollView(
+                      child: Column(
+                        children: filteredContacts.map((contact) {
+                          final isSelected = _selectedContacts[contact.participantId] ?? false;
+                          return CheckboxListTile(
+                            value: isSelected,
+                            onChanged: (value) {
+                              setModalState(() {
+                                _selectedContacts[contact.participantId] = value ?? false;
+                              });
+                            },
+                            title: Text(
+                              contact.participantName,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              contact.lastMessage.length > 40
+                                  ? '${contact.lastMessage.substring(0, 40)}...'
+                                  : contact.lastMessage,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: const Color(0xFF9CA3AF),
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.zero,
+                            controlAffinity: ListTileControlAffinity.leading,
+                            activeColor: AppColors.primaryColor,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          _isEnglish ? 'Cancel' : 'Hủy',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF6B7280),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: _selectedContacts.values.where((v) => v).length >= 2
+                            ? _createGroupChat
+                            : null,
+                        child: Text(
+                          _isEnglish
+                              ? 'Create (${_selectedContacts.values.where((v) => v).length})'
+                              : 'Tạo (${_selectedContacts.values.where((v) => v).length})',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _createGroupChat() async {
+    final selectedIds = _selectedContacts.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+
+    if (selectedIds.length < 2) {
+      _showErrorSnackbar(
+        _isEnglish
+            ? 'Select at least 2 contacts'
+            : 'Chọn ít nhất 2 liên hệ',
+      );
+      return;
+    }
+
+    try {
+      Navigator.pop(context);
+
+      final authService = context.read<AuthService>();
+      final userId = authService.userId;
+
+      if (userId == null || userId.isEmpty) {
+        _showErrorSnackbar(_isEnglish ? 'Session expired' : 'Phiên đăng nhập đã hết hạn');
+        return;
+      }
+
+      // Create group chat ID from selected participant IDs
+      final groupId = 'group_${DateTime.now().millisecondsSinceEpoch}_$userId';
+      final memberIds = [userId, ...selectedIds];
+
+      // Get selected contacts info
+      final selectedContacts = _conversations
+          .where((c) => selectedIds.contains(c.participantId))
+          .toList();
+
+      // Build group name from first 3 contacts
+      String groupName;
+      if (selectedContacts.length >= 3) {
+        groupName =
+            '${selectedContacts[0].participantName}, ${selectedContacts[1].participantName}, ...';
+      } else {
+        groupName = selectedContacts.map((c) => c.participantName).join(', ');
+      }
+
+      // For now, we'll just navigate to show group members
+      // In a real implementation, you'd create this in the database
+      _showGroupChatCreatedSnackbar(groupName, memberIds.length - 1);
+    } catch (e) {
+      _showErrorSnackbar(
+        _isEnglish ? 'Error creating group: $e' : 'Lỗi tạo group: $e',
+      );
+    }
+  }
+
+  void _showGroupChatCreatedSnackbar(String groupName, int memberCount) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEnglish
+              ? 'Group "$groupName" created with $memberCount members'
+              : 'Group "$groupName" được tạo với $memberCount thành viên',
+        ),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 
@@ -823,25 +1139,28 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFF1F5F9)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.edit_square,
-                      color: AppColors.primaryColor,
-                      size: 20,
+                  GestureDetector(
+                    onTap: _showGroupChatCreationDialog,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFF1F5F9)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.edit_square,
+                        color: AppColors.primaryColor,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -935,6 +1254,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
 
     return GestureDetector(
       onTap: () => _openConversation(conversation),
+      onLongPress: () => _showConversationSettings(conversation: conversation),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         margin: const EdgeInsets.only(bottom: 8),

@@ -184,6 +184,85 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
     );
   }
 
+  Future<void> _shareToommunity(Map<String, dynamic> lesson) async {
+    try {
+      final userId = _lessonService.supabase.auth.currentUser?.id;
+      if (userId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish ? 'Please login first' : 'Vui lòng đăng nhập trước',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Get lesson flashcards
+      final flashcards = await _lessonService.getFlashcardsForLesson(lesson['id']);
+
+      if (flashcards.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish ? 'No flashcards to share' : 'Không có flashcard để chia sẻ',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      // Share lesson to community
+      final success = await _lessonService.shareCustomLessonToCommunity(
+        lessonId: lesson['id'],
+        userId: userId,
+        title: lesson['name'] ?? 'Untitled',
+        description: lesson['description'] ?? '',
+        flashcards: flashcards,
+      );
+
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isEnglish
+                    ? '✅ Lesson shared to community! (${flashcards.length} cards)'
+                    : '✅ Bài học đã chia sẻ đến cộng đồng! (${flashcards.length} thẻ)',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isEnglish ? '❌ Failed to share lesson' : '❌ Không thể chia sẻ bài học',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _isEnglish ? 'Error: $e' : 'Lỗi: $e',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -716,6 +795,22 @@ class _MyLessonsScreenState extends State<MyLessonsScreen> {
                                             }
                                           }
                                         }
+                                      },
+                                    ),
+                                    const Divider(height: 1),
+                                    ListTile(
+                                      leading: const Icon(Icons.share, color: AppColors.primaryColor),
+                                      title: Text(
+                                        _isEnglish ? 'Share to Community' : 'Chia sẻ đến cộng đồng',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xFF1C1C1C),
+                                        ),
+                                      ),
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _shareToommunity(lesson);
                                       },
                                     ),
                                     const Divider(height: 1),

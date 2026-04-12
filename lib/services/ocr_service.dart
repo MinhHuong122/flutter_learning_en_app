@@ -98,20 +98,29 @@ class OcrService {
       // Create content with image
       final imageContent = Content.multi([
         TextPart(
-          '''Extract ALL English vocabulary words from this image carefully and accurately.
-Include every word you can find. Return ONLY a JSON array, NO explanations.
-Format: ["word1", "word2", "word3", ...]
+          '''Extract ALL English vocabulary words from this image and generate an example sentence for each word.
+Return ONLY a JSON array, NO explanations.
+
+Format:
+[
+  {"word": "word1", "example": "Example sentence using word1 here"},
+  {"word": "word2", "example": "Example sentence using word2 here"},
+  ...
+]
+
 Requirements:
 - Extract COMPLETE vocabulary (no limit)
+- For EACH word, create a natural example sentence (8-15 words)
 - Maximize word accuracy
 - Support all word types (nouns, verbs, adjectives, adverbs, prepositions, etc.)
-- Avoid duplicates''',
+- Avoid duplicates
+- Example must be grammatically correct and demonstrate word usage''',
         ),
         DataPart(mediaType, imageBytes),
       ]);
 
       // Call Gemini API
-      print('🔍 Calling Gemini API for OCR analysis...');
+      print('🔍 Calling Gemini API for OCR analysis with example generation...');
       final response = await _model.generateContent([imageContent]);
       final responseText = response.text ?? '';
 
@@ -124,23 +133,45 @@ Requirements:
       }
 
       final jsonStr = jsonMatch.group(0)!;
-      final wordsList = List<String>.from(jsonDecode(jsonStr) as List);
+      final wordsData = List<Map<String, dynamic>>.from(
+        (jsonDecode(jsonStr) as List).map((item) => item as Map<String, dynamic>),
+      );
 
-        // Match with dictionary
-        List<DictionaryEntry> vocabularyList = [];
-      for (var word in wordsList) {
-        if (word.trim().isEmpty) continue;
-          
-          // Search in English dictionary
+      // Match with dictionary and add examples
+      List<DictionaryEntry> vocabularyList = [];
+      for (var wordData in wordsData) {
+        final word = wordData['word'] as String?;
+        final example = wordData['example'] as String? ?? '';
+
+        if (word == null || word.trim().isEmpty) continue;
+
+        // Search in English dictionary
         final searchResults =
             await _dictionaryService.searchEnglish(word.trim(), limit: 1);
-          
-          if (searchResults.isNotEmpty) {
-            vocabularyList.add(searchResults.first);
-          }
-        }
 
-      print('✅ OCR extraction complete: ${vocabularyList.length} words found');
+        if (searchResults.isNotEmpty) {
+          // Create new entry with example from Gemini
+          final originalEntry = searchResults.first;
+          final entryWithExample = DictionaryEntry(
+            id: originalEntry.id,
+            term: originalEntry.term,
+            language: originalEntry.language,
+            pronunciation: originalEntry.pronunciation,
+            wordClass: originalEntry.wordClass,
+            meaning: originalEntry.meaning,
+            example: example.trim(), // Add Gemini-generated example
+            vietnameseMeaning: originalEntry.vietnameseMeaning,
+            vietnameseExample: originalEntry.vietnameseExample,
+            isCommon: originalEntry.isCommon,
+            frequency: originalEntry.frequency,
+            createdAt: originalEntry.createdAt,
+            updatedAt: originalEntry.updatedAt,
+          );
+          vocabularyList.add(entryWithExample);
+        }
+      }
+
+      print('✅ OCR extraction complete: ${vocabularyList.length} words found (with examples)');
       return vocabularyList;
     } catch (e) {
       print('❌ Error processing image with Gemini: $e');
@@ -148,66 +179,176 @@ Requirements:
     }
   }
 
-  /// Mock OCR extraction for testing (expanded with more words)
+  /// Mock OCR extraction for testing (expanded with more words and examples)
   Future<List<DictionaryEntry>> _mockOcrExtraction(String imagePath) async {
     // Simulate processing delay
     await Future.delayed(const Duration(seconds: 2));
 
-    // Extended mock vocabulary list
-    final mockWords = [
-      'apple', 'banana', 'computer', 'book', 'study',
-      'learn', 'teach', 'write', 'read', 'hello',
-      'world', 'english', 'grammar', 'vocabulary', 'language',
-      'speak', 'listen', 'practice', 'exercise', 'lesson',
-      'student', 'teacher', 'classroom', 'school', 'education',
-      'knowledge', 'wisdom', 'understand', 'explain', 'question',
-      'answer', 'example', 'define', 'meaning', 'synonym',
-      'antonym', 'phrase', 'sentence', 'paragraph', 'text',
-      'document', 'page', 'chapter', 'section', 'content',
-    ];
+    // Mock vocabulary with example sentences
+    final mockWordsWithExamples = {
+      'apple': 'I ate a red apple for breakfast this morning.',
+      'banana': 'The monkey likes to eat a ripe banana.',
+      'computer': 'I use my computer every day for work and study.',
+      'book': 'She borrowed an interesting book from the library.',
+      'study': 'I need to study hard for my final exam.',
+      'learn': 'Students learn new languages through daily practice.',
+      'teach': 'Mr. Smith will teach us English grammar today.',
+      'write': 'She loves to write stories in her free time.',
+      'read': 'I read the newspaper every morning with coffee.',
+      'hello': 'She said hello to her old friend at the market.',
+      'world': 'The world is full of amazing cultural diversity.',
+      'english': 'English is widely spoken across the globe today.',
+      'grammar': 'Grammar rules help us communicate more clearly.',
+      'vocabulary': 'Learning vocabulary is essential for language mastery.',
+      'language': 'Learning a new language opens many doors.',
+      'speak': 'Can you speak fluent English and French?',
+      'listen': 'You should listen carefully to the teacher.',
+      'practice': 'Regular practice makes you a better player.',
+      'exercise': 'Daily exercise keeps your body healthy and strong.',
+      'lesson': 'Today\'s lesson will cover important grammar concepts.',
+      'student': 'Each student has unique learning styles and needs.',
+      'teacher': 'Our teacher explained the topic very clearly.',
+      'classroom': 'The classroom is bright and well decorated.',
+      'school': 'I walk to school every day with my friends.',
+      'education': 'Education is the key to a successful future.',
+      'knowledge': 'Knowledge is power in the modern world.',
+      'wisdom': 'Wisdom comes with experience and reflection.',
+      'understand': 'Do you understand the lesson today clearly?',
+      'explain': 'Please explain how this grammar rule works.',
+      'question': 'She asked a difficult question during class.',
+      'answer': 'He gave a correct answer to the question.',
+      'example': 'This is a good example of proper sentence structure.',
+      'define': 'Can you define this word using simple English?',
+      'meaning': 'What is the meaning of this difficult word?',
+      'synonym': 'Happy and joyful are synonyms of each other.',
+      'antonym': 'Hot and cold are antonyms in English language.',
+      'phrase': 'This phrase is commonly used in everyday speech.',
+      'sentence': 'Write a clear sentence using past perfect tense.',
+      'paragraph': 'Each paragraph should contain a topic sentence.',
+      'text': 'Read the text carefully before answering questions.',
+      'document': 'Please save your document before closing it.',
+      'page': 'Turn to page fifty in your English textbook now.',
+      'chapter': 'We finished Chapter five of the novel.',
+      'section': 'Read the section about past tenses carefully.',
+      'content': 'The content of this chapter is very interesting.',
+    };
 
     List<DictionaryEntry> vocabularyList = [];
 
-    for (var word in mockWords) {
+    for (var wordEntry in mockWordsWithExamples.entries) {
+      final word = wordEntry.key;
+      final example = wordEntry.value;
+
       // Search in English dictionary
       final searchResults = await _dictionaryService.searchEnglish(word, limit: 1);
-      
+
       if (searchResults.isNotEmpty) {
-        vocabularyList.add(searchResults.first);
+        final originalEntry = searchResults.first;
+        final entryWithExample = DictionaryEntry(
+          id: originalEntry.id,
+          term: originalEntry.term,
+          language: originalEntry.language,
+          pronunciation: originalEntry.pronunciation,
+          wordClass: originalEntry.wordClass,
+          meaning: originalEntry.meaning,
+          example: example,
+          vietnameseMeaning: originalEntry.vietnameseMeaning,
+          vietnameseExample: originalEntry.vietnameseExample,
+          isCommon: originalEntry.isCommon,
+          frequency: originalEntry.frequency,
+          createdAt: originalEntry.createdAt,
+          updatedAt: originalEntry.updatedAt,
+        );
+        vocabularyList.add(entryWithExample);
       }
     }
 
     return vocabularyList;
   }
 
-  /// Mock OCR extraction from URL for testing
+  /// Mock OCR extraction from URL for testing (with examples)
   Future<List<DictionaryEntry>> _mockOcrExtractionFromUrl(String imageUrl) async {
     // Simulate processing delay
     await Future.delayed(const Duration(seconds: 2));
 
     print('🧪 Using mock OCR for URL: $imageUrl');
-    
-    // Extended mock vocabulary list
-    final mockWords = [
-      'apple', 'banana', 'computer', 'book', 'study',
-      'learn', 'teach', 'write', 'read', 'hello',
-      'world', 'english', 'grammar', 'vocabulary', 'language',
-      'speak', 'listen', 'practice', 'exercise', 'lesson',
-      'student', 'teacher', 'classroom', 'school', 'education',
-      'knowledge', 'wisdom', 'understand', 'explain', 'question',
-      'answer', 'example', 'define', 'meaning', 'synonym',
-      'antonym', 'phrase', 'sentence', 'paragraph', 'text',
-      'document', 'page', 'chapter', 'section', 'content',
-    ];
+
+    // Mock vocabulary with example sentences
+    final mockWordsWithExamples = {
+      'apple': 'I ate a red apple for breakfast this morning.',
+      'banana': 'The monkey likes to eat a ripe banana.',
+      'computer': 'I use my computer every day for work and study.',
+      'book': 'She borrowed an interesting book from the library.',
+      'study': 'I need to study hard for my final exam.',
+      'learn': 'Students learn new languages through daily practice.',
+      'teach': 'Mr. Smith will teach us English grammar today.',
+      'write': 'She loves to write stories in her free time.',
+      'read': 'I read the newspaper every morning with coffee.',
+      'hello': 'She said hello to her old friend at the market.',
+      'world': 'The world is full of amazing cultural diversity.',
+      'english': 'English is widely spoken across the globe today.',
+      'grammar': 'Grammar rules help us communicate more clearly.',
+      'vocabulary': 'Learning vocabulary is essential for language mastery.',
+      'language': 'Learning a new language opens many doors.',
+      'speak': 'Can you speak fluent English and French?',
+      'listen': 'You should listen carefully to the teacher.',
+      'practice': 'Regular practice makes you a better player.',
+      'exercise': 'Daily exercise keeps your body healthy and strong.',
+      'lesson': 'Today\'s lesson will cover important grammar concepts.',
+      'student': 'Each student has unique learning styles and needs.',
+      'teacher': 'Our teacher explained the topic very clearly.',
+      'classroom': 'The classroom is bright and well decorated.',
+      'school': 'I walk to school every day with my friends.',
+      'education': 'Education is the key to a successful future.',
+      'knowledge': 'Knowledge is power in the modern world.',
+      'wisdom': 'Wisdom comes with experience and reflection.',
+      'understand': 'Do you understand the lesson today clearly?',
+      'explain': 'Please explain how this grammar rule works.',
+      'question': 'She asked a difficult question during class.',
+      'answer': 'He gave a correct answer to the question.',
+      'example': 'This is a good example of proper sentence structure.',
+      'define': 'Can you define this word using simple English?',
+      'meaning': 'What is the meaning of this difficult word?',
+      'synonym': 'Happy and joyful are synonyms of each other.',
+      'antonym': 'Hot and cold are antonyms in English language.',
+      'phrase': 'This phrase is commonly used in everyday speech.',
+      'sentence': 'Write a clear sentence using past perfect tense.',
+      'paragraph': 'Each paragraph should contain a topic sentence.',
+      'text': 'Read the text carefully before answering questions.',
+      'document': 'Please save your document before closing it.',
+      'page': 'Turn to page fifty in your English textbook now.',
+      'chapter': 'We finished Chapter five of the novel.',
+      'section': 'Read the section about past tenses carefully.',
+      'content': 'The content of this chapter is very interesting.',
+    };
 
     List<DictionaryEntry> vocabularyList = [];
 
-    for (var word in mockWords) {
+    for (var wordEntry in mockWordsWithExamples.entries) {
+      final word = wordEntry.key;
+      final example = wordEntry.value;
+
       // Search in English dictionary
       final searchResults = await _dictionaryService.searchEnglish(word, limit: 1);
-      
+
       if (searchResults.isNotEmpty) {
-        vocabularyList.add(searchResults.first);
+        final originalEntry = searchResults.first;
+        final entryWithExample = DictionaryEntry(
+          id: originalEntry.id,
+          term: originalEntry.term,
+          language: originalEntry.language,
+          pronunciation: originalEntry.pronunciation,
+          wordClass: originalEntry.wordClass,
+          meaning: originalEntry.meaning,
+          example: example,
+          vietnameseMeaning: originalEntry.vietnameseMeaning,
+          vietnameseExample: originalEntry.vietnameseExample,
+          isCommon: originalEntry.isCommon,
+          frequency: originalEntry.frequency,
+          createdAt: originalEntry.createdAt,
+          updatedAt: originalEntry.updatedAt,
+        );
+        vocabularyList.add(entryWithExample);
       }
     }
 

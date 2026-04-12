@@ -1,0 +1,50 @@
+-- YouTube Video URLs Reference for Lessons
+-- This file maps lesson topics to their corresponding YouTube video IDs
+
+-- Video ID Mapping Reference
+-- Lesson 1: Alphabet (chữ cái) -> njDKi7dDOq4
+-- Lesson 2: Colors (màu sắc) -> 01AWUd1ySZs
+-- Lesson 3: Numbers (số đếm) -> nByW9tG8Imk
+-- Lesson 4: Drinks (đồ uống) -> 6ACss216VPc
+-- Lesson 5: Food (đồ ăn) -> IGLDaQgDDOc
+-- Lesson 6: Animals (động vật) -> cAFkgw3kJPM
+-- Lesson 7: Family (gia đình) -> 6GgbvIm7LLs
+-- Lesson 8: Body Parts (bộ phận cơ thể) -> bE45QomyqkQ
+-- Lesson 9: Clothing (quần áo) -> tSbhtGjIn_o
+-- Lesson 10: Daily Activities (hoạt động hàng ngày) -> DVZL-8wYODk
+-- Lesson 11: Weather (thời tiết) -> e7tHYk_sVRg
+-- Lesson 12: Seasons (mùa) -> eZNWula_mMo
+-- Lesson 13: Time (thời gian) -> jrVTKgzbf8M
+-- Lesson 14: Dates (ngày tháng) -> XjA1Y9Zw_QE
+-- Lesson 15: Places (địa điểm) -> O4GGNGcbqtQ
+-- Lesson 16: Transportation (phương tiện) -> R-JQTFze4t4
+-- Lesson 17: Housing (nhà ở) -> w-PcKEymewc
+-- Lesson 18: Shopping (mua sắm) -> -WI1pMZ_-bk
+-- Lesson 19: Interests (sở thích) -> aNhzl1RqoCM
+-- Lesson 20: Sports (thể thao) -> 69Ci9RcGUXg
+-- Lesson 21: School (trường học) -> D-xV1q8khDE
+-- Lesson 22: Career (nghề nghiệp) -> n6DOdAr_4aA
+-- Lesson 23: Health (sức khỏe) -> wh1Y2VyEDOY
+-- Lesson 24: Emotions (cảm xúc) -> uK8257gZV60
+-- Lesson 25: Travel (du lịch) -> iZ140pU6w8M
+-- Lesson 26: Technology (công nghệ) -> bJsz3t78y2A
+-- Lesson 27: Business (thương mại) -> Rf114Q_Zbv4
+-- Lesson 28: Environment (môi trường) -> CT3q5qHn8Ro
+-- Lesson 29: Culture (văn hoá) -> GEK78wvy4bM
+-- Lesson 30: Events (sự kiện) -> hEpAa1wbGyQ
+-- Lesson 31: Entertainment (giải trí) -> 1kA79NaJrUk
+-- Lesson 32: Relationships (quan hệ) -> Tn0_E8ZGEaU
+-- Lesson 33: Banking (ngân hàng) -> RL17LduwiWA
+-- Lesson 34: Politics (chính trị) -> 0WKLsz-G-rs
+-- Lesson 35: Science (khoa học) -> C-hjktX2ofU
+-- Lesson 36: Philosophy (triết học) -> UDD8i6WTgsA
+-- Lesson 37: Literature (văn học) -> A8JKnVtysxg
+-- Lesson 38: Economics (kinh tế) -> EKQ2xVvRz0c
+
+-- How to use:
+-- Copy the video IDs and paste them into the video_url column when updating lessons
+-- Format: https://www.youtube.com/embed/{VIDEO_ID}
+-- Example: https://www.youtube.com/embed/njDKi7dDOq4
+
+-- The lesson_detail_screen.dart will automatically extract the video ID 
+-- and embed it in the course banner using an HTML iframe

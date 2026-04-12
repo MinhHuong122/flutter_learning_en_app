@@ -5,6 +5,7 @@ class Lesson {
   final String level; // 'beginner', 'intermediate', 'advanced'
   final String lessonType; // 'multiple_choice', 'listening', 'matching', etc.
   final String? thumbnailUrl;
+  final String? videoUrl; // YouTube video URL for course banner
   final int? durationMinutes;
   final int? totalQuestions;
   final String? parentLessonId; // For hierarchical lessons
@@ -18,6 +19,7 @@ class Lesson {
     required this.level,
     required this.lessonType,
     this.thumbnailUrl,
+    this.videoUrl,
     this.durationMinutes,
     this.totalQuestions,
     this.parentLessonId,
@@ -39,6 +41,7 @@ class Lesson {
       level: json['level'] as String? ?? 'beginner',
       lessonType: json['lesson_type'] as String,
       thumbnailUrl: json['thumbnail_url'] as String?,
+      videoUrl: json['video_url'] as String?,
       durationMinutes: json['duration_minutes'] as int?,
       totalQuestions: json['total_questions'] as int?,
       parentLessonId: json['parent_lesson_id'] as String?,
@@ -56,6 +59,7 @@ class Lesson {
     'level': level,
     'lesson_type': lessonType,
     'thumbnail_url': thumbnailUrl,
+    'video_url': videoUrl,
     'duration_minutes': durationMinutes,
     'total_questions': totalQuestions,
     'parent_lesson_id': parentLessonId,

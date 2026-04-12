@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:ui';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/lesson_model.dart';
 import '../services/lesson_service.dart';
 import '../services/language_service.dart';
@@ -583,83 +584,26 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
                     ),
                   ),
 
-                  // Course Banner
+                  // Course Banner with YouTube Video
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: double.infinity,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(24),
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primaryColor.withOpacity(0.3),
-                                AppColors.primaryColor.withOpacity(0.1),
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primaryColor.withOpacity(0.2),
-                                blurRadius: 16,
-                                spreadRadius: 2,
-                              )
-                            ],
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.play_circle_outline,
-                              size: 64,
-                              color: Color(0xFF6DD5FA),
-                            ),
-                          ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        width: double.infinity,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryColor.withOpacity(0.2),
+                              blurRadius: 16,
+                              spreadRadius: 2,
+                            )
+                          ],
                         ),
-                        Positioned(
-                          bottom: 12,
-                          left: 12,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.3),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.play_circle,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      _isEnglish ? 'PREVIEW' : 'XEM TRƯỚC',
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        child: _buildCourseVideoBanner(),
+                      ),
                     ),
                   ),
 
@@ -910,6 +854,150 @@ class _LessonDetailScreenState extends State<LessonDetailScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Build course banner with YouTube video - Thumbnail + Play button
+  Widget _buildCourseVideoBanner() {
+    // Get video URL from lesson
+    String? videoUrl = widget.lesson.videoUrl;
+    
+    print('🎬 VIDEO BANNER: videoUrl = $videoUrl');
+    
+    if (videoUrl == null || videoUrl.isEmpty) {
+      print('⚠️ VIDEO BANNER: No video URL found, showing placeholder');
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primaryColor.withOpacity(0.3),
+              AppColors.primaryColor.withOpacity(0.1),
+            ],
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.play_circle_outline,
+            size: 64,
+            color: Color(0xFF6DD5FA),
+          ),
+        ),
+      );
+    }
+
+    // Extract video ID
+    String extractVideoId(String url) {
+      String videoId = '';
+      url = url.trim();
+      
+      if (url.contains('youtube.com/embed/')) {
+        videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+      } else if (url.contains('youtu.be/')) {
+        videoId = url.split('youtu.be/')[1].split('?')[0];
+      } else if (url.contains('youtube.com/watch?v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else if (url.contains('v=')) {
+        videoId = url.split('v=')[1].split('&')[0];
+      } else {
+        videoId = url;
+      }
+      
+      videoId = videoId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '');
+      print('🎬 VIDEO BANNER: Extracted videoId = "$videoId" (length: ${videoId.length})');
+      return videoId;
+    }
+
+    final videoId = extractVideoId(videoUrl);
+    final youtubeUrl = 'https://www.youtube.com/watch?v=$videoId';
+    final thumbnailUrl = 'https://img.youtube.com/vi/$videoId/maxresdefault.jpg';
+    
+    return GestureDetector(
+      onTap: () async {
+        print('🎬 VIDEO BANNER: Opening YouTube - $youtubeUrl');
+        try {
+          final Uri uri = Uri.parse(youtubeUrl);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            // Fallback: try to launch without mode
+            await launchUrl(uri);
+          }
+        } catch (e) {
+          print('❌ Error launching YouTube: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(_isEnglish ? 'Cannot open video' : 'Không thể mở video'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Thumbnail Image
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              color: Colors.black,
+            ),
+            child: Image.network(
+              thumbnailUrl,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback if thumbnail load fails
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor.withOpacity(0.3),
+                        AppColors.primaryColor.withOpacity(0.1),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Dark overlay
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.2),
+            ),
+          ),
+          // Play Button
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.95),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  blurRadius: 16,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.play_arrow,
+                size: 48,
+                color: Color(0xFFFF0000), // YouTube red
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

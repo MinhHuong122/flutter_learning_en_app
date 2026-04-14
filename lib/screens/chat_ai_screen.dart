@@ -438,14 +438,14 @@ class _ChatAiScreenState extends State<ChatAiScreen> {
           }
         }
       } else if (result == 'pdf') {
-        final result = await FilePicker.platform.pickFiles(
+        final FilePickerResult? filePickerResult = await FilePicker.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf', 'doc', 'docx', 'txt'],
         );
 
-        if (result != null && result.files.isNotEmpty) {
-          final file = File(result.files.first.path!);
-          final fileName = result.files.first.name;
+        if (filePickerResult != null && filePickerResult.files.isNotEmpty) {
+          final file = File(filePickerResult.files.first.path!);
+          final fileName = filePickerResult.files.first.name;
           
           // Show loading indicator while uploading
           ScaffoldMessenger.of(context).showSnackBar(

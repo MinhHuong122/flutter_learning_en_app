@@ -75,7 +75,7 @@ class FileUploadService {
   /// Chọn file từ thiết bị
   Future<File?> pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'ppt', 'pptx'],
         allowMultiple: false,
@@ -159,7 +159,7 @@ class FileUploadService {
         throw Exception('URL không hợp lệ');
       }
 
-      final filePath = '${pathSegments.sublist(2).join('/')}';
+      final filePath = pathSegments.sublist(2).join('/');
 
       await _supabase.storage.from('community_media').remove([filePath]);
     } catch (e) {

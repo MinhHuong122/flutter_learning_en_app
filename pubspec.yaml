@@ -42,7 +42,7 @@ dependencies:
   provider: ^6.0.0
   
   # Google Sign In
-  google_sign_in: ^6.1.5
+  google_sign_in: ^7.2.0
   
   # Local Storage
   shared_preferences: ^2.2.2
@@ -56,13 +56,13 @@ dependencies:
   # Voice Recording & Transcription
   record: ^6.2.0
   speech_to_text: ^7.3.0
-  permission_handler: ^11.0.0
+  permission_handler: ^12.0.1
   
   # File Picker (v2 embedding compatible)
-  file_picker: ^10.3.10
+  file_picker: ^11.0.2
   
   # Google Fonts
-  google_fonts: ^6.1.0
+  google_fonts: ^8.0.2
   
   # HTTP Client
   http: ^1.1.0
@@ -76,8 +76,8 @@ dependencies:
   path: ^1.8.3
 
   # Local notifications
-  flutter_local_notifications: ^17.2.3
-  timezone: ^0.9.4
+  flutter_local_notifications: ^20.1.0
+  timezone: ^0.10.1
 
   # In-app document preview
   webview_flutter: ^4.10.0
@@ -91,10 +91,10 @@ dependencies:
   open_filex: ^4.7.0
   
   # Dotted Border for UI components
-  dotted_border: ^2.1.0
+  dotted_border: ^3.1.0
   
   # Date formatting and internationalization
-  intl: ^0.19.0
+  intl: ^0.20.2
   
   # Cryptography for VNPAY HMAC SHA512
   crypto: ^3.0.3
@@ -108,8 +108,8 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
-  flutter_launcher_icons: ^0.13.1
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

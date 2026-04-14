@@ -125,7 +125,7 @@ class NotificationCenterService {
       iOS: iosSettings,
     );
 
-    await _localNotifications.initialize(initSettings);
+    await _localNotifications.initialize(settings: initSettings);
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
@@ -178,7 +178,7 @@ class NotificationCenterService {
     await initialize();
 
     if (!settings.studyReminderEnabled) {
-      await _localNotifications.cancel(_studyReminderId);
+      await _localNotifications.cancel(id: _studyReminderId);
       return;
     }
 
@@ -198,15 +198,12 @@ class NotificationCenterService {
     const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
     await _localNotifications.zonedSchedule(
-      _studyReminderId,
-      'Đến giờ học rồi! 📚',
-      'Mở app PUPU và luyện tiếng Anh ngay nhé.',
-      scheduleTime,
-      details,
+      id: _studyReminderId,
+      title: 'Đến giờ học rồi! 📚',
+      body: 'Mở app PUPU và luyện tiếng Anh ngay nhé.',
+      scheduledDate: scheduleTime,
+      notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 
@@ -305,7 +302,12 @@ class NotificationCenterService {
     const iosDetails = DarwinNotificationDetails();
     const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
-    await _localNotifications.show(id, title, body, details);
+    await _localNotifications.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
   }
 
   Future<List<AppNotificationItem>> getNotifications() async {

@@ -4,6 +4,9 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  static const String _googleServerClientId =
+      '372911173512-r5aadpgmmk7ct23jdodu3cst56pgd0q7.apps.googleusercontent.com';
 
   bool _isAuthenticated = false;
   String? _userName;
@@ -12,6 +15,7 @@ class AuthService extends ChangeNotifier {
   String? _errorMessage;
   bool _isFirstTimeUser = false;
   bool _pendingEmailConfirmation = false;
+  bool _googleInitialized = false;
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userName => _userName;
@@ -161,60 +165,28 @@ class AuthService extends ChangeNotifier {
     try {
       _errorMessage = null;
       print('Starting Google login...');
-      
-      // 🔑 Logout Google first to force account picker
-      final googleSignIn = GoogleSignIn(
-        scopes: [
-          'email', 
-          'profile',
-          'openid',
-        ],
-        serverClientId: '372911173512-r5aadpgmmk7ct23jdodu3cst56pgd0q7.apps.googleusercontent.com',
-        forceCodeForRefreshToken: true,
-      );
-      
-      if (await googleSignIn.isSignedIn()) {
-        await googleSignIn.signOut();
-      }
+      await _ensureGoogleSignInInitialized();
+      await _googleSignIn.signOut();
       
       print('Attempting Google sign-in...');
-      final googleUser = await googleSignIn.signIn();
-      
-      if (googleUser == null) {
-        _errorMessage = 'Google sign-in cancelled by user';
-        print('Google sign-in cancelled');
-        notifyListeners();
-        return false;
-      }
+      final googleUser = await _googleSignIn.authenticate();
 
       print('Google user signed in: ${googleUser.email}');
       
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-      
-      print('DEBUG: idToken=$idToken, accessToken=$accessToken');
+      print('DEBUG: idToken=$idToken');
       
       if (idToken == null) {
         _errorMessage = 'Failed to obtain ID Token from Google';
-        print('No ID Token found - trying with access token only');
-        
-        // Try signInWithOAuth as fallback
-        try {
-          await _supabase.auth.signInWithOAuth(
-            OAuthProvider.google,
-          );
-        } catch (e) {
-          print('OAuth fallback failed: $e');
-          notifyListeners();
-          return false;
-        }
+        print('No ID Token found');
+        notifyListeners();
+        return false;
       } else {
         print('Signing in to Supabase with Google credentials...');
         await _supabase.auth.signInWithIdToken(
           provider: OAuthProvider.google,
           idToken: idToken,
-          accessToken: accessToken,
         );
       }
 
@@ -235,6 +207,11 @@ class AuthService extends ChangeNotifier {
       
       _errorMessage = 'Failed to get user information from Supabase';
       return false;
+    } on GoogleSignInException catch (e) {
+      _errorMessage = 'Google login failed: ${e.description ?? e.code.name}';
+      print('Google sign-in exception: ${e.code} - ${e.description}');
+      notifyListeners();
+      return false;
     } catch (e) {
       _errorMessage = 'Google login failed: $e';
       print('Unexpected error in Google login: $e');
@@ -249,60 +226,28 @@ class AuthService extends ChangeNotifier {
       _errorMessage = null;
       _pendingEmailConfirmation = false;
       print('Starting Google Sign-up process...');
-
-      final googleSignIn = GoogleSignIn(
-        scopes: [
-          'email', 
-          'profile',
-          'openid',
-        ],
-        serverClientId: '372911173512-r5aadpgmmk7ct23jdodu3cst56pgd0q7.apps.googleusercontent.com',
-        forceCodeForRefreshToken: true,
-      );
-      
-      // 🔑 Logout Google first to force account picker
-      if (await googleSignIn.isSignedIn()) {
-        await googleSignIn.signOut();
-      }
+      await _ensureGoogleSignInInitialized();
+      await _googleSignIn.signOut();
       
       print('Attempting to sign in with Google...');
-      final googleUser = await googleSignIn.signIn();
-      
-      if (googleUser == null) {
-        _errorMessage = 'Google sign-in cancelled by user';
-        print('Google sign-in cancelled');
-        notifyListeners();
-        return false;
-      }
+      final googleUser = await _googleSignIn.authenticate();
 
       print('Google user signed in: ${googleUser.email}');
 
-      final googleAuth = await googleUser.authentication;
+      final googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
-      final accessToken = googleAuth.accessToken;
-      
-      print('DEBUG: idToken=$idToken, accessToken=$accessToken');
+      print('DEBUG: idToken=$idToken');
       
       if (idToken == null) {
         _errorMessage = 'Failed to obtain ID Token from Google';
-        print('No ID Token found - trying with access token only');
-        
-        // Try signInWithOAuth as fallback
-        try {
-          await _supabase.auth.signInWithOAuth(
-            OAuthProvider.google,
-          );
-        } catch (e) {
-          print('OAuth fallback failed: $e');
-          notifyListeners();
-          return false;
-        }
+        print('No ID Token found');
+        notifyListeners();
+        return false;
       } else {
         print('Signing in to Supabase with Google credentials...');
         await _supabase.auth.signInWithIdToken(
           provider: OAuthProvider.google,
           idToken: idToken,
-          accessToken: accessToken,
         );
       }
 
@@ -323,6 +268,11 @@ class AuthService extends ChangeNotifier {
       
       _errorMessage = 'Failed to get user information from Supabase';
       return false;
+    } on GoogleSignInException catch (e) {
+      _errorMessage = 'Google signup failed: ${e.description ?? e.code.name}';
+      print('Google sign-in exception: ${e.code} - ${e.description}');
+      notifyListeners();
+      return false;
     } catch (e) {
       _errorMessage = 'Google signup failed: $e';
       print('Unexpected error in Google signup: $e');
@@ -340,17 +290,15 @@ class AuthService extends ChangeNotifier {
   Future<void> logout() async {
     try {
       print('Starting logout process...');
-      
+      await _ensureGoogleSignInInitialized();
+
       // 🔑 Step 1: Logout từ Google để xóa session
-      final googleSignIn = GoogleSignIn();
-      if (await googleSignIn.isSignedIn()) {
-        await googleSignIn.signOut();
-        print('Google Sign-out completed');
-      }
+      await _googleSignIn.signOut();
+      print('Google Sign-out completed');
       
       // Try disconnect thêm (clear cache)
       try {
-        await googleSignIn.disconnect();
+        await _googleSignIn.disconnect();
         print('Google disconnect() completed');
       } catch (e) {
         print('Google disconnect note: $e');
@@ -374,6 +322,12 @@ class AuthService extends ChangeNotifier {
       print('Logout error: $e');
       notifyListeners();
     }
+  }
+
+  Future<void> _ensureGoogleSignInInitialized() async {
+    if (_googleInitialized) return;
+    await _googleSignIn.initialize(serverClientId: _googleServerClientId);
+    _googleInitialized = true;
   }
 
   /// Skip authentication (guest mode)

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
+import 'dart:ui';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../utils/constants.dart';
@@ -540,7 +541,7 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
         elevation: 0,
         backgroundColor: const Color(0xFFF9F9FF),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryColor),
+          icon: const Icon(Icons.arrow_back, color: Color.fromARGB(255, 3, 3, 3)),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -548,13 +549,13 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w800,
-            color: AppColors.primaryColor,
+            color: Colors.black,
           ),
         ),
         actions: [
           IconButton(
             onPressed: _openMessage,
-            icon: const Icon(Icons.chat_bubble_outline, color: AppColors.primaryColor),
+            icon: const Icon(Icons.chat_bubble_outline, color: Color.fromARGB(255, 0, 0, 0)),
           ),
         ],
         centerTitle: true,
@@ -1127,186 +1128,263 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
     // If this profile belongs to the current user, they own all posts shown here
     final isMyPost = widget.isCurrentUser;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD6E3FF)),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1C3355).withValues(alpha: 0.05),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (post.imageUrl != null)
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 220,
-                child: Image.network(
-                  post.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFFE8EEFF),
-                    child: const Center(
-                      child: Icon(Icons.image_not_supported_outlined, color: Color(0xFF9DB3DD), size: 36),
-                    ),
-                  ),
-                ),
-              ),
+    return GestureDetector(
+      onLongPress: isMyPost
+          ? () => _showPostActionMenu(post)
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFD6E3FF)),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF1C3355).withValues(alpha: 0.05),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    post.content,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.manrope(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1C3355),
-                      height: 1.2,
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image section with category tag
+            if (post.imageUrl != null)
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (isMyPost)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF), size: 24),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            _showEditPostDialog(post);
-                          } else if (value == 'delete') {
-                            _showDeletePostDialog(post);
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.edit, size: 18),
-                                const SizedBox(width: 8),
-                                Text(_isEnglish ? 'Edit' : 'Chỉnh sửa'),
-                              ],
-                            ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 240,
+                      child: Image.network(
+                        post.imageUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: const Color(0xFFE8EEFF),
+                          child: const Center(
+                            child: Icon(Icons.image_not_supported_outlined, color: Color(0xFF9DB3DD), size: 36),
                           ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                const Icon(Icons.delete, color: Colors.red, size: 18),
-                                const SizedBox(width: 8),
-                                Text(_isEnglish ? 'Delete' : 'Xóa', style: const TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _formatTime(post.createdAt),
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF4A6085),
-                      ),
-                      textAlign: TextAlign.right,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          if (post.fileUrl != null)
-            GestureDetector(
-              onTap: () => _recordFileDownload(post),
-              child: Container(
-                margin: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: const Color(0xFFE0F4FF),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.insert_drive_file,
-                      size: 16,
-                      color: AppColors.primaryColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        post.fileName ?? (_isEnglish ? 'Attached file' : 'Tệp đính kèm'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  // Category tag
+                  Positioned(
+                    top: 16,
+                    left: 16,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFAD8FD).withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _isEnglish ? 'Learning' : 'Học tập',
+                            style: GoogleFonts.manrope(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF3D0048),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+            // Content section
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title + Time
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          post.content,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.manrope(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1C3355),
+                            height: 1.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        _formatTime(post.createdAt),
+                        style: GoogleFonts.inter(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF4A6085),
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
 
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-            child: Row(
-              children: [
-                const Icon(Icons.favorite_border, size: 16, color: Color(0xFF667BA2)),
-                const SizedBox(width: 6),
-                Text(
-                  '${post.likes}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF4A6085),
+            // File attachment (if any)
+            if (post.fileUrl != null)
+              GestureDetector(
+                onTap: () => _recordFileDownload(post),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: const Color(0xFFE0F4FF),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.insert_drive_file,
+                        size: 16,
+                        color: AppColors.primaryColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          post.fileName ?? (_isEnglish ? 'Attached file' : 'Tệp đính kèm'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 18),
-                const Icon(Icons.chat_bubble_outline, size: 16, color: Color(0xFF667BA2)),
-                const SizedBox(width: 6),
-                Text(
-                  '${post.comments}',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF4A6085),
-                  ),
+              ),
+
+            // Footer - Stats and Actions
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: const Color(0xFFE5E7EB).withValues(alpha: 0.5)),
                 ),
-                const Spacer(),
-                const Icon(Icons.share_outlined, size: 18, color: Color(0xFF667BA2)),
-              ],
+              ),
+              child: Row(
+                children: [
+                  // Like button with count
+                  GestureDetector(
+                    onTap: () {}, // Can be connected to like functionality
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.favorite_border,
+                          size: 20,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${post.likes}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF4A6085),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 20),
+                  // Comment button with count
+                  GestureDetector(
+                    onTap: () {}, // Can be connected to comments
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 20,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${post.comments}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF4A6085),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  // Share button
+                  Icon(
+                    Icons.share_outlined,
+                    size: 20,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPostActionMenu(CommunityPost post) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppColors.primaryColor),
+              title: Text(
+                _isEnglish ? 'Edit Post' : 'Chỉnh sửa bài viết',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditPostDialog(post);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(
+                _isEnglish ? 'Delete Post' : 'Xóa bài viết',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeletePostDialog(post);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

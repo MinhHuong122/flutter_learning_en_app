@@ -203,6 +203,45 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     );
   }
 
+  void _showPostActionMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit, color: AppColors.primaryColor),
+              title: Text(
+                _isEnglish ? 'Edit Post' : 'Chỉnh sửa bài viết',
+                style: GoogleFonts.manrope(fontWeight: FontWeight.w600),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditPostDialog();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: Text(
+                _isEnglish ? 'Delete Post' : 'Xóa bài viết',
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red,
+                ),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeletePostDialog();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showEditPostDialog() {
     final controller = TextEditingController(text: _post.content);
     showDialog(
@@ -401,39 +440,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               ),
                             ),
                             if (context.read<AuthService>().userId != null && context.read<AuthService>().userId == _post.userId)
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF), size: 24),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    _showEditPostDialog();
-                                  } else if (value == 'delete') {
-                                    _showDeletePostDialog();
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.edit, size: 18),
-                                        const SizedBox(width: 8),
-                                        Text(_isEnglish ? 'Edit' : 'Chỉnh sửa'),
-                                      ],
-                                    ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.delete, color: Colors.red, size: 18),
-                                        const SizedBox(width: 8),
-                                        Text(_isEnglish ? 'Delete' : 'Xóa', style: const TextStyle(color: Colors.red)),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              GestureDetector(
+                                onTap: _showPostActionMenu,
+                                child: const Icon(Icons.more_horiz, color: Color(0xFF9CA3AF), size: 24),
                               ),
                           ],
                         ),
@@ -509,7 +518,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
                         // Stats
                         Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
                             border: Border(
                               top: BorderSide(
@@ -518,7 +527,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             ),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildStat('${_post.likes}', _isEnglish ? 'Likes' : 'Lượt thích'),
                               _buildStat('${_post.comments}', _isEnglish ? 'Comments' : 'Bình luận'),
@@ -679,21 +688,25 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   }
 
   Widget _buildStat(String count, String label) {
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
+        Icon(
+          label.contains('Like') || label.contains('thích')
+              ? Icons.favorite_border
+              : label.contains('Comment') || label.contains('luận')
+                  ? Icons.chat_bubble_outline
+                  : Icons.share_outlined,
+          size: 16,
+          color: const Color(0xFF9CA3AF),
+        ),
+        const SizedBox(width: 6),
         Text(
           count,
           style: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1F2937),
-          ),
-        ),
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 11,
-            color: const Color(0xFF9CA3AF),
           ),
         ),
       ],

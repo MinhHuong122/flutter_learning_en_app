@@ -6,6 +6,8 @@ import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
 import '../services/auth_service.dart';
 import '../services/notification_center_service.dart';
+import '../services/community_service.dart';
+import '../providers/lesson_provider.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
@@ -29,6 +31,7 @@ class _AccountScreenState extends State<AccountScreen> {
   int _courses = 0;
   int _certificates = 0;
   int _hours = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -38,28 +41,48 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserData() async {
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user == null) return;
+      final authService = context.read<AuthService>();
+      final currentUserId = authService.userId;
+      
+      if (currentUserId == null) {
+        if (mounted) setState(() => _isLoading = false);
+        return;
+      }
 
-      final response = await Supabase.instance.client
-          .from('profiles')
-          .select('display_name, username, bio, avatar_url')
-          .eq('id', user.id)
-          .single();
+      final communityService = context.read<CommunityService>();
+      final lessonProvider = context.read<LessonProvider>();
+      
+      // Load user profile
+      final userProfile = await communityService.getUserProfile(currentUserId);
+      
+      // Load user's shared lessons (lessons created by user)
+      final sharedLessons = await communityService.getUserSharedLessons(currentUserId);
+      
+      // Load user's posts to calculate total likes
+      final userPosts = await communityService.getUserPosts(currentUserId);
+      int totalLikes = 0;
+      for (final post in userPosts) {
+        totalLikes += post.likes;
+      }
+      
+      // Get completed lessons from LessonProvider (matches process_screen logic)
+      final stats = lessonProvider.getProgressStats();
+      int completedCourses = stats['completedLessons'] ?? 0;
 
       if (mounted) {
         setState(() {
-          _userName = response['display_name'] ?? response['username'] ?? 'User';
-          _userBio = response['bio'] ?? 'No bio yet';
-          _avatarUrl = response['avatar_url'];
-          // Mock data - you can update these from database later
-          _courses = 12;
-          _certificates = 5;
-          _hours = 128;
+          _userName = userProfile.userName ?? 'User';
+          _userBio = userProfile.bio ?? 'No bio yet';
+          _avatarUrl = userProfile.avatarUrl;
+          _courses = completedCourses;
+          _certificates = sharedLessons.length;
+          _hours = totalLikes;
+          _isLoading = false;
         });
       }
     } catch (e) {
       print('Error loading user data: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -305,7 +328,7 @@ class _AccountScreenState extends State<AccountScreen> {
                                 textColor: const Color.fromARGB(255, 3, 66, 161),
                               ),
                               _buildStatCard(
-                                title: _isEnglish ? 'Certificates' : 'Chứng chỉ',
+                                title: _isEnglish ? 'Lessons' : 'Bài học',
                                 value: _certificates.toString(),
                                 icon: Icons.workspace_premium,
                                 iconBgColor: const Color.fromARGB(255, 255, 244, 230),
@@ -313,12 +336,12 @@ class _AccountScreenState extends State<AccountScreen> {
                                 textColor: const Color(0xFFF97316),
                               ),
                               _buildStatCard(
-                                title: _isEnglish ? 'Hours' : 'Giờ',
+                                title: _isEnglish ? 'Likes' : 'Lượt thích',
                                 value: _hours.toString(),
-                                icon: Icons.schedule,
-                                iconBgColor: const Color(0xFFF3E8FF),
-                                iconColor: const Color(0xFFA855F7),
-                                textColor: const Color(0xFFA855F7),
+                                icon: Icons.favorite,
+                                iconBgColor: const Color(0xFFFEE2E2),
+                                iconColor: const Color(0xFFDC2626),
+                                textColor: const Color(0xFFDC2626),
                               ),
                             ],
                           ),

@@ -3,11 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:open_filex/open_filex.dart';
 import 'dart:io';
+import 'dart:math';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
 import '../services/file_history_service.dart';
 import '../services/storage_quota_service.dart';
+import '../services/gemini_voice_coach.dart';
 import 'home_screen.dart';
 import 'process_screen.dart';
 import 'chat_ai_screen.dart';
@@ -31,6 +35,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
   bool _isLoadingActivities = false;
   StorageInfo? _storageInfo;
   bool _isLoadingStorage = true;
+  final GeminiVoiceCoach _voiceCoach = GeminiVoiceCoach();
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
@@ -217,6 +222,537 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
           MaterialPageRoute(builder: (_) => const AccountScreen()),
         );
         break;
+    }
+  }
+
+  // Show context menu with more options
+  void _showFileContextMenu(FileHistoryItem item, int index) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1D5DB),
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
+                margin: const EdgeInsets.only(bottom: 16),
+              ),
+
+              // File name
+              Text(
+                item.fileName,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1F2937),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 20),
+
+              // Score option
+              _buildMenuOption(
+                icon: Icons.star,
+                title: _isEnglish ? 'Score File' : 'Chấm điểm file',
+                subtitle: _isEnglish ? 'AI evaluates the content' : 'AI đánh giá nội dung',
+                iconColor: const Color(0xFFFFB800),
+                onTap: () {
+                  Navigator.pop(context);
+                  _scoreFile(item);
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Summarize option
+              _buildMenuOption(
+                icon: Icons.summarize,
+                title: _isEnglish ? 'Summarize File' : 'Tóm tắt file',
+                subtitle: _isEnglish ? 'Get AI summary' : 'Lấy tóm tắt từ AI',
+                iconColor: const Color(0xFF0EA5E9),
+                onTap: () {
+                  Navigator.pop(context);
+                  _summarizeFile(item);
+                },
+              ),
+              const SizedBox(height: 12),
+
+              // Delete option
+              _buildMenuOption(
+                icon: Icons.delete,
+                title: _isEnglish ? 'Delete File' : 'Xóa file',
+                subtitle: _isEnglish ? 'Remove permanently' : 'Xoá vĩnh viễn',
+                iconColor: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(_isEnglish ? 'Delete File?' : 'Xóa file?'),
+                      content: Text(_isEnglish 
+                          ? 'Are you sure you want to delete this file?'
+                          : 'Bạn chắc chắn muốn xóa file này?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(_isEnglish ? 'Cancel' : 'Hủy'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _deleteFile(item, index);
+                          },
+                          style: TextButton.styleFrom(foregroundColor: Colors.red),
+                          child: Text(_isEnglish ? 'Delete' : 'Xóa'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build menu option item
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color iconColor,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: iconColor.withOpacity(0.1),
+              ),
+              child: Icon(icon, color: iconColor, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: const Color(0xFFD1D5DB)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Fallback API call using Vercel when Gemini fails
+  Future<String> _callVercelAPI(String userMessage) async {
+    try {
+      const String vercelApiUrl = 'https://flutter-learning-en-app.vercel.app/api/chat';
+      
+      print('🔄 Calling Vercel API as fallback...');
+      
+      final response = await http.post(
+        Uri.parse(vercelApiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': userMessage,
+          'systemPrompt': 'You are PUPU AI, a helpful assistant. Provide concise, clear responses.',
+        }),
+      ).timeout(const Duration(seconds: 30));
+
+      print('📡 Vercel API Response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final result = data['response'] ?? data['reply'] ?? '';
+        print('✅ Vercel API returned: $result');
+        return result.isNotEmpty ? result : 'No response from API';
+      } else {
+        print('❌ Vercel API Error: ${response.statusCode}');
+        return 'Vercel API Error (${response.statusCode})';
+      }
+    } catch (e) {
+      print('❌ Vercel API exception: $e');
+      return 'Vercel API Error: $e';
+    }
+  }
+
+  // Direct Gemini API call
+  Future<String> _callGeminiDirect(String userMessage) async {
+    try {
+      const String apiKey = 'AIzaSyC2VellUpFjq-iFqpAi3ey4OVsqqcn5O3o';
+      const String model = 'gemini-2.0-flash-exp';
+      
+      print('🔄 Calling Gemini API directly...');
+      
+      final url = 'https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent?key=$apiKey';
+      
+      final body = {
+        'contents': [
+          {
+            'parts': [
+              {'text': userMessage}
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.7,
+          'maxOutputTokens': 1000,
+        }
+      };
+
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      ).timeout(const Duration(seconds: 30));
+
+      print('📡 Gemini Response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final candidates = data['candidates'] as List<dynamic>?;
+        if (candidates != null && candidates.isNotEmpty) {
+          final content = candidates.first['content'] as Map<String, dynamic>?;
+          final parts = content?['parts'] as List<dynamic>?;
+          final text = (parts != null && parts.isNotEmpty)
+              ? (parts.first['text']?.toString() ?? '')
+              : '';
+          print('✅ Gemini returned: $text');
+          return text.isNotEmpty ? text : 'No response from Gemini';
+        }
+      }
+      print('❌ Gemini Error: ${response.statusCode} - ${response.body}');
+      return 'Gemini Error (${response.statusCode})';
+    } catch (e) {
+      print('❌ Gemini exception: $e');
+      return 'Gemini Error: $e';
+    }
+  }
+
+  // Read file content
+  Future<String> _readFileContent(FileHistoryItem item) async {
+    try {
+      if (item.filePath == null || item.filePath!.isEmpty) {
+        return '';
+      }
+
+      final file = File(item.filePath!);
+      if (!await file.exists()) {
+        return '';
+      }
+
+      // Try to read as text
+      if (item.fileType == 'pdf' || item.fileName.endsWith('.pdf')) {
+        // For PDF, extract text (simplified - just return filename info)
+        return 'File: ${item.fileName}\nType: PDF\nSize: ${item.fileSize}';
+      }
+
+      // For text files
+      if (item.fileName.endsWith('.txt') || 
+          item.fileName.endsWith('.doc') || 
+          item.fileName.endsWith('.docx')) {
+        try {
+          final content = await file.readAsString();
+          // Limit content to first 3000 characters for API
+          return content.substring(0, min(content.length, 3000));
+        } catch (e) {
+          return 'File: ${item.fileName}\nType: Document\nSize: ${item.fileSize}';
+        }
+      }
+
+      return 'File: ${item.fileName}\nType: ${item.fileType ?? 'Unknown'}\nSize: ${item.fileSize}';
+    } catch (e) {
+      print('Error reading file: $e');
+      return 'Unable to read file content';
+    }
+  }
+
+  // Score file using AI
+  Future<void> _scoreFile(FileHistoryItem item) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _isEnglish ? 'Analyzing file...' : 'Đang phân tích file...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Read file content
+      final content = await _readFileContent(item);
+
+      // Get AI scoring
+      final prompt = _isEnglish
+          ? 'Please score and evaluate this file content on a scale of 1-10 based on quality, clarity, and usefulness. Provide a brief assessment:\n\n$content'
+          : 'Vui lòng chấm điểm và đánh giá nội dung file này trên thang điểm 1-10 dựa trên chất lượng, rõ ràng và hữu ích. Cung cấp một đánh giá ngắn:\n\n$content';
+
+      // Try multiple APIs in sequence
+      var response = await _voiceCoach.generateReply(prompt, isEnglish: _isEnglish);
+      
+      if (response.contains('Request failed') || response.contains('No response') || response.contains('Error (')) {
+        print('⚠️ GeminiVoiceCoach failed, trying direct Gemini API...');
+        response = await _callGeminiDirect(prompt);
+      }
+      
+      if (response.contains('Gemini Error') || response.contains('Error (')) {
+        print('⚠️ Direct Gemini failed, trying Vercel API...');
+        response = await _callVercelAPI(prompt);
+      }
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        // Check for error response
+        if (response.contains('Error') || response.isEmpty) {
+          _showMessage(
+            _isEnglish 
+                ? 'API Error: Unable to analyze file. Please try again later.'
+                : 'Lỗi API: Không thể phân tích file. Vui lòng thử lại sau.',
+            isError: true,
+          );
+          return;
+        }
+
+        // Show result
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              _isEnglish ? 'File Score' : 'Chấm điểm file',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.fileName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    response,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(_isEnglish ? 'Close' : 'Đóng'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        _showMessage(
+          _isEnglish 
+              ? 'Error scoring file: Unable to process. Check your internet connection.'
+              : 'Lỗi chấm điểm file: Không thể xử lý. Kiểm tra kết nối internet của bạn.',
+          isError: true,
+        );
+      }
+    }
+  }
+
+  // Summarize file using AI
+  Future<void> _summarizeFile(FileHistoryItem item) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => Dialog(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  color: AppColors.primaryColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  _isEnglish ? 'Summarizing file...' : 'Đang tóm tắt file...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      // Read file content
+      final content = await _readFileContent(item);
+
+      // Get AI summary
+      final prompt = _isEnglish
+          ? 'Please provide a concise summary of this file content in 3-5 key points:\n\n$content'
+          : 'Vui lòng cung cấp một tóm tắt ngắn gọn về nội dung file này trong 3-5 điểm chính:\n\n$content';
+
+      // Try multiple APIs in sequence
+      var response = await _voiceCoach.generateReply(prompt, isEnglish: _isEnglish);
+      
+      if (response.contains('Request failed') || response.contains('No response') || response.contains('Error (')) {
+        print('⚠️ GeminiVoiceCoach failed, trying direct Gemini API...');
+        response = await _callGeminiDirect(prompt);
+      }
+      
+      if (response.contains('Gemini Error') || response.contains('Error (')) {
+        print('⚠️ Direct Gemini failed, trying Vercel API...');
+        response = await _callVercelAPI(prompt);
+      }
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        // Check for error response
+        if (response.contains('Error') || response.isEmpty) {
+          _showMessage(
+            _isEnglish 
+                ? 'API Error: Unable to summarize file. Please try again later.'
+                : 'Lỗi API: Không thể tóm tắt file. Vui lòng thử lại sau.',
+            isError: true,
+          );
+          return;
+        }
+
+        // Show result
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              _isEnglish ? 'File Summary' : 'Tóm tắt file',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.fileName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    response,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      height: 1.6,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(_isEnglish ? 'Close' : 'Đóng'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        _showMessage(
+          _isEnglish 
+              ? 'Error summarizing file: Unable to process. Check your internet connection.'
+              : 'Lỗi tóm tắt file: Không thể xử lý. Kiểm tra kết nối internet của bạn.',
+          isError: true,
+        );
+      }
     }
   }
 
@@ -588,29 +1124,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
                                       child: GestureDetector(
                                         onTap: () => _openFile(item),
                                         onLongPress: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: Text(_isEnglish ? 'Delete File?' : 'Xóa file?'),
-                                              content: Text(_isEnglish 
-                                                  ? 'Are you sure you want to delete this file?'
-                                                  : 'Bạn chắc chắn muốn xóa file này?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.pop(context),
-                                                  child: Text(_isEnglish ? 'Cancel' : 'Hủy'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(context);
-                                                    _deleteFile(item, index);
-                                                  },
-                                                  style: TextButton.styleFrom(foregroundColor: Colors.red),
-                                                  child: Text(_isEnglish ? 'Delete' : 'Xóa'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
+                                          _showFileContextMenu(item, index);
                                         },
                                         child: _buildActivityItem(
                                           icon: FileHistoryService.getFileIcon(item.fileType),

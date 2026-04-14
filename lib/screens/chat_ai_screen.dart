@@ -10,6 +10,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:record/record.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../widgets/voice_interaction_overlay.dart';
@@ -25,20 +27,31 @@ class ChatMessage {
   final String textVi;
   final bool isUser;
   final DateTime timestamp;
+  final File? file;           // Local file (tạm thời)
+  final String? fileName;     // Tên file
+  final String? fileType;     // 'image' hoặc 'pdf'
+  final String? fileUrl;      // URL từ cloud (Cloudinary/Supabase)
 
   ChatMessage({
     required this.text,
     required this.textVi,
     required this.isUser,
     required this.timestamp,
+    this.file,
+    this.fileName,
+    this.fileType,
+    this.fileUrl,
   });
 
-  // Convert to JSON for storage
+  // Convert to JSON for storage (lưu URL thay vì file path)
   Map<String, dynamic> toJson() => {
     'text': text,
     'textVi': textVi,
     'isUser': isUser,
     'timestamp': timestamp.toIso8601String(),
+    'fileName': fileName,
+    'fileType': fileType,
+    'fileUrl': fileUrl,
   };
 
   // Create from JSON
@@ -47,6 +60,9 @@ class ChatMessage {
     textVi: json['textVi'] as String,
     isUser: json['isUser'] as bool,
     timestamp: DateTime.parse(json['timestamp'] as String),
+    fileName: json['fileName'] as String?,
+    fileType: json['fileType'] as String?,
+    fileUrl: json['fileUrl'] as String?,
   );
 }
 
@@ -68,13 +84,14 @@ class _ChatAiScreenState extends State<ChatAiScreen> {
   final List<ChatMessage> _chatHistory = [];
   bool _isTyping = false;
   bool _isRecording = false;
-  int? _currentSpeakingMessageIndex; // Track which message is currently being spoken
-  final Map<int, bool> _showTranslation = {}; // Track which messages show translation
-  final Map<int, bool> _messageMuted = {}; // Track which AI messages are muted
+  int? _currentSpeakingMessageIndex;
+  final Map<int, bool> _showTranslation = {};
+  final Map<int, bool> _messageMuted = {};
   final AudioRecorder _audioRecorder = AudioRecorder();
   final GeminiVoiceCoach _voiceCoach = GeminiVoiceCoach();
   final FlutterTts _flutterTts = FlutterTts();
   final stt.SpeechToText _speechToText = stt.SpeechToText();
+  final ImagePicker _imagePicker = ImagePicker();
   bool _speechEnabled = false;
 
   @override
@@ -217,24 +234,407 @@ class _ChatAiScreenState extends State<ChatAiScreen> {
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
-  void _addMessage(String contentEn, String contentVi, {required bool isUser}) {
+  void _addMessage(
+    String contentEn,
+    String contentVi, {
+    required bool isUser,
+    File? file,
+    String? fileName,
+    String? fileType,
+    String? fileUrl,
+  }) {
     final newMessage = ChatMessage(
       text: contentEn,
       textVi: contentVi,
       isUser: isUser,
       timestamp: DateTime.now(),
+      file: file,
+      fileName: fileName,
+      fileType: fileType,
+      fileUrl: fileUrl,
     );
 
     setState(() {
       _messages.add(newMessage);
       _chatHistory.add(newMessage);
     });
-    _saveChatHistory(); // Save after adding
+    _saveChatHistory();
     _scrollToBottom();
+  }
+
+  Future<void> _pickFile() async {
+    try {
+      // Show file picker dialog
+      final result = await showModalBottomSheet<String>(
+        context: context,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle
+                Container(
+                  width: 40,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD1D5DB),
+                    borderRadius: BorderRadius.circular(2.5),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 16),
+                ),
+
+                // Title
+                Text(
+                  _isEnglish ? 'Share File' : 'Chia sẻ file',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Photo from Gallery
+                GestureDetector(
+                  onTap: () => Navigator.pop(context, 'gallery'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.image, color: Color(0xFF0EA5E9), size: 24),
+                        const SizedBox(width: 12),
+                        Text(
+                          _isEnglish ? 'Photo from Gallery' : 'Ảnh từ thư viện',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1F2937),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Take Photo
+                GestureDetector(
+                  onTap: () => Navigator.pop(context, 'camera'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.camera_alt, color: Color(0xFF10B981), size: 24),
+                        const SizedBox(width: 12),
+                        Text(
+                          _isEnglish ? 'Take a Photo' : 'Chụp ảnh',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1F2937),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // PDF or Document
+                GestureDetector(
+                  onTap: () => Navigator.pop(context, 'pdf'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.picture_as_pdf, color: Color(0xFFDC2626), size: 24),
+                        const SizedBox(width: 12),
+                        Text(
+                          _isEnglish ? 'PDF or Document' : 'PDF hoặc Tài liệu',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1F2937),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      if (result == null) return;
+
+      // Xử lý từng loại file
+      if (result == 'gallery' || result == 'camera') {
+        final pickedFile = await _imagePicker.pickImage(
+          source: result == 'gallery' ? ImageSource.gallery : ImageSource.camera,
+        );
+
+        if (pickedFile != null) {
+          final tempFile = File(pickedFile.path);
+          final fileName = pickedFile.path.split('/').last;
+          
+          // Show loading indicator while uploading
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isEnglish ? 'Uploading image...' : 'Đang tải ảnh lên...',
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+          
+          // Upload to Cloudinary
+          final imageUrl = await _uploadImageToCloudinary(tempFile);
+          
+          if (imageUrl != null) {
+            _addMessage(
+              '',
+              '',
+              isUser: true,
+              file: tempFile,
+              fileName: fileName,
+              fileType: 'image',
+              fileUrl: imageUrl,
+            );
+
+            // AI phân tích ảnh
+            await _analyzeImage(imageUrl);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEnglish ? 'Failed to upload image' : 'Không thể tải ảnh lên',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } else if (result == 'pdf') {
+        final result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['pdf', 'doc', 'docx', 'txt'],
+        );
+
+        if (result != null && result.files.isNotEmpty) {
+          final file = File(result.files.first.path!);
+          final fileName = result.files.first.name;
+          
+          // Show loading indicator while uploading
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _isEnglish ? 'Uploading file...' : 'Đang tải file lên...',
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+          
+          // Upload to Supabase
+          final fileUrl = await _uploadFileToSupabase(file, fileName);
+          
+          if (fileUrl != null) {
+            _addMessage(
+              '',
+              '',
+              isUser: true,
+              file: file,
+              fileName: fileName,
+              fileType: 'pdf',
+              fileUrl: fileUrl,
+            );
+
+            // AI phân tích PDF
+            await _analyzePDF(fileUrl);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEnglish ? 'Failed to upload file' : 'Không thể tải file lên',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Error picking file: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish ? 'Error uploading file' : 'Lỗi tải file',
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _analyzeImage(String imageUrl) async {
+    try {
+      setState(() => _isTyping = true);
+
+      // Gửi tin nhắn default khi upload ảnh
+      String analysisResult = _isEnglish
+          ? 'I received your image. What would you like to know about it?'
+          : 'Tôi đã nhận ảnh của bạn. Bạn muốn hỏi điều gì về nó?';
+
+      // Dịch sang tiếng Việt nếu cần
+      String translatedResult = _isEnglish
+          ? analysisResult
+          : await _translateToVietnamese(analysisResult);
+
+      _addMessage(
+        analysisResult,
+        translatedResult,
+        isUser: false,
+      );
+
+      final messageIndex = _messages.length - 1;
+      _speak(analysisResult, messageIndex: messageIndex);
+    } catch (e) {
+      print('❌ Error analyzing image: $e');
+      _addMessage(
+        'Sorry, I couldn\'t analyze the image. Please try again.',
+        'Xin lỗi, tôi không thể phân tích ảnh. Vui lòng thử lại.',
+        isUser: false,
+      );
+    } finally {
+      setState(() => _isTyping = false);
+    }
+  }
+
+  Future<void> _analyzePDF(String fileUrl) async {
+    try {
+      setState(() => _isTyping = true);
+
+      // Với PDF, ta có thể gửi text hoặc thông báo
+      _addMessage(
+        'PDF file received. I can help you with this document. What would you like to know?',
+        'Tôi đã nhận file PDF. Tôi có thể giúp bạn với tài liệu này. Bạn muốn hỏi điều gì?',
+        isUser: false,
+      );
+
+      final messageIndex = _messages.length - 1;
+      _speak(
+        'PDF file received. I can help you with this document. What would you like to know?',
+        messageIndex: messageIndex,
+      );
+    } catch (e) {
+      print('❌ Error analyzing PDF: $e');
+      _addMessage(
+        'Sorry, I couldn\'t process the PDF. Please try again.',
+        'Xin lỗi, tôi không thể xử lý PDF. Vui lòng thử lại.',
+        isUser: false,
+      );
+    } finally {
+      setState(() => _isTyping = false);
+    }
+  }
+
+  void _deleteMessage(ChatMessage message) {
+    setState(() {
+      _messages.remove(message);
+      _chatHistory.remove(message);
+    });
+    _saveChatHistory();
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isEnglish ? 'Message deleted' : 'Tin nhắn đã xoá',
+        ),
+        backgroundColor: AppColors.primaryColor,
+      ),
+    );
   }
 
   bool _isSameDate(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  // Upload image to Cloudinary
+  Future<String?> _uploadImageToCloudinary(File imageFile) async {
+    try {
+      const String cloudName = 'dssazeaz6'; // Cloudinary cloud name
+      const String uploadPreset = 'app_learn_english'; // Upload preset
+      
+      final url = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+      
+      final request = http.MultipartRequest('POST', url);
+      request.fields['upload_preset'] = uploadPreset;
+      request.fields['folder'] = 'app_learn_english/chat';
+      request.files.add(
+        await http.MultipartFile.fromPath('file', imageFile.path),
+      );
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final jsonData = jsonDecode(responseData);
+        return jsonData['secure_url'] as String?;
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading to Cloudinary: $e');
+      return null;
+    }
+  }
+
+  // Upload PDF to Supabase Storage
+  Future<String?> _uploadFileToSupabase(File file, String fileName) async {
+    try {
+      final supabaseUrl = 'https://ypckcxhrbyfpsutzhdho.supabase.co';
+      final bucket = 'chat_files';
+      final path = 'uploads/${DateTime.now().millisecondsSinceEpoch}_$fileName';
+      final apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwY2tjeGhyYnlmcHN1dHpoZGhvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwNzIzMjEsImV4cCI6MjA4NDY0ODMyMX0.AbPrkjoLv5mbBaD6kOdXK34Qttq-39M6Aqrq-fPLwgY';
+
+      final url = Uri.parse(
+          '$supabaseUrl/storage/v1/object/$bucket/$path');
+
+      final request = http.Request('POST', url);
+      request.headers['Authorization'] = 'Bearer $apiKey';
+      request.headers['Content-Type'] = 'application/octet-stream';
+      request.bodyBytes = await file.readAsBytes();
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        return '$supabaseUrl/storage/v1/object/public/$bucket/$path';
+      }
+      return null;
+    } catch (e) {
+      print('Error uploading to Supabase: $e');
+      return null;
+    }
   }
 
   void _scrollToBottom() {
@@ -676,17 +1076,20 @@ body: jsonEncode({
       ),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFF3F4F6),
-            ),
-            child: const Icon(
-              Icons.expand_circle_down,
-              color: Color(0xFF9CA3AF),
-              size: 20,
+          GestureDetector(
+            onTap: _isTyping ? null : _pickFile,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _isTyping ? const Color(0xFFE5E7EB) : const Color(0xFFF3F4F6),
+              ),
+              child: Icon(
+                Icons.expand_circle_down,
+                color: _isTyping ? const Color(0xFFD1D5DB) : const Color(0xFF9CA3AF),
+                size: 20,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -810,22 +1213,67 @@ body: jsonEncode({
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(16),
+              // File preview (nếu có)
+              if (message.file != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: message.fileType == 'image'
+                      ? Image.file(
+                          message.file!,
+                          height: 200,
+                          width: 200,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          height: 100,
+                          width: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.picture_as_pdf,
+                                size: 40,
+                                color: Colors.red,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                message.fileName ?? 'File',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF666666),
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(
-                  content,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF1F2937),
-                    height: 1.4,
+                const SizedBox(height: 8),
+              ],
+              // Text message
+              if (message.text.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F2FE),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF1F2937),
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
               // Translation section
               if (showTranslation)
                 Padding(
@@ -868,7 +1316,6 @@ body: jsonEncode({
                         final wasUnmuted = !isMuted;
                         
                         if (wasUnmuted) {
-                          // was unmuted, now muting - stop speaking immediately
                           await _stopSpeaking();
                         }
                         
@@ -877,7 +1324,6 @@ body: jsonEncode({
                         });
                         
                         if (!wasUnmuted) {
-                          // was muted, now unmuting - start speaking again
                           await _speak(content, messageIndex: messageIndex);
                         }
                       },
@@ -933,23 +1379,107 @@ body: jsonEncode({
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
-                  borderRadius: BorderRadius.circular(16),
+              // File preview with delete button (nếu có file hoặc fileUrl)
+              if (message.file != null || message.fileUrl != null) ...[
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: message.fileType == 'image'
+                          ? message.fileUrl != null
+                              ? Image.network(
+                                  message.fileUrl!,
+                                  height: 200,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 200,
+                                      width: 200,
+                                      color: Colors.grey[300],
+                                      child: const Icon(Icons.broken_image),
+                                    );
+                                  },
+                                )
+                              : Image.file(
+                                  message.file!,
+                                  height: 200,
+                                  width: 200,
+                                  fit: BoxFit.cover,
+                                )
+                          : Container(
+                              height: 100,
+                              width: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.picture_as_pdf,
+                                    size: 40,
+                                    color: Colors.red,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    message.fileName ?? 'File',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Color(0xFF666666),
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                    ),
+                    // Delete button (×)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () => _deleteMessage(message),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close,
+                            size: 18,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Text(
-                  content,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF1F2937),
-                    height: 1.4,
+                const SizedBox(height: 8),
+              ],
+              // Text message
+              if (content.isNotEmpty)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: Text(
+                    content,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF1F2937),
+                      height: 1.4,
+                    ),
                   ),
                 ),
-              ),
               const SizedBox(height: 4),
               Padding(
                 padding: const EdgeInsets.only(right: 8),

@@ -29,8 +29,11 @@ class FlashcardEditorScreen extends StatefulWidget {
 
 class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   late List<DictionaryEntry> _vocabularyList;
+  late String _lessonName;
+  late String _description;
   bool _isSaving = false;
   bool _isLoadingData = false;
+  bool _hasChanges = false; // Track if user made any changes
   final LessonService _lessonService = LessonService();
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
@@ -40,6 +43,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     super.initState();
     print('🎬 FlashcardEditorScreen initiated - lessonId: ${widget.lessonId}');
     _vocabularyList = List.from(widget.extractedWords);
+    _lessonName = widget.lessonName;
+    _description = widget.description;
     
     // If lessonId is provided, load vocabulary from database
     if (widget.lessonId != null) {
@@ -84,6 +89,266 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         );
       }
     }
+  }
+
+  void _editLessonName() {
+    final nameController = TextEditingController(text: _lessonName);
+    final descriptionController = TextEditingController(text: _description);
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                color: Colors.black.withOpacity(0.6),
+              ),
+            ),
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(32),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    blurRadius: 40,
+                    offset: const Offset(0, 20),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isEnglish ? 'Edit Lesson' : 'Chỉnh sửa Bài học',
+                        style: GoogleFonts.quicksand(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Lesson Name Field
+                      _buildFloatingLabelField(
+                        controller: nameController,
+                        label: _isEnglish ? 'Lesson Name' : 'Tên Bài học',
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Description Field
+                      _buildFloatingLabelField(
+                        controller: descriptionController,
+                        label: _isEnglish ? 'Description' : 'Mô tả',
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Action Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              _isEnglish ? 'Cancel' : 'Hủy',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (nameController.text.trim().isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      _isEnglish
+                                          ? 'Please enter lesson name'
+                                          : 'Vui lòng nhập tên bài học',
+                                    ),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                                return;
+                              }
+
+                              setState(() {
+                                _lessonName = nameController.text.trim();
+                                _description = descriptionController.text.trim();
+                                _hasChanges = true;
+                              });
+                              Navigator.pop(context);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF31718F),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              elevation: 8,
+                              shadowColor: const Color(0xFF31718F).withOpacity(0.2),
+                            ),
+                            child: Text(
+                              _isEnglish ? 'Save' : 'Lưu',
+                              style: GoogleFonts.quicksand(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showConfirmExitDialog() {
+    if (!_hasChanges) {
+      Navigator.pop(context);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.2),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icon
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFFEF3C7),
+                ),
+                child: const Icon(
+                  Icons.warning_outlined,
+                  size: 40,
+                  color: Color(0xFFD97706),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                _isEnglish ? 'Discard Changes?' : 'Bỏ qua thay đổi?',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1F2937),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              // Message
+              Text(
+                _isEnglish
+                    ? 'You have unsaved changes. Do you want to go back?'
+                    : 'Bạn có những thay đổi chưa lưu. Bạn có muốn quay lại?',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: const Color(0xFF6B7280),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 28),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _isEnglish ? 'Continue Editing' : 'Tiếp tục chỉnh sửa',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF6B7280),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context); // Close dialog
+                        Navigator.pop(context); // Go back
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _isEnglish ? 'Go Back' : 'Quay lại',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _editWord(int index) {
@@ -203,6 +468,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                   isCommon: word.isCommon,
                   frequency: word.frequency,
                 );
+                _hasChanges = true; // Mark as changed
               });
               Navigator.pop(context);
             },
@@ -372,6 +638,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
             onPressed: () {
               setState(() {
                 _vocabularyList.removeAt(index);
+                _hasChanges = true; // Mark as changed
               });
               Navigator.pop(context);
             },
@@ -583,6 +850,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                                     frequency: 0,
                                   ),
                                 );
+                                _hasChanges = true; // Mark as changed
                               });
                               Navigator.pop(context);
                             },
@@ -665,8 +933,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         // Update existing lesson
         final result = await _lessonService.updateCustomLesson(
           lessonId: widget.lessonId!,
-          title: widget.lessonName,
-          description: widget.description,
+          title: _lessonName,
+          description: _description,
           vocabularyWords: vocabularyData,
         );
 
@@ -695,8 +963,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         // Then create the custom lesson
         final result = await _lessonService.createCustomLesson(
           userId: userId,
-          title: widget.lessonName,
-          description: widget.description,
+          title: _lessonName,
+          description: _description,
           vocabularyWords: vocabularyData,
         );
 
@@ -767,7 +1035,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: _showConfirmExitDialog,
                     child: Container(
                       width: 40,
                       height: 40,
@@ -839,13 +1107,39 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.lessonName,
-                      style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1F2937),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: _editLessonName,
+                            child: Text(
+                              _lessonName,
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1F2937),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        GestureDetector(
+                          onTap: _editLessonName,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryColor.withOpacity(0.15),
+                            ),
+                            child: Icon(
+                              Icons.edit,
+                              size: 18,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                         const SizedBox(height: 6),
                     Text(

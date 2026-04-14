@@ -228,9 +228,19 @@ Always be friendly, patient, and focus on helping users learn English effectivel
             : '';
 
         return text.isEmpty ? 'No response.' : text.trim();
+      } else if (response.statusCode == 404) {
+        print('❌ API 404 Error: ${response.body}');
+        return 'Request failed (404). API endpoint not available.';
+      } else if (response.statusCode == 400) {
+        print('❌ API 400 Error: ${response.body}');
+        return 'Request failed (400). Invalid API key or request format.';
+      } else if (response.statusCode == 429) {
+        print('❌ API 429 Error: Rate limited');
+        return 'Request failed (429). Too many requests. Try again later.';
+      } else {
+        print('❌ API Error (${response.statusCode}): ${response.body}');
+        return 'Request failed (${response.statusCode}). Please try again later.';
       }
-
-      return 'Request failed (${response.statusCode}).';
     } catch (e) {
       print('❌ Reply generation error: $e');
       return isEnglish ? 'Error generating reply: $e' : 'Lỗi tạo phản hồi: $e';

@@ -277,6 +277,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void _onBottomNavTap(int index) {
     switch (index) {
       case 0:
+        // Refresh continue learning when home tab is selected
+        context.read<LessonProvider>().refresh().then((_) {
+          _preloadContinueLearning();
+        });
         setState(() => _currentIndex = index);
         break;
       case 1:
@@ -1103,7 +1107,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Expanded(
                       child: _buildCardInfoItem(
                         Icons.folder_open,
-                        '${lesson.totalQuestions ?? 0} Lessons',
+                        '${(lesson.totalQuestions ?? 0) == 0 ? 3 : lesson.totalQuestions} Lessons',
                         colors['primary'] as Color,
                         colors['textSecondary'] as Color,
                       ),
@@ -1476,6 +1480,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         );
         if (mounted) {
+          await context.read<LessonProvider>().refresh();
           await _preloadContinueLearning();
           setState(() {});
         }

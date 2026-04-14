@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/dictionary_model.dart';
 import '../services/supabase_dictionary_service.dart';
 import '../services/language_service.dart';
+import '../services/lesson_service.dart';
 import '../utils/constants.dart';
 
 class DictionarySearchScreen extends StatefulWidget {
@@ -730,15 +731,37 @@ class _DictionarySearchScreenState extends State<DictionarySearchScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      // Pronunciation (English only)
+                      // Pronunciation with speaker button
                       if (entry.isEnglish && entry.pronunciation.isNotEmpty)
-                        Text(
-                          '/${entry.pronunciation}/',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: AppColors.primaryColor,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '/${entry.pronunciation}/',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: () {
+                                LessonService().speak(entry.term);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.volume_up,
+                                  size: 18,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                     ],
                   ),

@@ -544,8 +544,8 @@ class _QuizScreenState extends State<QuizScreen> {
                   borderRadius: BorderRadius.circular(14),
                   child: Image.asset(
                     isCorrect
-                        ? 'assets/image/sticker/happy.jpg'
-                        : 'assets/image/sticker/sad.jpg',
+                        ? 'assets/image/happy.png'
+                        : 'assets/image/sad.png',
                     width: 120,
                     height: 120,
                     fit: BoxFit.cover,

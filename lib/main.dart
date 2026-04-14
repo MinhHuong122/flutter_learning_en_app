@@ -138,6 +138,7 @@ class MyApp extends StatelessWidget {
           AppRoutes.home: (context) => const HomeScreen(),
           '/dictionary': (context) => const DictionarySearchScreen(),
         },
+
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../utils/constants.dart';
 import '../services/community_service.dart';
 import '../services/auth_service.dart';
@@ -100,6 +102,15 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
   /// Download file from community post with progress dialog
   Future<void> _recordFileDownload(CommunityPost post) async {
     try {
+      // Request storage permissions
+      if (Platform.isAndroid) {
+        final status = await Permission.manageExternalStorage.request();
+        if (!status.isGranted) {
+          // Fallback to WRITE_EXTERNAL_STORAGE
+          await Permission.storage.request();
+        }
+      }
+
       if (post.fileUrl == null || post.fileUrl!.isEmpty) {
         _showErrorSnackbar(_isEnglish ? 'File URL not available' : 'URL file không có');
         return;

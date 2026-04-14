@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_bottom_nav.dart';
 import '../services/language_service.dart';
+import '../services/word_questions_service.dart';
+import '../models/word_question.dart';
 import 'home_screen.dart';
 import 'chat_ai_screen.dart';
 import 'account_screen.dart';
@@ -18,34 +20,14 @@ class ExerciseScreen extends StatefulWidget {
 }
 
 class _ExerciseScreenState extends State<ExerciseScreen> {
-  int _currentIndex = 1;
-  String _selectedTheme = 'desert'; // 'desert' or 'forest'
-  
-  // Sample puzzle words data - In real app, load from Supabase based on lesson
-  final Map<String, List<Map<String, dynamic>>> levelWords = {
-    'level1': [
-      {"word": "PORK", "startRow": 0, "startCol": 5, "direction": "across", "number": 1},
-      {"word": "BEEF", "startRow": 1, "startCol": 1, "direction": "across", "number": 2},
-      {"word": "WATER", "startRow": 2, "startCol": 0, "direction": "across", "number": 3},
-      {"word": "NOODLES", "startRow": 2, "startCol": 4, "direction": "down", "number": 4},
-      {"word": "LEMONADE", "startRow": 4, "startCol": 0, "direction": "across", "number": 5},
-      {"word": "CHICKEN", "startRow": 6, "startCol": 2, "direction": "across", "number": 6},
-    ],
-    'level2': [
-      {"word": "APPLE", "startRow": 0, "startCol": 2, "direction": "across", "number": 1},
-      {"word": "ORANGE", "startRow": 1, "startCol": 0, "direction": "across", "number": 2},
-      {"word": "BANANA", "startRow": 2, "startCol": 5, "direction": "across", "number": 3},
-      {"word": "GRAPE", "startRow": 2, "startCol": 0, "direction": "down", "number": 4},
-      {"word": "MANGO", "startRow": 4, "startCol": 3, "direction": "across", "number": 5},
-    ],
-    'level3': [
-      {"word": "SHIRT", "startRow": 0, "startCol": 2, "direction": "across", "number": 1},
-      {"word": "PANTS", "startRow": 1, "startCol": 0, "direction": "across", "number": 2},
-      {"word": "SHOES", "startRow": 2, "startCol": 3, "direction": "across", "number": 3},
-      {"word": "COAT", "startRow": 2, "startCol": 0, "direction": "down", "number": 4},
-      {"word": "HAT", "startRow": 4, "startCol": 5, "direction": "across", "number": 5},
-    ],
-  };
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Always initialize to Progress tab (index 1) for Exercise screen
+    _currentIndex = 3;
+  }
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
 
@@ -115,30 +97,6 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
               ),
             ),
 
-            // Theme selector tabs
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildThemeTab(
-                      label: _isEnglish ? 'Desert Mode' : 'Chế độ sa mạc',
-                      theme: 'desert',
-                      icon: Icons.wb_sunny,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildThemeTab(
-                      label: _isEnglish ? 'Forest Mode' : 'Chế độ rừng',
-                      theme: 'forest',
-                      icon: Icons.nature,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
             const SizedBox(height: 12),
 
             // Main content - Level selection grid
@@ -155,7 +113,7 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                       mainAxisSpacing: 16,
                       childAspectRatio: 1,
                     ),
-                    itemCount: 3, // 3 levels
+                    itemCount: 10, // 10 levels
                     itemBuilder: (context, index) {
                       return _buildLevelCard(index + 1);
                     },
@@ -173,68 +131,22 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
     );
   }
 
-  Widget _buildThemeTab({
-    required String label,
-    required String theme,
-    required IconData icon,
-  }) {
-    final isSelected = _selectedTheme == theme;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTheme = theme),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppColors.primaryColor : const Color(0xFFF3F4F6),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primaryColor
-                : const Color(0xFFE5E7EB),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? Colors.white : const Color(0xFF9CA3AF),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : const Color(0xFF9CA3AF),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildLevelCard(int levelNumber) {
-    final isDesert = _selectedTheme == 'desert';
-    final primaryColor = isDesert ? const Color(0xFFFDB54E) : const Color(0xFF10B981);
-    final bgColor = isDesert ? const Color(0xFFFFF5E6) : const Color(0xFFECFDF5);
-    final icon = isDesert ? Icons.wb_sunny : Icons.eco;
+    const primaryColor = Color(0xFF10B981); // Unified green color
+    const bgColor = Color(0xFFECFDF5);
 
     return GestureDetector(
       onTap: () async {
-        final words = levelWords['level$levelNumber'] ?? [];
-        if (mounted) {
+        // Load questions for the selected level
+        final questions = await WordQuestionsService.getQuestionsForLevel(levelNumber);
+        if (mounted && questions.isNotEmpty) {
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => WordPuzzleGame(
                 levelNumber: levelNumber,
-                theme: _selectedTheme,
-                words: words,
-                            ),
+                questions: questions,
+              ),
             ),
           );
           if (result == true && mounted) {
@@ -273,8 +185,8 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
             Container(
               width: 56,
               height: 56,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
                 color: primaryColor,
                 boxShadow: [
                   BoxShadow(
@@ -283,32 +195,32 @@ class _ExerciseScreenState extends State<ExerciseScreen> {
                     offset: const Offset(0, 4),
                   ),
                 ],
-          ),
-          child: Icon(
-            icon,
+              ),
+              child: const Icon(
+                Icons.emoji_events,
                 color: Colors.white,
                 size: 28,
-          ),
-        ),
+              ),
+            ),
             const SizedBox(height: 12),
-        Text(
+            Text(
               _isEnglish ? 'Level $levelNumber' : 'Cấp độ $levelNumber',
-          style: GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
                 fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
               _isEnglish ? 'Play Now' : 'Chơi ngay',
-          style: GoogleFonts.poppins(
+              style: GoogleFonts.poppins(
                 fontSize: 12,
                 color: primaryColor,
                 fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+              ),
+            ),
+          ],
         ),
       ),
     );

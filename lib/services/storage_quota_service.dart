@@ -1,10 +1,9 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 
 class StorageQuotaService {
-  static const String _quotaKey = 'storage_quota_upgraded';
-  static const String _upgradeTimestampKey = 'storage_upgrade_timestamp';
   static const String _storageCacheKey = 'storage_usage_cache';
   static const String _storageCacheTimeKey = 'storage_usage_cache_time';
   static const int _cacheDurationSeconds = 300; // Cache for 5 minutes
@@ -13,12 +12,26 @@ class StorageQuotaService {
   static const int baseLimitBytes = 1 * 1024 * 1024 * 1024; // 1GB
   static const int upgradedLimitBytes = 5 * 1024 * 1024 * 1024; // 5GB
   
-  // Check if user has upgraded storage
+  // Check if user has upgraded storage (from Supabase)
   Future<bool> isUpgraded() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_quotaKey) ?? false;
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId == null) return false;
+      
+      // Get profile from Supabase
+      final response = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('id', userId)
+          .single();
+      
+      final isPremium = response['is_premium'] as bool? ?? false;
+      print('✅ Checked Supabase: user is_premium = $isPremium');
+      return isPremium;
     } catch (e) {
+      print('❌ Error checking premium status: $e');
       return false;
     }
   }
@@ -116,14 +129,26 @@ class StorageQuotaService {
     return (usage + fileSizeBytes) <= limit;
   }
   
-  // Upgrade storage to 5GB
+  // Upgrade storage to 5GB (Supabase is already updated by payment handler)
   Future<void> upgradeStorage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool(_quotaKey, true);
-      await prefs.setString(_upgradeTimestampKey, DateTime.now().toIso8601String());
+      // Verify that Supabase has been updated
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId == null) {
+        throw Exception('User not logged in');
+      }
+      
+      // Verify the upgrade status
+      final isPremium = await isUpgraded();
+      print('✅ Storage upgrade verified: is_premium = $isPremium');
+      
+      if (!isPremium) {
+        print('⚠️ Warning: Supabase not updated with premium status');
+      }
     } catch (e) {
-      // Silent fail
+      print('❌ Error verifying storage upgrade: $e');
     }
   }
   

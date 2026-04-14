@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/constants.dart';
 import '../services/language_service.dart';
+import '../models/word_question.dart';
 
 class WordPuzzleGame extends StatefulWidget {
   final int levelNumber;
-  final String theme; // 'desert' or 'forest'
-  final List<Map<String, dynamic>> words; // Từ vựng cho level
+  final List<WordQuestion> questions;
 
   const WordPuzzleGame({
     Key? key,
     required this.levelNumber,
-    required this.theme,
-    required this.words,
+    required this.questions,
   }) : super(key: key);
 
   @override
@@ -22,7 +22,7 @@ class WordPuzzleGame extends StatefulWidget {
 
 class _WordPuzzleGameState extends State<WordPuzzleGame>
     with TickerProviderStateMixin {
-  late Map<String, String> userAnswers;
+  late Map<String, TextEditingController> answerControllers;
   late Map<String, bool> correctCells;
   int correctCount = 0;
   bool isCompleted = false;
@@ -31,8 +31,15 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
   @override
   void initState() {
     super.initState();
-    userAnswers = {};
+    answerControllers = {};
     correctCells = {};
+    // Create a TextEditingController for each grid cell
+    for (int row = 0; row < 10; row++) {
+      for (int col = 0; col < 10; col++) {
+        String key = '$row-$col';
+        answerControllers[key] = TextEditingController();
+      }
+    }
     _celebrationController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
@@ -42,28 +49,30 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
   @override
   void dispose() {
     _celebrationController.dispose();
+    for (var controller in answerControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
-  Color get _primaryColor =>
-      widget.theme == 'forest' ? const Color(0xFF10B981) : const Color(0xFFFDB54E);
-  Color get _bgColor =>
-      widget.theme == 'forest' ? const Color(0xFFECFDF5) : const Color(0xFFFFF5E6);
+  
+  static const Color _primaryColor = Color(0xFF10B981); // Unified green
+  static const Color _bgColor = Color(0xFFECFDF5);
 
   String? _getLetterAt(int row, int col) {
-    for (var word in widget.words) {
-      final startRow = (word['startRow'] as num).toInt();
-      final startCol = (word['startCol'] as num).toInt();
-      final wordStr = word['word'] as String;
+    for (var question in widget.questions) {
+      final startRow = question.startRow;
+      final startCol = question.startCol;
+      final wordStr = question.word;
       
-      if (word['direction'] == 'across') {
+      if (question.direction == 'across') {
         if (row == startRow &&
             col >= startCol &&
             col < startCol + wordStr.length) {
           return wordStr[col - startCol];
         }
-      } else if (word['direction'] == 'down') {
+      } else if (question.direction == 'down') {
         if (col == startCol &&
             row >= startRow &&
             row < startRow + wordStr.length) {
@@ -75,17 +84,17 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
   }
 
   int? _getWordNumberAt(int row, int col) {
-    for (var word in widget.words) {
-      final startRow = (word['startRow'] as num).toInt();
-      final startCol = (word['startCol'] as num).toInt();
+    for (var question in widget.questions) {
+      final startRow = question.startRow;
+      final startCol = question.startCol;
       
-      if ((word['direction'] == 'across' &&
+      if ((question.direction == 'across' &&
               row == startRow &&
               col == startCol) ||
-          (word['direction'] == 'down' &&
+          (question.direction == 'down' &&
               col == startCol &&
               row == startRow)) {
-        return word['number'] as int;
+        return question.number;
       }
     }
     return null;
@@ -95,11 +104,11 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
     int correct = 0;
     int total = 0;
 
-    for (var word in widget.words) {
-      final wordStr = word['word'] as String;
-      final startRow = word['startRow'] as int;
-      final startCol = word['startCol'] as int;
-      final direction = word['direction'] as String;
+    for (var question in widget.questions) {
+      final wordStr = question.word;
+      final startRow = question.startRow;
+      final startCol = question.startCol;
+      final direction = question.direction;
 
       for (int i = 0; i < wordStr.length; i++) {
         int r = direction == 'across' ? startRow : startRow + i;
@@ -107,7 +116,7 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
         String key = '$r-$c';
 
         total++;
-        final userLetter = userAnswers[key]?.toUpperCase() ?? '';
+        final userLetter = answerControllers[key]?.text.toUpperCase() ?? '';
         final correctLetter = wordStr[i].toUpperCase();
 
         if (userLetter == correctLetter) {
@@ -232,75 +241,92 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
                             bool isPartOfWord = letter != null;
                             int? wordNumber = _getWordNumberAt(row, col);
                             bool isCorrect = correctCells[key] ?? false;
-                            bool isWrong =
-                                userAnswers.containsKey(key) && !isCorrect;
+                            bool hasAnswer = answerControllers[key]?.text.isNotEmpty ?? false;
+                            bool isWrong = hasAnswer && !isCorrect;
 
-                            return DragTarget<String>(
-                              onAccept: (droppedLetter) {
-                                setState(() {
-                                  userAnswers[key] =
-                                      droppedLetter.toUpperCase();
-                                  correctCells.remove(key);
-                                });
-                              },
-                              builder: (context, candidateData, rejectedData) {
-                                Color bgColor = Colors.grey[300]!;
-                                if (isPartOfWord) {
-                                  if (isCorrect) {
-                                    bgColor = Colors.green;
-                                  } else if (isWrong) {
-                                    bgColor = Colors.red.withOpacity(0.5);
-                                  } else {
-                                    bgColor = _primaryColor.withOpacity(0.3);
-                                  }
-                                }
-
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: bgColor,
-                                    border: Border.all(
-                                      color: isPartOfWord
-                                          ? _primaryColor
-                                          : Colors.grey[400]!,
-                                      width: 1,
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: !isPartOfWord
+                                    ? Colors.grey[300]!
+                                    : isCorrect
+                                        ? Colors.green
+                                        : isWrong
+                                            ? Colors.red.withOpacity(0.5)
+                                            : _primaryColor.withOpacity(0.3),
+                                border: Border.all(
+                                  color: isPartOfWord
+                                      ? _primaryColor
+                                      : Colors.grey[400]!,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Word number indicator
+                                  if (wordNumber != null && isPartOfWord)
+                                    Positioned(
+                                      top: 1,
+                                      left: 1,
+                                      child: Text(
+                                        '$wordNumber',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.w700,
+                                          color: _primaryColor,
+                                        ),
+                                      ),
                                     ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // Word number
-                                      if (wordNumber != null)
-                                        Positioned(
-                                          top: 1,
-                                          left: 1,
-                                          child: Text(
-                                            '$wordNumber',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.w700,
-                                              color: _primaryColor,
-                                            ),
-                                          ),
-                                        ),
-                                      // User input
-                                      if (isPartOfWord)
-                                        Text(
-                                          userAnswers[key] ?? '',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: isCorrect
+                                  // Text input field
+                                  if (isPartOfWord)
+                                    TextField(
+                                      controller: answerControllers[key],
+                                      textAlign: TextAlign.center,
+                                      maxLength: 1,
+                                      enabled: !isCorrect,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700,
+                                        color: isCorrect
+                                            ? Colors.white
+                                            : isWrong
                                                 ? Colors.white
-                                                : isWrong
-                                                    ? Colors.white
-                                                    : const Color(0xFF1F2937),
-                                          ),
+                                                : const Color(0xFF1F2937),
+                                      ),
+                                      decoration: InputDecoration(
+                                        counterText: '',
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          if (value.isNotEmpty) {
+                                            final userLetter = value.toUpperCase();
+                                            final correctLetter = letter!.toUpperCase();
+                                            if (userLetter == correctLetter) {
+                                              correctCells[key] = true;
+                                            } else {
+                                              correctCells[key] = false;
+                                            }
+                                          } else {
+                                            correctCells.remove(key);
+                                          }
+                                        });
+                                        // Move to next cell if filled
+                                        if (value.isNotEmpty) {
+                                          FocusScope.of(context).nextFocus();
+                                        }
+                                      },
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.allow(
+                                          RegExp(r'[a-zA-Z]'),
                                         ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                      ],
+                                    ),
+                                ],
+                              ),
                             );
                           },
                         ),
@@ -309,14 +335,14 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
 
                     const SizedBox(height: 24),
 
-                    // Clues with images and draggable words
+                    // Clues section
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _isEnglish ? 'Hint: Drag words to grid' : 'Gợi ý: Kéo từ vào lưới',
+                            _isEnglish ? 'Clues: Type letters in grid' : 'Gợi ý: Gõ từ vào lưới',
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -327,18 +353,14 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
-                            children: widget.words.map((wordData) {
-                              final word = wordData['word'] as String;
-                              final number = wordData['number'] as int;
-                              final direction = wordData['direction'] as String;
-                              final directionLabel = direction == 'across'
+                            children: widget.questions.map((question) {
+                              final directionLabel = question.direction == 'across'
                                   ? (_isEnglish ? 'Across' : 'Ngang')
                                   : (_isEnglish ? 'Down' : 'Dọc');
 
                               return _buildClueCard(
-                                word: word,
-                                number: number,
-                                direction: directionLabel,
+                                question: question,
+                                directionLabel: directionLabel,
                               );
                             }).toList(),
                           ),
@@ -403,87 +425,43 @@ class _WordPuzzleGameState extends State<WordPuzzleGame>
   }
 
   Widget _buildClueCard({
-    required String word,
-    required int number,
-    required String direction,
+    required WordQuestion question,
+    required String directionLabel,
   }) {
-    return Draggable<String>(
-      data: word,
-      feedback: Material(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          decoration: BoxDecoration(
-            color: _primaryColor,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: _primaryColor.withOpacity(0.4),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            word,
+    const primaryColor = Color(0xFF10B981);
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: primaryColor.withOpacity(0.2),
+        border: Border.all(
+          color: primaryColor,
+          width: 2,
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${question.number}. $directionLabel',
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
+              color: primaryColor,
             ),
           ),
-        ),
-      ),
-      childWhenDragging: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: _primaryColor.withOpacity(0.3),
-          border: Border.all(
-            color: _primaryColor,
-            width: 2,
-            style: BorderStyle.solid,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          word,
-          style: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: _primaryColor,
-          ),
-        ),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: _primaryColor.withOpacity(0.2),
-          border: Border.all(
-            color: _primaryColor,
-            width: 2,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '$number. $direction',
-              style: GoogleFonts.poppins(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: _primaryColor,
-              ),
+          Text(
+            question.question ?? question.word,
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF1F2937),
             ),
-            Text(
-              word,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
-          ],
-        ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }

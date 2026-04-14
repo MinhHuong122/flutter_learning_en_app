@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 import '../utils/constants.dart';
 import '../services/language_service.dart';
 import '../services/storage_quota_service.dart';
-import 'payment_screen.dart';
+import '../services/vnpay_service.dart';
 
 class StorageUpgradeScreen extends StatefulWidget {
   const StorageUpgradeScreen({Key? key}) : super(key: key);
@@ -40,28 +42,50 @@ class _StorageUpgradeScreenState extends State<StorageUpgradeScreen> {
   }
 
   void _navigateToPayment() {
+    // Navigate directly to VNPAY payment
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const PaymentScreen()),
-    ).then((success) {
-      if (success == true) {
-        // Refresh storage info after successful payment
+      MaterialPageRoute(
+        builder: (_) => VNPayWebView(
+          onReturn: _handlePaymentResult,
+        ),
+      ),
+    );
+  }
+  
+  void _handlePaymentResult(bool success) {
+    if (success) {
+      // Force clear cache and reload storage info
+      StorageQuotaService().clearStorageCache().then((_) {
         _loadStorageInfo();
-        
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _isEnglish 
-                  ? '✅ Storage upgraded successfully!' 
-                  : '✅ Nâng cấp dung lượng thành công!',
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
+      });
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish 
+                ? '✅ Storage upgraded successfully!' 
+                : '✅ Nâng cấp dung lượng thành công!',
           ),
-        );
-      }
-    });
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      // Payment failed or cancelled
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEnglish 
+                ? 'Payment failed or cancelled' 
+                : 'Thanh toán thất bại',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
@@ -124,33 +148,6 @@ class _StorageUpgradeScreenState extends State<StorageUpgradeScreen> {
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Support button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // TODO: Open support chat
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        _isEnglish ? 'Contact Support' : 'Liên hệ hỗ trợ',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6B7280),
                         ),
                       ),
                     ),
@@ -473,6 +470,206 @@ class _StorageUpgradeScreenState extends State<StorageUpgradeScreen> {
           ),
         )),
       ],
+    );
+  }
+}
+
+// VNPAY WebView Payment Screen
+class VNPayWebView extends StatefulWidget {
+  final Function(bool) onReturn;
+
+  const VNPayWebView({
+    Key? key,
+    required this.onReturn,
+  }) : super(key: key);
+
+  @override
+  State<VNPayWebView> createState() => _VNPayWebViewState();
+}
+
+class _VNPayWebViewState extends State<VNPayWebView> {
+  late WebViewController _webViewController;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWebView();
+  }
+
+  void _initializeWebView() {
+    // Generate payment URL
+    final String orderId = 'ORDER_${DateTime.now().millisecondsSinceEpoch}';
+    
+    print('📱 Building VNPAY payment URL...');
+    final String paymentUrl = VNPayService.buildPaymentUrl(
+      orderInfo: 'StorageUpgrade5GB',
+      amount: 20000, // 20,000 VND
+      orderId: orderId,
+      returnUrl: 'https://www.example.com/payment-return', // HTTPS URL for VNPAY sandbox
+      ipAddress: '127.0.0.1',
+    );
+    
+    print('📱 VNPAY Payment URL ready, initializing WebView...');
+    
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (url) {
+            print('📄 WebView loading: $url');
+            setState(() => _isLoading = true);
+            
+            // Check if returning from VNPAY
+            if (url.contains('payment-return') || url.contains('SuccessTransaction')) {
+              _handlePaymentReturn(url);
+            }
+          },
+          onPageFinished: (url) {
+            print('📄 WebView finished: $url');
+            setState(() => _isLoading = false);
+          },
+          onWebResourceError: (error) {
+            print('❌ WebView error: ${error.description}');
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            print('🔗 Navigation request: ${request.url}');
+            
+            // Check if this is a success or error page from VNPAY
+            if (request.url.contains('SuccessTransaction') || 
+                request.url.contains('payment-return') ||
+                request.url.contains('code=00')) {
+              _handlePaymentSuccess();
+              return NavigationDecision.prevent;
+            }
+            
+            // Check for error pages
+            if (request.url.contains('Error.html') && request.url.contains('code=')) {
+              _handlePaymentError(request.url);
+              return NavigationDecision.prevent;
+            }
+            
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(paymentUrl));
+  }
+
+  void _handlePaymentSuccess() {
+    print('✅ Payment successful detected');
+    
+    // Update Supabase profile
+    _updateStorageAfterPayment();
+  }
+
+  Future<void> _updateStorageAfterPayment() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId == null) throw Exception('User not logged in');
+      
+      // Update profile level and premium status
+      await supabase
+          .from('profiles')
+          .update({
+            'level': 2,
+            'is_premium': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
+      
+      print('✅ Supabase profile updated: level=2, is_premium=true');
+      
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(true);
+      }
+    } catch (e) {
+      print('❌ Error updating profile: $e');
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(false);
+      }
+    }
+  }
+
+  void _handlePaymentError(String url) {
+    print('❌ Payment error detected: $url');
+    if (mounted) {
+      Navigator.pop(context);
+      widget.onReturn(false);
+    }
+  }
+
+  void _handlePaymentReturn(String returnUrl) {
+    print('💳 Payment return detected: $returnUrl');
+    
+    try {
+      // Extract query parameters from the return URL
+      final uri = Uri.parse(returnUrl);
+      final queryParams = uri.queryParameters;
+      
+      print('📋 Query params: $queryParams');
+      
+      // Check response code - payment success
+      final responseCode = queryParams['vnp_ResponseCode'] ?? '';
+      final success = responseCode == '00';
+      
+      print('✅ Response Code: $responseCode (Success: $success)');
+      
+      if (success) {
+        _updateStorageAfterPayment();
+      } else {
+        if (mounted) {
+          Navigator.pop(context);
+          widget.onReturn(false);
+        }
+      }
+    } catch (e) {
+      print('❌ Error parsing payment return: $e');
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFFF9F9FF),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primaryColor),
+          onPressed: () {
+            Navigator.pop(context);
+            widget.onReturn(false); // User cancelled payment
+          },
+        ),
+        title: Text(
+          'VNPAY Payment',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _webViewController),
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryColor,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

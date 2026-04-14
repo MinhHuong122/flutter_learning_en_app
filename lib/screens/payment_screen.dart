@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../utils/constants.dart';
 import '../services/language_service.dart';
 import '../services/storage_quota_service.dart';
+import '../services/vnpay_service.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({Key? key}) : super(key: key);
@@ -16,31 +20,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _paymentConfirmed = false;
   
   bool get _isEnglish => context.read<LanguageService>().isEnglish;
-  
-  // Mock payment verification - in real app, check with backend
-  Future<void> _simulatePaymentVerification() async {
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primaryColor,
-        ),
-      ),
-    );
-    
-    // Simulate checking payment for 3 seconds
-    await Future.delayed(const Duration(seconds: 3));
-    
-    if (mounted && Navigator.canPop(context)) {
-      Navigator.pop(context); // Close loading dialog
-    }
-    
-    // In real app, verify with backend/payment gateway
-    // For now, simulate success
-    setState(() => _paymentConfirmed = true);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +238,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
             width: double.infinity,
             height: 56,
             child: ElevatedButton(
-              onPressed: _simulatePaymentVerification,
+              onPressed: () {
+                // Navigate directly to VNPAY WebView
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => VNPayWebView(
+                      onReturn: (success) {
+                        if (success) {
+                          setState(() => _paymentConfirmed = true);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                _isEnglish ? 'Payment cancelled' : 'Da huy thanh toan',
+                              ),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 shape: RoundedRectangleBorder(
@@ -267,7 +269,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
               ),
               child: Text(
-                _isEnglish ? 'I have paid - Continue' : 'Tôi đã thanh toán - Tiếp tục',
+                _isEnglish ? 'Proceed to Payment' : 'Tien hanh thanh toan',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -473,3 +475,216 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 }
+
+// VNPAY WebView Payment Screen
+class VNPayWebView extends StatefulWidget {
+  final Function(bool) onReturn;
+
+  const VNPayWebView({
+    Key? key,
+    required this.onReturn,
+  }) : super(key: key);
+
+  @override
+  State<VNPayWebView> createState() => _VNPayWebViewState();
+}
+
+class _VNPayWebViewState extends State<VNPayWebView> {
+  late WebViewController _webViewController;
+  bool _isLoading = true;
+  bool _hasReceivedValidResponse = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWebView();
+  }
+
+  void _initializeWebView() {
+    // Generate payment URL
+    final String orderId = 'ORDER_${DateTime.now().millisecondsSinceEpoch}';
+    
+    print('📱 Building VNPAY payment URL...');
+    final String paymentUrl = VNPayService.buildPaymentUrl(
+      orderInfo: 'StorageUpgrade5GB',
+      amount: 20000,
+      orderId: orderId,
+      returnUrl: 'https://example.com/payment-return',
+      ipAddress: '127.0.0.1',
+    );
+    
+    print('📱 Payment URL: ${paymentUrl.substring(0, 100)}...');
+    
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageStarted: (url) {
+            print('📄 WebView loading: $url');
+            setState(() => _isLoading = true);
+          },
+          onPageFinished: (url) {
+            print('📄 WebView finished: $url');
+            setState(() => _isLoading = false);
+          },
+          onWebResourceError: (error) {
+            print('❌ WebView error: ${error.description}');
+          },
+          onNavigationRequest: (NavigationRequest request) {
+            final url = request.url;
+            print('🔗 Navigation: $url');
+            
+            // Handle intent:// schemes - redirect to external app/browser
+            if (url.startsWith('intent://')) {
+              print('🔗 Intercepting intent:// - launching external');
+              _launchExternalUrl(url);
+              return NavigationDecision.prevent;
+            }
+            
+            // Check for success response
+            if (url.contains('payment-return') || url.contains('vnp_ResponseCode')) {
+              _handlePaymentReturn(url);
+              return NavigationDecision.prevent;
+            }
+            
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(paymentUrl));
+  }
+
+  void _launchExternalUrl(String url) async {
+    try {
+      // Remove the Intent wrapper and extract the actual URL if needed
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(
+          Uri.parse(url),
+          mode: LaunchMode.externalApplication,
+        );
+        print('✅ Launched external app');
+      } else {
+        print('❌ Cannot launch URL: $url');
+      }
+    } catch (e) {
+      print('❌ Error launching URL: $e');
+    }
+  }
+
+  void _handlePaymentReturn(String returnUrl) {
+    print('💳 Payment return detected');
+    _hasReceivedValidResponse = true;
+    
+    try {
+      final uri = Uri.parse(returnUrl);
+      final queryParams = uri.queryParameters;
+      
+      final responseCode = queryParams['vnp_ResponseCode'] ?? '';
+      final success = responseCode == '00';
+      
+      print('✅ Response Code: $responseCode (Success: $success)');
+      
+      if (success) {
+        // Update storage in Supabase when payment succeeds
+        _updateStorageAfterPayment();
+      } else {
+        if (mounted) {
+          Navigator.pop(context);
+          widget.onReturn(false);
+        }
+      }
+    } catch (e) {
+      print('❌ Error parsing return: $e');
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(false);
+      }
+    }
+  }
+
+  Future<void> _updateStorageAfterPayment() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final userId = supabase.auth.currentUser?.id;
+      
+      if (userId == null) throw Exception('User not logged in');
+      
+      print('👤 Updating storage for user: $userId');
+      
+      // 1. Update Supabase profile
+      await supabase
+          .from('profiles')
+          .update({
+            'level': 2,
+            'is_premium': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userId);
+      
+      print('✅ Supabase profile updated: level=2, is_premium=true');
+      
+      // 2. Update local SharedPreferences (IMPORTANT!)
+      final quotaService = StorageQuotaService();
+      await quotaService.upgradeStorage();
+      print('✅ Local storage upgraded (SharedPreferences updated)');
+      
+      // 3. Clear storage cache to force refresh
+      await quotaService.clearStorageCache();
+      print('✅ Storage cache cleared');
+      
+      // Wait for updates to propagate
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(true);
+      }
+    } catch (e) {
+      print('❌ Error updating profile: $e');
+      if (mounted) {
+        Navigator.pop(context);
+        widget.onReturn(false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFFF9F9FF),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primaryColor),
+          onPressed: () {
+            if (!_hasReceivedValidResponse) {
+              Navigator.pop(context);
+              widget.onReturn(false);
+            }
+          },
+        ),
+        title: Text(
+          'VNPAY Payment',
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            color: AppColors.primaryColor,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _webViewController),
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryColor,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+

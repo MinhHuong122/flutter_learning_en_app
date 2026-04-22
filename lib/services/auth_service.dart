@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService extends ChangeNotifier {
   final _supabase = Supabase.instance.client;
@@ -16,6 +17,16 @@ class AuthService extends ChangeNotifier {
   bool _isFirstTimeUser = false;
   bool _pendingEmailConfirmation = false;
   bool _googleInitialized = false;
+
+  static const String _lastLoggedInUserIdKey = 'last_logged_in_user_id';
+  static const List<String> _userScopedCacheKeys = [
+    'recent_games',
+    'file_history',
+    'favorite_lessons',
+    'chat_history',
+    'storage_usage_cache',
+    'storage_usage_cache_time',
+  ];
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userName => _userName;
@@ -36,7 +47,7 @@ class AuthService extends ChangeNotifier {
   /// Lắng nghe thay đổi auth state từ Supabase
   void _initAuthStateListener() {
     _supabase.auth.onAuthStateChange.listen(
-      (data) {
+      (data) async {
         final AuthChangeEvent event = data.event;
         final Session? session = data.session;
 
@@ -44,6 +55,7 @@ class AuthService extends ChangeNotifier {
 
         if (event == AuthChangeEvent.signedIn && session != null) {
           final user = session.user;
+          await _handleAccountSwitchCache(user.id);
           _isAuthenticated = true;
           _userEmail = user.email;
           _userId = user.id;
@@ -87,6 +99,7 @@ class AuthService extends ChangeNotifier {
       );
 
       if (response.user != null) {
+        await _handleAccountSwitchCache(response.user!.id);
         _isAuthenticated = true;
         _userEmail = response.user!.email;
         _userId = response.user!.id;
@@ -132,6 +145,10 @@ class AuthService extends ChangeNotifier {
 
       if (response.user != null) {
         final hasSession = response.session != null;
+
+        if (hasSession) {
+          await _handleAccountSwitchCache(response.user!.id);
+        }
 
         _isAuthenticated = hasSession;
         _userEmail = response.user!.email;
@@ -192,6 +209,7 @@ class AuthService extends ChangeNotifier {
 
       final user = _supabase.auth.currentUser;
       if (user != null) {
+        await _handleAccountSwitchCache(user.id);
         _isAuthenticated = true;
         _userEmail = user.email;
         _userId = user.id;
@@ -253,6 +271,7 @@ class AuthService extends ChangeNotifier {
 
       final user = _supabase.auth.currentUser;
       if (user != null) {
+        await _handleAccountSwitchCache(user.id);
         _isAuthenticated = true;
         _userEmail = user.email;
         _userId = user.id;
@@ -343,6 +362,7 @@ class AuthService extends ChangeNotifier {
     try {
       final user = _supabase.auth.currentUser;
       if (user != null) {
+        await _handleAccountSwitchCache(user.id);
         _isAuthenticated = true;
         _userEmail = user.email;
         _userId = user.id;
@@ -356,6 +376,21 @@ class AuthService extends ChangeNotifier {
       print('Error checking auth status: $e');
       return false;
     }
+  }
+
+  Future<void> _handleAccountSwitchCache(String newUserId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final previousUserId = prefs.getString(_lastLoggedInUserIdKey);
+
+    // Clear user-scoped local cache only when account actually changes.
+    if (previousUserId != null && previousUserId != newUserId) {
+      for (final key in _userScopedCacheKeys) {
+        await prefs.remove(key);
+      }
+      print('🧹 Cleared local user cache because account changed: $previousUserId -> $newUserId');
+    }
+
+    await prefs.setString(_lastLoggedInUserIdKey, newUserId);
   }
 
   /// Reset password - gửi reset link đến email

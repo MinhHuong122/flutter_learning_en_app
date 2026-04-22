@@ -7,6 +7,13 @@ import '../utils/constants.dart';
 import '../services/language_service.dart';
 import '../services/lesson_service.dart';
 
+class _SessionSnapshot {
+  final List<int> queue;
+  final Set<int> mastered;
+
+  _SessionSnapshot({required this.queue, required this.mastered});
+}
+
 class FlashcardSwiperScreen extends StatefulWidget {
   final String lessonId;
   final String lessonName;
@@ -28,8 +35,9 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
   late AnimationController _animationController;
   late FlutterTts _flutterTts;
   List<Map<String, dynamic>> _flashcards = [];
-  List<bool> _understood = [];
-  int _currentIndex = 0;
+  final List<int> _reviewQueue = [];
+  final Set<int> _masteredIndices = {};
+  final List<_SessionSnapshot> _history = [];
   bool _isLoading = true;
   double _dragOffset = 0;
 
@@ -47,11 +55,29 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
     _initTTS();
     if (widget.initialFlashcards != null && widget.initialFlashcards!.isNotEmpty) {
       _flashcards = widget.initialFlashcards!;
-      _understood = List<bool>.filled(_flashcards.length, false);
+      _resetSessionQueue();
       _isLoading = false;
     } else {
       _loadFlashcards();
     }
+  }
+
+  int? get _activeCardIndex => _reviewQueue.isEmpty ? null : _reviewQueue.first;
+
+  Map<String, dynamic>? get _activeCard {
+    final index = _activeCardIndex;
+    if (index == null || index < 0 || index >= _flashcards.length) {
+      return null;
+    }
+    return _flashcards[index];
+  }
+
+  void _resetSessionQueue() {
+    _reviewQueue
+      ..clear()
+      ..addAll(List<int>.generate(_flashcards.length, (i) => i));
+    _masteredIndices.clear();
+    _history.clear();
   }
 
   void _initTTS() async {
@@ -72,7 +98,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
       final cards = await _lessonService.getFlashcardsForLesson(widget.lessonId);
       setState(() {
         _flashcards = cards;
-        _understood = List<bool>.filled(cards.length, false);
+        _resetSessionQueue();
         _isLoading = false;
       });
     } catch (e) {
@@ -94,29 +120,54 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
   }
 
   void _swipeLeft() {
-    if (_currentIndex < _flashcards.length) {
-      _recordStudyProgress(gotIt: true);
-      _understood[_currentIndex] = true;
-      _moveToNext();
+    final cardIndex = _activeCardIndex;
+    if (cardIndex != null) {
+      _recordStudyProgress(gotIt: true, cardIndex: cardIndex);
+      _history.add(
+        _SessionSnapshot(
+          queue: List<int>.from(_reviewQueue),
+          mastered: Set<int>.from(_masteredIndices),
+        ),
+      );
+
+      setState(() {
+        _masteredIndices.add(cardIndex);
+        _reviewQueue.removeAt(0);
+      });
+
+      if (_reviewQueue.isEmpty) {
+        _showCompletionScreen();
+      }
     }
   }
 
   void _swipeRight() {
-    if (_currentIndex < _flashcards.length) {
-      _recordStudyProgress(gotIt: false);
-      _understood[_currentIndex] = false;
-      _moveToNext();
+    final cardIndex = _activeCardIndex;
+    if (cardIndex != null) {
+      _recordStudyProgress(gotIt: false, cardIndex: cardIndex);
+      _history.add(
+        _SessionSnapshot(
+          queue: List<int>.from(_reviewQueue),
+          mastered: Set<int>.from(_masteredIndices),
+        ),
+      );
+
+      setState(() {
+        _masteredIndices.remove(cardIndex);
+        final current = _reviewQueue.removeAt(0);
+        _reviewQueue.add(current);
+      });
     }
   }
 
-  Future<void> _recordStudyProgress({required bool gotIt}) async {
+  Future<void> _recordStudyProgress({required bool gotIt, required int cardIndex}) async {
     try {
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null || _flashcards.isEmpty || _currentIndex >= _flashcards.length) {
+      if (userId == null || _flashcards.isEmpty || cardIndex >= _flashcards.length) {
         return;
       }
 
-      final wordId = _flashcards[_currentIndex]['id']?.toString();
+      final wordId = _flashcards[cardIndex]['id']?.toString();
       if (wordId == null || wordId.isEmpty) {
         return;
       }
@@ -131,18 +182,8 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
     }
   }
 
-  void _moveToNext() {
-    if (_currentIndex < _flashcards.length - 1) {
-      setState(() {
-        _currentIndex++;
-      });
-    } else {
-      _showCompletionScreen();
-    }
-  }
-
   void _showCompletionScreen() {
-    final understoodCount = _understood.where((u) => u).length;
+    final understoodCount = _masteredIndices.length;
     final total = _flashcards.length;
     final percentage = (understoodCount / total * 100).toStringAsFixed(1);
 
@@ -229,8 +270,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                   onPressed: () {
                     Navigator.pop(context);
                     setState(() {
-                      _currentIndex = 0;
-                      _understood = List<bool>.filled(_flashcards.length, false);
+                      _resetSessionQueue();
                     });
                   },
                   style: ElevatedButton.styleFrom(
@@ -306,8 +346,8 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                           ),
                           Text(
                             _isEnglish
-                                ? '${_currentIndex + 1} / ${_flashcards.length} Words'
-                                : '${_currentIndex + 1} / ${_flashcards.length} Từ',
+                                ? '${_masteredIndices.length + 1} / ${_flashcards.length} Words'
+                                : '${_masteredIndices.length + 1} / ${_flashcards.length} Từ',
                             style: GoogleFonts.manrope(
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
@@ -339,7 +379,8 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                     child: SizedBox(
                       height: 8,
                       child: LinearProgressIndicator(
-                        value: (_currentIndex + 1) / (_flashcards.length > 0 ? _flashcards.length : 1),
+                        value: (_masteredIndices.length + 1) /
+                            (_flashcards.isNotEmpty ? _flashcards.length : 1),
                         backgroundColor: const Color(0xFFD6E9FF),
                         valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF4AA9FF)),
                       ),
@@ -432,7 +473,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                           ),
 
                           // Main active card
-                          if (_flashcards.isNotEmpty)
+                          if (_activeCard != null)
                             GestureDetector(
                               onHorizontalDragUpdate: (details) {
                                 setState(() {
@@ -482,7 +523,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                                         children: [
                                           const SizedBox(height: 16),
                                           Text(
-                                            _flashcards[_currentIndex]['word'] ?? 'Unknown',
+                                            _activeCard!['word'] ?? 'Unknown',
                                             style: GoogleFonts.manrope(
                                               fontSize: 52,
                                               fontWeight: FontWeight.w800,
@@ -494,10 +535,10 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                                             textAlign: TextAlign.center,
                                           ),
                                           const SizedBox(height: 8),
-                                          if (_flashcards[_currentIndex]['pronunciation'] != null &&
-                                              (_flashcards[_currentIndex]['pronunciation'] as String).isNotEmpty)
+                                          if (_activeCard!['pronunciation'] != null &&
+                                              (_activeCard!['pronunciation'] as String).isNotEmpty)
                                             Text(
-                                              _flashcards[_currentIndex]['pronunciation'] ?? '',
+                                              _activeCard!['pronunciation'] ?? '',
                                               style: GoogleFonts.inter(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w500,
@@ -526,7 +567,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
 
                                             // Definition
                                             Text(
-                                              _flashcards[_currentIndex]['definition'] ?? 'Unknown',
+                                              _activeCard!['definition'] ?? 'Unknown',
                                               style: GoogleFonts.inter(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w400,
@@ -540,10 +581,10 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                                             const SizedBox(height: 12),
 
                                             // Example
-                                            if (_flashcards[_currentIndex]['example'] != null &&
-                                                (_flashcards[_currentIndex]['example'] as String).isNotEmpty)
+                                            if (_activeCard!['example'] != null &&
+                                                (_activeCard!['example'] as String).isNotEmpty)
                                               Text(
-                                                _flashcards[_currentIndex]['example'] ?? '',
+                                                _activeCard!['example'] ?? '',
                                                 style: GoogleFonts.inter(
                                                   fontSize: 13,
                                                   fontWeight: FontWeight.w400,
@@ -562,7 +603,7 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                                       // Listen Button
                                       ElevatedButton.icon(
                                         onPressed: () {
-                                          final word = _flashcards[_currentIndex]['word'] ?? '';
+                                          final word = _activeCard!['word'] ?? '';
                                           _speak(word);
                                         },
                                         icon: const Icon(Icons.volume_up, size: 20),
@@ -658,9 +699,15 @@ class _FlashcardSwiperScreenState extends State<FlashcardSwiperScreen>
                       // Undo button
                       GestureDetector(
                         onTap: () {
-                          if (_currentIndex > 0) {
+                          if (_history.isNotEmpty) {
+                            final snapshot = _history.removeLast();
                             setState(() {
-                              _currentIndex--;
+                              _reviewQueue
+                                ..clear()
+                                ..addAll(snapshot.queue);
+                              _masteredIndices
+                                ..clear()
+                                ..addAll(snapshot.mastered);
                             });
                           }
                         },

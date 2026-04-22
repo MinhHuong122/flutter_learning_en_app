@@ -90,8 +90,48 @@ class LessonService {
       if (questions.isEmpty) {
         print(
           '⚠️ No rows found in lesson_questions for lesson_id=$normalizedLessonId. '
-          'Please verify lesson_questions.lesson_id matches lessons.id exactly and RLS SELECT policy allows read.',
+          'Trying to generate quiz questions from lesson_vocabulary...',
         );
+
+        final generated = await _ensureQuizQuestionsForLesson(normalizedLessonId);
+        if (generated) {
+          final regeneratedQuestionsResponse = await supabase
+              .from('lesson_questions')
+              .select(
+                'id, lesson_id, question_type, question_text, audio_url, image_url, '
+                'question_order, explanation, correct_answer, vietnamese_text, '
+                'conversation_context, points, created_at'
+              )
+              .eq('lesson_id', normalizedLessonId)
+              .order('question_order', ascending: true);
+
+          final regeneratedQuestions = (regeneratedQuestionsResponse as List)
+              .map((q) => LessonQuestion.fromJson(q))
+              .toList();
+
+          final Map<String, List<LessonOption>> regeneratedOptionsByQuestion = {};
+          for (var question in regeneratedQuestions) {
+            final optionsResponse = await supabase
+                .from('lesson_options')
+                .select()
+                .eq('question_id', question.id)
+                .order('option_order', ascending: true);
+
+            regeneratedOptionsByQuestion[question.id] = (optionsResponse as List)
+                .map((o) => LessonOption.fromJson(o))
+                .toList();
+          }
+
+          print(
+            '✅ Generated ${regeneratedQuestions.length} quiz questions from lesson_vocabulary for lesson $normalizedLessonId',
+          );
+
+          return {
+            'lesson': lesson,
+            'questions': regeneratedQuestions,
+            'options': regeneratedOptionsByQuestion,
+          };
+        }
       }
 
       // Get options for each question
@@ -117,6 +157,441 @@ class LessonService {
       print('Error fetching lesson details: $e');
       return null;
     }
+  }
+
+  Future<bool> _ensureQuizQuestionsForLesson(String lessonId) async {
+    try {
+      final lessonMeta = await supabase
+          .from('lessons')
+          .select('title')
+          .eq('id', lessonId)
+          .maybeSingle();
+      final lessonTitle = (lessonMeta?['title'] ?? '').toString();
+
+      final existingQuestions = await supabase
+          .from('lesson_questions')
+          .select('id')
+          .eq('lesson_id', lessonId);
+
+      if ((existingQuestions as List).isNotEmpty) {
+        return true;
+      }
+
+      final vocabularyResponse = await supabase
+          .from('lesson_vocabulary')
+          .select(
+            'id, term, meaning, pronunciation, word_class, example_sentence, vietnamese_term, vietnamese_meaning',
+          )
+          .eq('lesson_id', lessonId)
+          .order('created_at', ascending: true);
+
+      final vocabulary = (vocabularyResponse as List)
+          .map<Map<String, String>>((item) => {
+                'id': item['id'].toString(),
+                'term': (item['term'] ?? '').toString().trim(),
+                'meaning': (item['meaning'] ?? '').toString().trim(),
+                'vietnameseMeaning': (item['vietnamese_meaning'] ?? item['vietnamese_term'] ?? item['meaning'] ?? '').toString().trim(),
+                'exampleSentence': (item['example_sentence'] ?? '').toString().trim(),
+              })
+          .where((item) => item['term']!.isNotEmpty && item['meaning']!.isNotEmpty)
+          .toList();
+
+      if (vocabulary.isEmpty) {
+        print('⚠️ No lesson_vocabulary rows found for lesson $lessonId');
+        return false;
+      }
+
+      final selectedVocabulary = _selectRelevantVocabularyForLesson(
+        vocabulary,
+        lessonTitle,
+      );
+
+      print(
+        '🧠 Auto-gen vocabulary selection for "$lessonTitle": '
+        'total=${vocabulary.length}, selected=${selectedVocabulary.length}',
+      );
+
+      await supabase.from('lesson_questions').delete().eq('lesson_id', lessonId);
+
+      final questionTypes = [
+        'mcq_en_vi',
+        'mcq_vi_en',
+        'fill_blank',
+        'unscramble',
+        'true_false',
+        'matching',
+        'spelling',
+      ];
+
+      final questionCount = selectedVocabulary.length < questionTypes.length
+          ? selectedVocabulary.length
+          : questionTypes.length;
+
+      for (var index = 0; index < questionCount; index++) {
+        final source = selectedVocabulary[index];
+        final questionType = questionTypes[index];
+
+        switch (questionType) {
+          case 'mcq_en_vi':
+            await _insertMultipleChoiceQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: 'Nghĩa tiếng Việt đúng của từ "${source['term']}" là gì?',
+              correctAnswer: source['vietnameseMeaning']!,
+              explanation: '"${source['term']}" có nghĩa là "${source['vietnameseMeaning']}".',
+              options: _buildDistractorOptions(
+                correctAnswer: source['vietnameseMeaning']!,
+                fallbackValues: selectedVocabulary
+                    .map((item) => item['vietnameseMeaning']!)
+                    .toList(),
+              ),
+            );
+            break;
+          case 'mcq_vi_en':
+            await _insertMultipleChoiceQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: 'Từ tiếng Anh đúng cho nghĩa "${source['vietnameseMeaning']}" là gì?',
+              correctAnswer: source['term']!,
+              explanation: 'Nghĩa "${source['vietnameseMeaning']}" tương ứng với từ "${source['term']}".',
+              options: _buildDistractorOptions(
+                correctAnswer: source['term']!,
+                fallbackValues: selectedVocabulary
+                    .map((item) => item['term']!)
+                    .toList(),
+              ),
+            );
+            break;
+          case 'fill_blank':
+            await _insertTextQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: _buildFillBlankQuestionText(
+                source['exampleSentence']!,
+                source['term']!,
+              ),
+              correctAnswer: source['term']!,
+              explanation: 'Từ cần điền là "${source['term']}".',
+            );
+            break;
+          case 'unscramble':
+            await _insertTextQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: 'Sắp xếp lại các chữ cái để tạo thành từ đúng: ${_scrambleWord(source['term']!)}',
+              correctAnswer: source['term']!,
+              explanation: 'Từ đúng là "${source['term']}".',
+            );
+            break;
+          case 'true_false':
+            final useTrueStatement = index.isEven;
+            final falseMeaning = selectedVocabulary.firstWhere(
+              (item) => item['vietnameseMeaning'] != source['vietnameseMeaning'] || item['term'] != source['term'],
+              orElse: () => source,
+            )['vietnameseMeaning']!;
+            await _insertMultipleChoiceQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: useTrueStatement
+                  ? 'Câu sau đúng hay sai? "${source['term']}" có nghĩa là "${source['vietnameseMeaning']}".'
+                  : 'Câu sau đúng hay sai? "${source['term']}" có nghĩa là "${falseMeaning}".',
+              correctAnswer: useTrueStatement ? 'True' : 'False',
+              explanation: useTrueStatement
+                  ? 'Đúng, "${source['term']}" có nghĩa là "${source['vietnameseMeaning']}".'
+                  : 'Sai, "${source['term']}" không có nghĩa là "${falseMeaning}".',
+              options: [
+                {'text': 'True', 'isCorrect': useTrueStatement},
+                {'text': 'False', 'isCorrect': !useTrueStatement},
+              ],
+            );
+            break;
+          case 'matching':
+            await _insertMatchingQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              sourceVocabulary: selectedVocabulary,
+            );
+            break;
+          case 'spelling':
+            await _insertTextQuestion(
+              lessonId: lessonId,
+              questionOrder: index + 1,
+              questionType: questionType,
+              questionText: 'Viết đúng chính tả từ tiếng Anh có nghĩa "${source['vietnameseMeaning']}".',
+              correctAnswer: source['term']!,
+              explanation: 'Từ đúng là "${source['term']}".',
+            );
+            break;
+        }
+      }
+
+      return true;
+    } catch (e) {
+      print('❌ Error generating quiz questions for lesson $lessonId: $e');
+      return false;
+    }
+  }
+
+  List<Map<String, String>> _selectRelevantVocabularyForLesson(
+    List<Map<String, String>> vocabulary,
+    String lessonTitle,
+  ) {
+    if (vocabulary.length <= 4) return vocabulary;
+
+    final title = lessonTitle.toLowerCase().trim();
+
+    if (_isNumberLessonTitle(title)) {
+      final numberOnly = vocabulary
+          .where((item) => _isNumberVocabulary(item))
+          .toList();
+      if (numberOnly.length >= 4) {
+        return numberOnly;
+      }
+    }
+
+    final keywords = _extractLessonKeywords(title);
+    if (keywords.isEmpty) {
+      return vocabulary;
+    }
+
+    final scored = vocabulary
+        .map((item) {
+          final term = (item['term'] ?? '').toLowerCase();
+          final meaning = (item['meaning'] ?? '').toLowerCase();
+          final viMeaning = (item['vietnameseMeaning'] ?? '').toLowerCase();
+
+          var score = 0;
+          for (final keyword in keywords) {
+            if (term.contains(keyword)) score += 3;
+            if (meaning.contains(keyword)) score += 2;
+            if (viMeaning.contains(keyword)) score += 2;
+          }
+
+          return {'item': item, 'score': score};
+        })
+        .toList()
+      ..sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+
+    final relevant = scored
+        .where((row) => (row['score'] as int) > 0)
+        .map((row) => row['item'] as Map<String, String>)
+        .toList();
+
+    return relevant.length >= 4 ? relevant : vocabulary;
+  }
+
+  bool _isNumberLessonTitle(String title) {
+    return title.contains('number') ||
+        title.contains('numbers') ||
+        title.contains('số') ||
+        title.contains('đếm');
+  }
+
+  bool _isNumberVocabulary(Map<String, String> item) {
+    const englishNumbers = {
+      'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+      'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+      'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'thirty',
+      'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety', 'hundred'
+    };
+    const vietnameseNumbers = {
+      'không', 'một', 'hai', 'ba', 'bốn', 'tư', 'năm', 'lăm', 'sáu', 'bảy',
+      'tám', 'chín', 'mười', 'mươi', 'trăm', 'nghìn'
+    };
+
+    final term = (item['term'] ?? '').toLowerCase();
+    final meaning = (item['meaning'] ?? '').toLowerCase();
+    final viMeaning = (item['vietnameseMeaning'] ?? '').toLowerCase();
+
+    final hasDigit = RegExp(r'\d').hasMatch(term) ||
+        RegExp(r'\d').hasMatch(meaning) ||
+        RegExp(r'\d').hasMatch(viMeaning);
+    final isEnglishNumber = englishNumbers.contains(term);
+    final containsEnglishNumber = englishNumbers.any((w) =>
+        term.contains(w) || meaning.contains(w) || viMeaning.contains(w));
+    final containsVietnameseNumber =
+        vietnameseNumbers.any((w) => viMeaning.contains(w) || meaning.contains(w));
+
+    return hasDigit || isEnglishNumber || containsEnglishNumber || containsVietnameseNumber;
+  }
+
+  Set<String> _extractLessonKeywords(String title) {
+    final normalized = title
+        .replaceAll(RegExp(r'[^a-z0-9\sà-ỹđ]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    final stopwords = {
+      'the', 'a', 'an', 'and', 'or', 'for', 'to', 'of', 'in', 'on', 'with',
+      'lesson', 'bài', 'học', 'chủ', 'đề'
+    };
+
+    return normalized
+        .split(' ')
+        .map((s) => s.trim())
+        .where((s) => s.length >= 2 && !stopwords.contains(s))
+        .toSet();
+  }
+
+  Future<void> _insertMultipleChoiceQuestion({
+    required String lessonId,
+    required int questionOrder,
+    required String questionType,
+    required String questionText,
+    required String correctAnswer,
+    required String explanation,
+    required List<Map<String, dynamic>> options,
+  }) async {
+    final questionResponse = await supabase
+        .from('lesson_questions')
+        .insert({
+          'lesson_id': lessonId,
+          'question_type': questionType,
+          'question_text': questionText,
+          'question_order': questionOrder,
+          'explanation': explanation,
+          'correct_answer': correctAnswer,
+          'points': 10,
+        })
+        .select('id')
+        .single();
+
+    final questionId = questionResponse['id'] as String;
+    final optionRows = options.asMap().entries.map((entry) {
+      return {
+        'question_id': questionId,
+        'option_text': entry.value['text'],
+        'is_correct': entry.value['isCorrect'] ?? false,
+        'option_order': entry.key + 1,
+      };
+    }).toList();
+
+    if (optionRows.isNotEmpty) {
+      await supabase.from('lesson_options').insert(optionRows);
+    }
+  }
+
+  Future<void> _insertTextQuestion({
+    required String lessonId,
+    required int questionOrder,
+    required String questionType,
+    required String questionText,
+    required String correctAnswer,
+    required String explanation,
+  }) async {
+    await supabase.from('lesson_questions').insert({
+      'lesson_id': lessonId,
+      'question_type': questionType,
+      'question_text': questionText,
+      'question_order': questionOrder,
+      'explanation': explanation,
+      'correct_answer': correctAnswer,
+      'points': 10,
+    });
+  }
+
+  Future<void> _insertMatchingQuestion({
+    required String lessonId,
+    required int questionOrder,
+    required List<Map<String, String>> sourceVocabulary,
+  }) async {
+    final pairs = sourceVocabulary.take(3).toList();
+    if (pairs.isEmpty) return;
+
+    final questionResponse = await supabase
+        .from('lesson_questions')
+        .insert({
+          'lesson_id': lessonId,
+          'question_type': 'matching',
+          'question_text': 'Nối từ tiếng Anh với nghĩa tiếng Việt tương ứng.',
+          'question_order': questionOrder,
+          'explanation': 'Ghép mỗi từ với nghĩa đúng của nó.',
+          'correct_answer': 'match',
+          'points': 10,
+        })
+        .select('id')
+        .single();
+
+    final questionId = questionResponse['id'] as String;
+    final optionRows = <Map<String, dynamic>>[];
+
+    for (var index = 0; index < pairs.length; index++) {
+      final pair = pairs[index];
+      final pairId = 'pair_${questionOrder}_$index';
+      optionRows.addAll([
+        {
+          'question_id': questionId,
+          'option_text': pair['term'],
+          'is_correct': true,
+          'option_order': index * 2 + 1,
+          'match_pair_id': pairId,
+        },
+        {
+          'question_id': questionId,
+          'option_text': pair['vietnameseMeaning'],
+          'is_correct': true,
+          'option_order': index * 2 + 2,
+          'match_pair_id': pairId,
+        },
+      ]);
+    }
+
+    await supabase.from('lesson_options').insert(optionRows);
+  }
+
+  List<Map<String, dynamic>> _buildDistractorOptions({
+    required String correctAnswer,
+    required List<String> fallbackValues,
+  }) {
+    final seen = <String>{correctAnswer.toLowerCase().trim()};
+    final options = <Map<String, dynamic>>[
+      {'text': correctAnswer, 'isCorrect': true},
+    ];
+
+    for (final value in fallbackValues) {
+      final normalized = value.toLowerCase().trim();
+      if (normalized.isEmpty || seen.contains(normalized)) continue;
+      seen.add(normalized);
+      options.add({'text': value, 'isCorrect': false});
+      if (options.length >= 4) break;
+    }
+
+    while (options.length < 4) {
+      options.add({'text': 'None of the above', 'isCorrect': false});
+    }
+
+    return options;
+  }
+
+  String _buildFillBlankQuestionText(String exampleSentence, String term) {
+    if (exampleSentence.isEmpty) {
+      return 'Điền từ còn thiếu: ______';
+    }
+
+    final escapedTerm = RegExp.escape(term);
+    final blankedSentence = exampleSentence.replaceAllMapped(
+      RegExp(escapedTerm, caseSensitive: false),
+      (_) => '______',
+    );
+
+    return blankedSentence.contains('______')
+        ? 'Điền từ còn thiếu: $blankedSentence'
+        : 'Điền từ còn thiếu: ${exampleSentence.replaceAll(term, '______')}';
+  }
+
+  String _scrambleWord(String word) {
+    if (word.length <= 1) return word;
+    final letters = word.split('');
+    letters.shuffle();
+    if (letters.join() == word) {
+      letters.insert(0, letters.removeLast());
+    }
+    return letters.join();
   }
 
   // Get user progress for a lesson

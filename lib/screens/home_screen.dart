@@ -37,6 +37,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   String _userName = 'User';
   String _selectedFilter = 'all'; // 'all', 'popular', 'newest', 'advance'
+  String? _surveyLearningReason;
+  String? _surveyEnglishLevel;
+  List<String> _surveySelectedSkills = [];
   Lesson? _cachedCurrentLesson;
   Map<String, dynamic>? _cachedCurrentCustomLesson;
   List<Map<String, dynamic>> _cachedCurrentCustomFlashcards = [];
@@ -50,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _messagingService = context.read<MessagingService>();
     _loadUserName();
+    _loadSurveyPreferences();
     // Load lessons once (cached globally) - but don't wait for it
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadContinueLearning();
@@ -59,6 +63,49 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         _messagingService.initializeGlobalMessageListener(userId);
       }
     });
+  }
+
+  Future<void> _loadSurveyPreferences() async {
+    try {
+      final userId = context.read<AuthService>().userId;
+      if (userId == null) return;
+
+      final row = await Supabase.instance.client
+          .from('survey_responses')
+          .select('selected_skills, learning_reason, english_level, completed_at')
+          .eq('user_id', userId)
+          .order('completed_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+
+      if (row == null || !mounted) return;
+
+      final selectedSkillsRaw = row['selected_skills'];
+      final selectedSkills = <String>[];
+      if (selectedSkillsRaw is List) {
+        for (final item in selectedSkillsRaw) {
+          final normalized = item.toString().trim().toLowerCase();
+          if (normalized.isNotEmpty) selectedSkills.add(normalized);
+        }
+      } else if (selectedSkillsRaw is String) {
+        selectedSkills.addAll(
+          selectedSkillsRaw
+              .split(',')
+              .map((e) => e.trim().toLowerCase())
+              .where((e) => e.isNotEmpty),
+        );
+      }
+
+      setState(() {
+        _surveySelectedSkills = selectedSkills;
+        _surveyLearningReason = row['learning_reason']?.toString().toLowerCase();
+        _surveyEnglishLevel = row['english_level']?.toString().toLowerCase();
+      });
+
+      print('✅ Loaded survey preferences for recommendations: skills=${_surveySelectedSkills.length}, level=$_surveyEnglishLevel');
+    } catch (e) {
+      print('Error loading survey preferences: $e');
+    }
   }
 
   @override
@@ -545,7 +592,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             // Expanded scrollable content
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => context.read<LessonProvider>().refresh(),
+                onRefresh: () async {
+                  await context.read<LessonProvider>().refresh();
+                  await _loadSurveyPreferences();
+                },
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
@@ -947,7 +997,101 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   List<Lesson> _getFilteredLessons() {
     final provider = context.read<LessonProvider>();
-    return provider.getFilteredLessons(_selectedFilter);
+    final filtered = provider.getFilteredLessons(_selectedFilter);
+    final recommended = _applySurveyRecommendation(filtered);
+
+    // Home chỉ hiển thị một phần ngắn gọn, tránh render toàn bộ danh sách.
+    return recommended.take(4).toList();
+  }
+
+  List<Lesson> _applySurveyRecommendation(List<Lesson> lessons) {
+    if (lessons.isEmpty) return lessons;
+
+    final hasSurvey = _surveySelectedSkills.isNotEmpty ||
+        (_surveyLearningReason != null && _surveyLearningReason!.isNotEmpty) ||
+        (_surveyEnglishLevel != null && _surveyEnglishLevel!.isNotEmpty);
+
+    if (!hasSurvey) {
+      return lessons;
+    }
+
+    final scored = lessons.map((lesson) {
+      final score = _scoreLessonBySurvey(lesson);
+      return {'lesson': lesson, 'score': score};
+    }).toList()
+      ..sort((a, b) {
+        final scoreCompare = (b['score'] as int).compareTo(a['score'] as int);
+        if (scoreCompare != 0) return scoreCompare;
+
+        final la = a['lesson'] as Lesson;
+        final lb = b['lesson'] as Lesson;
+        return la.lessonOrder.compareTo(lb.lessonOrder);
+      });
+
+    return scored.map((e) => e['lesson'] as Lesson).toList();
+  }
+
+  int _scoreLessonBySurvey(Lesson lesson) {
+    final text = '${lesson.title} ${lesson.description} ${lesson.lessonType} ${lesson.level}'
+        .toLowerCase();
+    var score = 0;
+
+    final skillKeywordMap = <String, List<String>>{
+      'speaking': ['conversation', 'speak', 'repeat', 'giao tiếp', 'hội thoại'],
+      'listening': ['listening', 'audio', 'nghe'],
+      'vocabulary': ['vocabulary', 'word', 'dictionary', 'từ vựng'],
+      'grammar': ['grammar', 'fill_blank', 'sentence', 'ngữ pháp'],
+      'reading': ['reading', 'read', 'đọc'],
+      'writing': ['writing', 'write', 'viết'],
+      'pronunciation': ['pronunciation', 'phonetic', 'phát âm'],
+      'business': ['business', 'meeting', 'work', 'công việc'],
+      'travel': ['travel', 'airport', 'hotel', 'du lịch'],
+      'exam': ['ielts', 'toeic', 'exam', 'test', 'thi'],
+    };
+
+    for (final skill in _surveySelectedSkills) {
+      final keywords = skillKeywordMap[skill] ?? [skill];
+      for (final keyword in keywords) {
+        if (text.contains(keyword)) {
+          score += 6;
+        }
+      }
+    }
+
+    final reason = _surveyLearningReason ?? '';
+    if (reason.isNotEmpty) {
+      if (reason.contains('travel') && text.contains('travel')) score += 5;
+      if ((reason.contains('work') || reason.contains('business')) &&
+          (text.contains('business') || text.contains('work'))) {
+        score += 5;
+      }
+      if ((reason.contains('exam') || reason.contains('ielts') || reason.contains('toeic')) &&
+          (text.contains('exam') || text.contains('ielts') || text.contains('toeic'))) {
+        score += 5;
+      }
+      if ((reason.contains('communication') || reason.contains('giao tiếp')) &&
+          (text.contains('conversation') || text.contains('giao tiếp'))) {
+        score += 5;
+      }
+    }
+
+    final level = _surveyEnglishLevel ?? '';
+    if (level.isNotEmpty) {
+      if ((level.contains('beginner') || level.contains('a1') || level.contains('a2')) &&
+          lesson.level == 'beginner') {
+        score += 4;
+      }
+      if ((level.contains('intermediate') || level.contains('b1') || level.contains('b2')) &&
+          lesson.level == 'intermediate') {
+        score += 4;
+      }
+      if ((level.contains('advanced') || level.contains('c1') || level.contains('c2')) &&
+          lesson.level == 'advanced') {
+        score += 4;
+      }
+    }
+
+    return score;
   }
 
   Widget _buildFilterButton(

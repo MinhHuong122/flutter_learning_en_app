@@ -651,7 +651,21 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   String _normalizeQuestionType(String? type) {
-    return (type ?? '').toLowerCase().trim();
+    final normalized = (type ?? '').toLowerCase().trim();
+
+    switch (normalized) {
+      case 'mcq_en_vi':
+        return 'multiple_choice';
+      case 'mcq_vi_en':
+        return 'translation';
+      case 'true_false':
+        return 'multiple_choice';
+      case 'unscramble':
+      case 'spelling':
+        return 'dictation';
+      default:
+        return normalized;
+    }
   }
 
   /// Render by resolved type

@@ -13,6 +13,7 @@ import 'process_screen.dart';
 import 'chat_ai_screen.dart';
 import 'archive_screen.dart';
 import 'app_info_screen.dart';
+import 'help_center_screen.dart';
 import 'edit_profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -385,7 +386,14 @@ class _AccountScreenState extends State<AccountScreen> {
                           _buildMenuItem(
                             Icons.help,
                             _isEnglish ? 'Help Center' : 'Hỗ trợ',
-                            onTap: () {},
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const HelpCenterScreen(),
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 16),
                           // Logout button

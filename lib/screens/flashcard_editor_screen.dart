@@ -229,13 +229,8 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
     );
   }
 
-  void _showConfirmExitDialog() {
-    if (!_hasChanges) {
-      Navigator.pop(context);
-      return;
-    }
-
-    showDialog(
+  Future<bool> _confirmExitDialog() async {
+    final shouldLeave = await showDialog<bool>(
       context: context,
       barrierColor: Colors.black.withOpacity(0.2),
       builder: (context) => Dialog(
@@ -267,7 +262,9 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
 
               // Title
               Text(
-                _isEnglish ? 'Discard Changes?' : 'Bỏ qua thay đổi?',
+                _hasChanges
+                    ? (_isEnglish ? 'Discard Changes?' : 'Bỏ qua thay đổi?')
+                    : (_isEnglish ? 'Leave Editor?' : 'Thoát chỉnh sửa?'),
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
@@ -279,9 +276,13 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
 
               // Message
               Text(
-                _isEnglish
+                _hasChanges
+                  ? (_isEnglish
                     ? 'You have unsaved changes. Do you want to go back?'
-                    : 'Bạn có những thay đổi chưa lưu. Bạn có muốn quay lại?',
+                    : 'Bạn có những thay đổi chưa lưu. Bạn có muốn quay lại?')
+                  : (_isEnglish
+                    ? 'Do you want to go back or continue editing?'
+                    : 'Bạn muốn quay lại hay tiếp tục chỉnh sửa?'),
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
@@ -296,7 +297,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Navigator.pop(context, false),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -319,10 +320,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context); // Close dialog
-                        Navigator.pop(context); // Go back
-                      },
+                      onTap: () => Navigator.pop(context, true),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -349,6 +347,20 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
         ),
       ),
     );
+
+    return shouldLeave ?? false;
+  }
+
+  Future<void> _showConfirmExitDialog() async {
+    final shouldLeave = await _confirmExitDialog();
+    if (!mounted) return;
+    if (shouldLeave) {
+      Navigator.pop(context);
+    }
+  }
+
+  Future<bool> _handleBackPressed() async {
+    return _confirmExitDialog();
   }
 
   void _editWord(int index) {
@@ -1012,9 +1024,11 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
   @override
   Widget build(BuildContext context) {
     print('🎨 Building FlashcardEditorScreen - lessonId: ${widget.lessonId}, vocab count: ${_vocabularyList.length}, loading: $_isLoadingData');
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
+    return WillPopScope(
+      onWillPop: _handleBackPressed,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Column(
           children: [
           // Fixed Header
           Container(
@@ -1292,6 +1306,7 @@ class _FlashcardEditorScreenState extends State<FlashcardEditorScreen> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

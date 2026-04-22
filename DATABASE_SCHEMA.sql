@@ -80,10 +80,16 @@ ALTER TABLE user_answers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lessons are viewable by all" ON lessons FOR SELECT USING (true);
 
 -- RLS Policies for lesson_questions (readable by anyone)
+DROP POLICY IF EXISTS "Questions are viewable by all" ON lesson_questions;
+DROP POLICY IF EXISTS "Authenticated users can manage quiz questions" ON lesson_questions;
 CREATE POLICY "Questions are viewable by all" ON lesson_questions FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can manage quiz questions" ON lesson_questions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- RLS Policies for lesson_options (readable by anyone)
+DROP POLICY IF EXISTS "Options are viewable by all" ON lesson_options;
+DROP POLICY IF EXISTS "Authenticated users can manage quiz options" ON lesson_options;
 CREATE POLICY "Options are viewable by all" ON lesson_options FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can manage quiz options" ON lesson_options FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- RLS Policies for user_lesson_progress (users can only see their own)
 CREATE POLICY "Users can view own progress" ON user_lesson_progress FOR SELECT USING (auth.uid() = user_id);

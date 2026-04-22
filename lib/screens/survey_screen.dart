@@ -75,7 +75,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
 
   List<Map<String, String>> get _backgroundOptions => [
     {'id': 'basic_lessons', 'en': 'Start from basic lessons', 'vi': 'Bắt đầu từ học cơ bản (theo từng bài học)'},
-    {'id': 'level_test', 'en': 'Take level test', 'vi': 'Học theo trình độ hiện tại (có bài test phân cấp)'},
+    {'id': 'topic_based', 'en': 'Learn by favorite topics', 'vi': 'Học theo chủ đề bạn yêu thích'},
   ];
 
   List<Map<String, String>> get _durationOptions => [

@@ -503,7 +503,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
   String _getGreetingMessage() {
     switch (_currentQuestion) {
       case 0:
-        return 'Hi there! I\'m Pupu\n What\'s your name?';
+        return 'Hi there! I\'m PUPU\n What\'s your name?';
       case 1:
         return 'What\'s your level?';
       case 2:
@@ -522,7 +522,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
   String _getGreetingMessageVi() {
     switch (_currentQuestion) {
       case 0:
-        return 'Xin chào! Tôi là Mr. Lingo\nAnd you?';
+        return 'Xin chào! Tôi là PUPU\nAnd you?';
       case 1:
         return 'Trình độ của bạn?';
       case 2:

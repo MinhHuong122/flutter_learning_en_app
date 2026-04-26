@@ -223,12 +223,10 @@ class LessonService {
         'spelling',
       ];
 
-      final questionCount = selectedVocabulary.length < questionTypes.length
-          ? selectedVocabulary.length
-          : questionTypes.length;
+      final questionCount = questionTypes.length;
 
       for (var index = 0; index < questionCount; index++) {
-        final source = selectedVocabulary[index];
+        final source = selectedVocabulary[index % selectedVocabulary.length];
         final questionType = questionTypes[index];
 
         switch (questionType) {
@@ -288,11 +286,17 @@ class LessonService {
             );
             break;
           case 'true_false':
-            final useTrueStatement = index.isEven;
-            final falseMeaning = selectedVocabulary.firstWhere(
-              (item) => item['vietnameseMeaning'] != source['vietnameseMeaning'] || item['term'] != source['term'],
-              orElse: () => source,
-            )['vietnameseMeaning']!;
+            final alternativeMeanings = selectedVocabulary
+                .where((item) =>
+                    item['term'] != source['term'] &&
+                    item['vietnameseMeaning'] != source['vietnameseMeaning'])
+                .map((item) => item['vietnameseMeaning']!)
+                .toList();
+            final canMakeFalseStatement = alternativeMeanings.isNotEmpty;
+            final useTrueStatement = !canMakeFalseStatement || index.isEven;
+            final falseMeaning = canMakeFalseStatement
+                ? alternativeMeanings.first
+                : source['vietnameseMeaning']!;
             await _insertMultipleChoiceQuestion(
               lessonId: lessonId,
               questionOrder: index + 1,

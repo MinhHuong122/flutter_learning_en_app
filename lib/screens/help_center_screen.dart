@@ -253,7 +253,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                                   child: Text(
                                     _isEnglish
                                         ? 'Everything you can do in PUPU'
-                                        : 'Toan bo tinh nang ban co the dung trong PUPU',
+                                        : 'Toàn bộ tính năng bạn có thể dùng trong PUPU',
                                     textAlign: TextAlign.center,
                                     style: GoogleFonts.poppins(
                                       fontSize: 22,
@@ -269,7 +269,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                             Text(
                               _isEnglish
                                   ? 'Find answers and learn how to master your study journey.'
-                                  : 'Tim cau tra loi va kham pha cach tan dung toi da hanh trinh hoc tap cua ban.',
+                                  : 'Tìm câu trả lời và khám phá cách tận dụng tối đa hành trình học tập của bạn.',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                 fontSize: 13,

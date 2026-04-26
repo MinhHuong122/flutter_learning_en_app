@@ -462,7 +462,7 @@ class _QuizScreenState extends State<QuizScreen> {
         if (_showExplanation && question.explanation != null)
           _buildExplanation(question.explanation!),
         
-        if (!['fill_blank', 'matching', 'dictation', 'conversation']
+        if (!['fill_blank', 'matching', 'dictation', 'conversation', 'unscramble', 'spelling']
             .contains(_resolveQuestionType(question))) ...[
           const SizedBox(height: 24),
           _buildActionButton(question),
@@ -601,6 +601,8 @@ class _QuizScreenState extends State<QuizScreen> {
     
     switch (questionType) {
       case 'fill_blank':
+      case 'unscramble':
+      case 'spelling':
         _submitFillBlank(question.correctAnswer ?? '');
         break;
       case 'matching':
@@ -610,6 +612,9 @@ class _QuizScreenState extends State<QuizScreen> {
         _submitDictation(question.correctAnswer ?? '');
         break;
       case 'multiple_choice':
+      case 'mcq_en_vi':
+      case 'mcq_vi_en':
+      case 'true_false':
       case 'translation':
       case 'listening_choice':
       case 'listening':
@@ -638,8 +643,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
     print('🔍 DEBUG - Raw type from DB: "$rawType" | Text: "$preview"');
 
-    // Priority 1: use DB type if valid and not default fallback.
-    if (rawType.isNotEmpty && rawType != 'multiple_choice') {
+    // Priority 1: use DB type when available.
+    if (rawType.isNotEmpty) {
       print('✅ Using DB type: $rawType');
       return rawType;
     }
@@ -654,15 +659,11 @@ class _QuizScreenState extends State<QuizScreen> {
     final normalized = (type ?? '').toLowerCase().trim();
 
     switch (normalized) {
-      case 'mcq_en_vi':
+      case 'mcq':
+      case 'multiple-choice':
         return 'multiple_choice';
-      case 'mcq_vi_en':
-        return 'translation';
-      case 'true_false':
-        return 'multiple_choice';
-      case 'unscramble':
-      case 'spelling':
-        return 'dictation';
+      case 'listen_choice':
+        return 'listening_choice';
       default:
         return normalized;
     }
@@ -672,9 +673,15 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _buildByType(String type, LessonQuestion question) {
     print('🎯 buildByType() => $type for ${question.id}');
     switch (type) {
+      case 'mcq_en_vi':
+      case 'true_false':
+        return _buildMultipleChoice(question);
+      case 'mcq_vi_en':
       case 'translation':
         return _buildTranslation(question);
       case 'fill_blank':
+      case 'unscramble':
+      case 'spelling':
         return _buildFillBlank(question);
       case 'matching':
         return _buildMatching(question);
@@ -715,6 +722,12 @@ class _QuizScreenState extends State<QuizScreen> {
       return 'fill_blank';
     }
 
+    if (text.contains('sắp xếp') ||
+        text.contains('unscramble') ||
+        text.contains('chữ cái')) {
+      return 'unscramble';
+    }
+
     // 3. Dictation
     if (text.contains('listen and spell') ||
         text.contains('listen and type') ||
@@ -723,6 +736,11 @@ class _QuizScreenState extends State<QuizScreen> {
         text.contains('spell the word') ||
         text.contains('type what you hear')) {
       return 'dictation';
+    }
+
+    if (text.contains('viết đúng chính tả') ||
+        text.contains('spelling from meaning')) {
+      return 'spelling';
     }
 
     // 4. Matching by content
@@ -1895,8 +1913,16 @@ class _QuizScreenState extends State<QuizScreen> {
     switch (type) {
       case 'multiple_choice':
         return const Color(0xFF818CF8);
+      case 'mcq_en_vi':
+        return const Color(0xFF6366F1);
+      case 'mcq_vi_en':
+        return const Color(0xFF8B5CF6);
+      case 'true_false':
+        return const Color(0xFF10B981);
       case 'fill_blank':
         return const Color(0xFFF59E0B);
+      case 'unscramble':
+        return const Color(0xFFF97316);
       case 'matching':
         return const Color(0xFF34D399);
       case 'listening':
@@ -1909,6 +1935,8 @@ class _QuizScreenState extends State<QuizScreen> {
         return const Color(0xFF60A5FA);
       case 'dictation':
         return const Color(0xFFEC4899);
+      case 'spelling':
+        return const Color(0xFFD946EF);
       default:
         return AppColors.primaryColor;
     }
@@ -1918,8 +1946,16 @@ class _QuizScreenState extends State<QuizScreen> {
     switch (type) {
       case 'multiple_choice':
         return _isEnglish ? 'Multiple Choice' : 'Chọn đáp án';
+      case 'mcq_en_vi':
+        return _isEnglish ? 'EN -> VI Choice' : 'Chọn nghĩa EN -> VI';
+      case 'mcq_vi_en':
+        return _isEnglish ? 'VI -> EN Choice' : 'Chọn từ VI -> EN';
+      case 'true_false':
+        return _isEnglish ? 'True / False' : 'Đúng / Sai';
       case 'fill_blank':
         return _isEnglish ? 'Fill in the Blank' : 'Điền vào chỗ trống';
+      case 'unscramble':
+        return _isEnglish ? 'Unscramble Word' : 'Sắp xếp chữ cái';
       case 'matching':
         return _isEnglish ? 'Matching' : 'Nối cặp';
       case 'listening':
@@ -1932,6 +1968,8 @@ class _QuizScreenState extends State<QuizScreen> {
         return _isEnglish ? 'Conversation' : 'Hội thoại';
       case 'dictation':
         return _isEnglish ? 'Dictation' : 'Chính tả';
+      case 'spelling':
+        return _isEnglish ? 'Spelling' : 'Chính tả theo nghĩa';
       default:
         return type;
     }

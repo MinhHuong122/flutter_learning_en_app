@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class GeminiVoiceCoach {
   static const String _defaultModel = 'gemini-2.0-flash-exp';
   // Replace with your actual API key or use environment variable
-  static const String _defaultApiKey = 'AIzaSyC2VellUpFjq-iFqpAi3ey4OVsqqcn5O3o';
+  static const String _defaultApiKey = 'AIzaSyB_L3mNuiVhy00-rlC5RF2W7hfLcSBqxbk';
 
   final String apiKey;
   final String model;

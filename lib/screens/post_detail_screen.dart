@@ -302,7 +302,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               try {
                 await context.read<CommunityService>().deletePost(_post.id);
                 if (!mounted) return;
-                Navigator.pop(context); // Exit post detail screen
+                Navigator.pop(context, true); // Exit post detail screen and signal refresh
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(_isEnglish ? 'Post deleted' : 'Đã xóa bài viết')),
                 );
@@ -535,6 +535,80 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             ],
                           ),
                         ),
+
+                        // If this post is a share, render original post preview
+                        if (_post.sharedPostContent != null)
+                          Container(
+                            margin: const EdgeInsets.only(top: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF9FAFB),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: const Color(0xFFE5E7EB)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [AppColors.primaryColor, AppColors.primaryLight],
+                                        ),
+                                      ),
+                                      child: (_post.sharedPostUserAvatar != null && _post.sharedPostUserAvatar!.isNotEmpty)
+                                          ? ClipOval(child: Image.network(_post.sharedPostUserAvatar!, fit: BoxFit.cover))
+                                          : Center(
+                                              child: Text(
+                                                _post.sharedPostUserName != null && _post.sharedPostUserName!.isNotEmpty
+                                                    ? _post.sharedPostUserName![0].toUpperCase()
+                                                    : 'U',
+                                                style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                                              ),
+                                            ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(_post.sharedPostUserName ?? (_isEnglish ? 'Original' : 'Bản gốc'), style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w700)),
+                                          if (_post.sharedPostCreatedAt != null)
+                                            Text(_formatTime(_post.sharedPostCreatedAt!), style: GoogleFonts.poppins(fontSize: 11, color: const Color(0xFF9CA3AF))),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Text(_post.sharedPostContent ?? '', style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF4B5563))),
+                                const SizedBox(height: 8),
+                                if (_post.sharedPostImageUrl != null)
+                                  GestureDetector(
+                                    onTap: () => _showImageFullScreen(_post.sharedPostImageUrl!),
+                                    child: Container(
+                                      width: double.infinity,
+                                      height: 180,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        image: DecorationImage(image: NetworkImage(_post.sharedPostImageUrl!), fit: BoxFit.cover),
+                                      ),
+                                    ),
+                                  ),
+                                if (_post.sharedPostFileUrl != null)
+                                  Container(
+                                    margin: const EdgeInsets.only(top: 8),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
+                                    child: Row(children: [Icon(Icons.insert_drive_file, color: AppColors.primaryColor), const SizedBox(width: 8), Expanded(child: Text(_post.sharedPostFileName ?? 'File', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryColor)))]),
+                                  ),
+                              ],
+                            ),
+                          ),
 
                         // Actions
                         Container(

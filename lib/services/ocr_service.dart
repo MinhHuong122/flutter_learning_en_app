@@ -7,7 +7,7 @@ import '../models/dictionary_model.dart';
 import 'supabase_dictionary_service.dart';
 
 class OcrService {
-  static const String _geminiApiKey = 'AIzaSyCa5OMBW3E56QJp-doAlrmB5235VzBRNxY';
+  static const String _geminiApiKey = 'AIzaSyD2Yh0c0tpL_yjQS1_gajS3SOepDuG8lLo';
   late GenerativeModel _model;
   final SupabaseDictionaryService _dictionaryService = SupabaseDictionaryService();
 

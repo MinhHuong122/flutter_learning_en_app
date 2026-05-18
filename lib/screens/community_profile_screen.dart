@@ -800,10 +800,16 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
       itemBuilder: (context, index) {
         final post = _userPosts[index];
         return GestureDetector(
-          onTap: () => Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => PostDetailScreen(post: post)),
-          ),
+            );
+
+            if (result == true && mounted) {
+              await _refreshPage();
+            }
+          },
           child: _buildPostPreview(post),
         );
       },
@@ -1242,6 +1248,78 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
               ),
             ),
 
+            // If this post is a share, show nested original post preview
+            if (post.sharedPostContent != null)
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF9FAFB),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFD6E3FF)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(colors: [AppColors.primaryColor, AppColors.primaryLight]),
+                          ),
+                          child: (post.sharedPostUserAvatar != null && post.sharedPostUserAvatar!.isNotEmpty)
+                              ? ClipOval(child: Image.network(post.sharedPostUserAvatar!, fit: BoxFit.cover))
+                              : Center(
+                                  child: Text(
+                                    post.sharedPostUserName != null && post.sharedPostUserName!.isNotEmpty
+                                        ? post.sharedPostUserName![0].toUpperCase()
+                                        : 'U',
+                                    style: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(post.sharedPostUserName ?? (_isEnglish ? 'Original' : 'Bản gốc'), style: GoogleFonts.manrope(fontSize: 13, fontWeight: FontWeight.w700)),
+                              if (post.sharedPostCreatedAt != null)
+                                Text(_formatTime(post.sharedPostCreatedAt!), style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF4A6085))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(post.sharedPostContent ?? '', style: GoogleFonts.inter(fontSize: 13, color: const Color(0xFF1C3355))),
+                    const SizedBox(height: 8),
+                    if (post.sharedPostImageUrl != null)
+                      GestureDetector(
+                        onTap: () => _showImageFullScreen(post.sharedPostImageUrl!),
+                        child: Container(
+                          width: double.infinity,
+                          height: 140,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            image: DecorationImage(image: NetworkImage(post.sharedPostImageUrl!), fit: BoxFit.cover),
+                          ),
+                        ),
+                      ),
+                    if (post.sharedPostFileUrl != null)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(12)),
+                        child: Row(children: [Icon(Icons.insert_drive_file, color: AppColors.primaryColor), const SizedBox(width: 8), Expanded(child: Text(post.sharedPostFileName ?? (_isEnglish ? 'Attachment' : 'Tệp đính kèm'), style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryColor))) ]),
+                      ),
+                  ],
+                ),
+              ),
+
             // File attachment (if any)
             if (post.fileUrl != null)
               GestureDetector(
@@ -1384,6 +1462,21 @@ class _CommunityProfileScreenState extends State<CommunityProfileScreen> {
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showImageFullScreen(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: InteractiveViewer(
+            child: Image.network(imageUrl),
+          ),
         ),
       ),
     );

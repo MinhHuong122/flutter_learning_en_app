@@ -424,7 +424,7 @@ class _ArchiveScreenState extends State<ArchiveScreen> {
   // Direct Gemini API call
   Future<String> _callGeminiDirect(String userMessage) async {
     try {
-      const String apiKey = 'AIzaSyC2VellUpFjq-iFqpAi3ey4OVsqqcn5O3o';
+      const String apiKey = 'AIzaSyB_L3mNuiVhy00-rlC5RF2W7hfLcSBqxbk';
       const String model = 'gemini-2.0-flash-exp';
       
       print('🔄 Calling Gemini API directly...');

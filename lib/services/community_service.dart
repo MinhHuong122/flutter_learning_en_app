@@ -250,6 +250,45 @@ class CommunityService {
         postIds: postIds,
       );
 
+      // Preload original posts for any shared_post_id to avoid N+1 queries
+      final sharedIds = data
+          .map((post) => post['shared_post_id'] as String?)
+          .whereType<String>()
+          .toSet()
+          .toList();
+      final Map<String, Map<String, dynamic>> originalMap = {};
+      if (sharedIds.isNotEmpty) {
+        try {
+          final originals = await _supabase
+              .from('community_posts')
+              .select()
+              .inFilter('id', sharedIds) as List;
+
+          final originalUserIds = originals
+              .map((o) => o['user_id'] as String?)
+              .whereType<String>()
+              .toSet()
+              .toList();
+          final originalProfileMap = await _getUserInfoMap(originalUserIds);
+
+          for (final o in originals) {
+            final oid = o['id'] as String;
+            final oidUserId = o['user_id'] as String?;
+            final profile = oidUserId != null ? originalProfileMap[oidUserId] : null;
+            final displayName = (profile?['display_name']?.trim().isNotEmpty == true)
+                ? profile!['display_name']
+                : profile?['username'] ?? o['user_name'];
+            originalMap[oid] = {
+              ...o,
+              'user_name': displayName,
+              'user_avatar': profile?['avatar_url'] ?? o['user_avatar'],
+            };
+          }
+        } catch (_) {
+          // Ignore preload errors - fall back to per-item fetch
+        }
+      }
+
       // Check like status for each post
       final posts = <CommunityPost>[];
       for (final post in data) {
@@ -258,6 +297,36 @@ class CommunityService {
         if (userId.isNotEmpty) {
           isLiked = await isPostLikedByUser(postId, userId);
         }
+        // Attach shared post preview if available
+        Map<String, dynamic>? sharedPreview;
+        final sharedId = post['shared_post_id'] as String?;
+        if (sharedId != null) {
+          if (originalMap.containsKey(sharedId)) {
+            sharedPreview = originalMap[sharedId];
+          } else {
+            try {
+              final orig = await _supabase
+                  .from('community_posts')
+                  .select()
+                  .eq('id', sharedId)
+                  .maybeSingle();
+              if (orig != null) {
+                final userInfo = await _getCanonicalUserInfo(
+                  orig['user_id'] as String,
+                  fallbackName: orig['user_name'] as String?,
+                  fallbackAvatar: orig['user_avatar'] as String?,
+                );
+                sharedPreview = {
+                  ...orig,
+                  'user_name': userInfo['user_name'],
+                  'user_avatar': userInfo['user_avatar'],
+                };
+              }
+            } catch (_) {
+              // ignore
+            }
+          }
+        }
 
         final postUserId = post['user_id'] as String?;
         final profile = postUserId != null ? profileMap[postUserId] : null;
@@ -265,7 +334,7 @@ class CommunityService {
             ? profile!['display_name']
             : profile?['username'];
 
-        posts.add(CommunityPost.fromJson({
+        final merged = {
           ...post,
           'likes': likeCountMap[postId] ?? 0,
           'comments': commentCountMap[postId] ?? 0,
@@ -273,7 +342,24 @@ class CommunityService {
           'user_name': displayName ?? post['user_name'],
           'user_avatar': profile?['avatar_url'] ?? post['user_avatar'],
           'is_liked_by_me': isLiked,
-        }));
+        };
+
+        if (sharedPreview != null) {
+          merged.addAll({
+            'shared_post_id': sharedPreview['id'] as String?,
+            'shared_post_content': sharedPreview['content'] as String?,
+            'shared_post_image_url': sharedPreview['image_url'] as String?,
+            'shared_post_file_url': sharedPreview['file_url'] as String?,
+            'shared_post_file_name': sharedPreview['file_name'] as String?,
+            'shared_post_user_id': sharedPreview['user_id'] as String?,
+            'shared_post_user_name': sharedPreview['user_name'] as String?,
+            'shared_post_user_avatar': sharedPreview['user_avatar'] as String?,
+            'shared_post_created_at': sharedPreview['created_at'] as String?,
+          });
+        }
+
+        // Ensure merged is Map<String, dynamic> before passing to fromJson
+        posts.add(CommunityPost.fromJson(Map<String, dynamic>.from(merged)));
       }
       return posts;
     } catch (e) {
@@ -299,6 +385,34 @@ class CommunityService {
         fallbackName: data['user_name'] as String?,
         fallbackAvatar: data['user_avatar'] as String?,
       );
+
+      // If this post is a share, try to fetch the original post for preview
+      if (data['shared_post_id'] != null) {
+        try {
+          final orig = await _supabase
+              .from('community_posts')
+              .select()
+              .eq('id', data['shared_post_id'] as String)
+              .maybeSingle();
+          if (orig != null) {
+            final origUserInfo = await _getCanonicalUserInfo(
+              orig['user_id'] as String,
+              fallbackName: orig['user_name'] as String?,
+              fallbackAvatar: orig['user_avatar'] as String?,
+            );
+            data['shared_post_content'] = orig['content'];
+            data['shared_post_image_url'] = orig['image_url'];
+            data['shared_post_file_url'] = orig['file_url'];
+            data['shared_post_file_name'] = orig['file_name'];
+            data['shared_post_user_id'] = orig['user_id'];
+            data['shared_post_user_name'] = origUserInfo['user_name'];
+            data['shared_post_user_avatar'] = origUserInfo['user_avatar'];
+            data['shared_post_created_at'] = orig['created_at'];
+          }
+        } catch (_) {
+          // ignore
+        }
+      }
 
       return CommunityPost.fromJson({
         ...data,

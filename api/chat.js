@@ -9,7 +9,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Message is required" });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || "AIzaSyB_L3mNuiVhy00-rlC5RF2W7hfLcSBqxbk";
     if (!apiKey) {
       return res.status(500).json({ error: "API key not configured" });
     }

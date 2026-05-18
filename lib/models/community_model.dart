@@ -9,6 +9,16 @@ class CommunityPost {
   String? fileUrl; // URL file (PDF, Doc, etc)
   String? fileName; // Tên file
   String? fileMimeType; // MIME type của file
+  // If this post is a share of another post
+  String? sharedPostId;
+  String? sharedPostContent;
+  String? sharedPostImageUrl;
+  String? sharedPostFileUrl;
+  String? sharedPostFileName;
+  String? sharedPostUserId;
+  String? sharedPostUserName;
+  String? sharedPostUserAvatar;
+  DateTime? sharedPostCreatedAt;
   List<String> categoryTags; // ['Discussion', 'Resources', 'Study Groups']
   int likes;
   int comments;
@@ -27,6 +37,15 @@ class CommunityPost {
     this.fileUrl,
     this.fileName,
     this.fileMimeType,
+    this.sharedPostId,
+    this.sharedPostContent,
+    this.sharedPostImageUrl,
+    this.sharedPostFileUrl,
+    this.sharedPostFileName,
+    this.sharedPostUserId,
+    this.sharedPostUserName,
+    this.sharedPostUserAvatar,
+    this.sharedPostCreatedAt,
     this.categoryTags = const [],
     this.likes = 0,
     this.comments = 0,
@@ -47,6 +66,15 @@ class CommunityPost {
         'file_url': fileUrl,
         'file_name': fileName,
         'file_mime_type': fileMimeType,
+        'shared_post_id': sharedPostId,
+        'shared_post_content': sharedPostContent,
+        'shared_post_image_url': sharedPostImageUrl,
+        'shared_post_file_url': sharedPostFileUrl,
+        'shared_post_file_name': sharedPostFileName,
+        'shared_post_user_id': sharedPostUserId,
+        'shared_post_user_name': sharedPostUserName,
+        'shared_post_user_avatar': sharedPostUserAvatar,
+        'shared_post_created_at': sharedPostCreatedAt?.toIso8601String(),
         'category_tags': categoryTags,
         'likes': likes,
         'comments': comments,
@@ -67,6 +95,17 @@ class CommunityPost {
         fileUrl: json['file_url'] as String?,
         fileName: json['file_name'] as String?,
         fileMimeType: json['file_mime_type'] as String?,
+        sharedPostId: json['shared_post_id'] as String?,
+        sharedPostContent: json['shared_post_content'] as String?,
+        sharedPostImageUrl: json['shared_post_image_url'] as String?,
+        sharedPostFileUrl: json['shared_post_file_url'] as String?,
+        sharedPostFileName: json['shared_post_file_name'] as String?,
+        sharedPostUserId: json['shared_post_user_id'] as String?,
+        sharedPostUserName: json['shared_post_user_name'] as String?,
+        sharedPostUserAvatar: json['shared_post_user_avatar'] as String?,
+        sharedPostCreatedAt: json['shared_post_created_at'] != null
+          ? DateTime.parse(json['shared_post_created_at'] as String)
+          : null,
         categoryTags: List<String>.from(json['category_tags'] as List<dynamic>? ?? []),
         likes: (json['likes'] as num?)?.toInt() ?? 0,
         comments: (json['comments'] as num?)?.toInt() ?? 0,
@@ -87,6 +126,15 @@ class CommunityPost {
     String? fileUrl,
     String? fileName,
     String? fileMimeType,
+    String? sharedPostId,
+    String? sharedPostContent,
+    String? sharedPostImageUrl,
+    String? sharedPostFileUrl,
+    String? sharedPostFileName,
+    String? sharedPostUserId,
+    String? sharedPostUserName,
+    String? sharedPostUserAvatar,
+    DateTime? sharedPostCreatedAt,
     List<String>? categoryTags,
     int? likes,
     int? comments,
@@ -105,6 +153,15 @@ class CommunityPost {
         fileUrl: fileUrl ?? this.fileUrl,
         fileName: fileName ?? this.fileName,
         fileMimeType: fileMimeType ?? this.fileMimeType,
+        sharedPostId: sharedPostId ?? this.sharedPostId,
+        sharedPostContent: sharedPostContent ?? this.sharedPostContent,
+        sharedPostImageUrl: sharedPostImageUrl ?? this.sharedPostImageUrl,
+        sharedPostFileUrl: sharedPostFileUrl ?? this.sharedPostFileUrl,
+        sharedPostFileName: sharedPostFileName ?? this.sharedPostFileName,
+        sharedPostUserId: sharedPostUserId ?? this.sharedPostUserId,
+        sharedPostUserName: sharedPostUserName ?? this.sharedPostUserName,
+        sharedPostUserAvatar: sharedPostUserAvatar ?? this.sharedPostUserAvatar,
+        sharedPostCreatedAt: sharedPostCreatedAt ?? this.sharedPostCreatedAt,
         categoryTags: categoryTags ?? this.categoryTags,
         likes: likes ?? this.likes,
         comments: comments ?? this.comments,
